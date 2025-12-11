@@ -798,6 +798,10 @@
 
 	if (urlParams.get('style') == 'midnight') {
 		style = '/pitch-black.json';
+	} else {
+		if (urlParams.get('style') == 'nothing') {
+			style = '/nothing-light.json';
+		}
 	}
 
 	function recompute_map_padding() {
