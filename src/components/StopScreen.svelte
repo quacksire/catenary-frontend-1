@@ -325,7 +325,7 @@
 			// The prompt says "If it is a train station (has route type 2), or we are requesting LOTS of shapes"
 			// "LOTS" might mean the total number of shapes in `missing_shapes` is large.
 			const isRail = route_type === 2;
-			const isLots = missing_shapes.length > 10;
+			const isLots = missing_shapes.length > 7;
 
 			if (isRail || isLots) {
 				// Optimization strategy
