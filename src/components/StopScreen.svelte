@@ -184,8 +184,15 @@
 				primeMapContextFromMeta();
 			} else {
 				// Merge routes/shapes per chateau
-				data_meta.routes = { ...(data_meta.routes || {}), ...(data.routes || {}) };
-				data_meta.shapes = { ...(data_meta.shapes || {}), ...(data.shapes || {}) };
+				// Merge routes/shapes per chateau
+				if (!data_meta.routes) data_meta.routes = {};
+				for (const [chateau, routes] of Object.entries(data.routes || {})) {
+					data_meta.routes[chateau] = { ...(data_meta.routes[chateau] || {}), ...(routes as any) };
+				}
+				if (!data_meta.shapes) data_meta.shapes = {};
+				for (const [chateau, shapes] of Object.entries(data.shapes || {})) {
+					data_meta.shapes[chateau] = { ...(data_meta.shapes[chateau] || {}), ...(shapes as any) };
+				}
 				if (!data_meta.primary && data.primary) data_meta.primary = data.primary;
 			}
 
@@ -722,19 +729,19 @@
 										class={`${(event.realtime_departure || event.scheduled_departure) < current_time / 1000 && event.scheduled_departure < current_time / 1000 ? 'opacity-80' : ''} ${event.trip_cancelled ? 'opacity-60' : ''}`}
 									>
 										<p>
-											{#if data_meta.routes[event.chateau][event.route_id].short_name}
+											{#if data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
 												<span
 													class="rounded-xs font-bold px-0.5 mx-1 py-0.5"
-													style={`background: ${data_meta.routes[event.chateau][event.route_id].color}; color: ${data_meta.routes[event.chateau][event.route_id].text_color};`}
+													style={`background: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.color}; color: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color};`}
 												>
-													{data_meta.routes[event.chateau][event.route_id].short_name}
+													{data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
 												</span>
-											{:else if data_meta.routes[event.chateau][event.route_id].long_name}
+											{:else if data_meta.routes?.[event.chateau]?.[event.route_id]?.long_name}
 												<span
 													class="rounded-xs font-semibold px-0.5 mx-1 py-0.5"
-													style={`background: ${data_meta.routes[event.chateau][event.route_id].color}; color: ${data_meta.routes[event.chateau][event.route_id].text_color};`}
+													style={`background: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.color}; color: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color};`}
 												>
-													{data_meta.routes[event.chateau][event.route_id].long_name}
+													{data_meta.routes?.[event.chateau]?.[event.route_id]?.long_name}
 												</span>
 											{/if}
 											{#if event.trip_short_name}
