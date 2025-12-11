@@ -96,7 +96,8 @@
 			stop_id,
 			chateau_id: chateau,
 			greater_than_time: String(startSec),
-			less_than_time: String(endSec)
+			less_than_time: String(endSec),
+			include_shapes: String(false)
 		});
 		return `${base}?${params.toString()}`;
 	}
