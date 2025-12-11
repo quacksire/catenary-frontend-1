@@ -11,7 +11,6 @@
 	import DelayDiff from './DelayDiff.svelte';
 	import TimeDiff from './TimeDiff.svelte';
 	import AlertBox from './serviceAlerts.svelte';
-	import polyline from '@mapbox/polyline';
 	import { writable, get } from 'svelte/store';
 	import {
 		fixHeadsignIcon,
@@ -107,6 +106,8 @@
 
 	let sort_order_of_dir_parents_store: string[] = [];
 
+	let fetched_shapes: Record<string, any> = {};
+
 	function fix_route_url(x: string): string {
 		if (x.includes('foothilltransit.org') && !x.includes('www.foothilltransit.org')) {
 			return x.replace('foothilltransit.org', 'www.foothilltransit.org');
@@ -153,7 +154,27 @@
 		}
 	}
 
-	function change_active_pattern(pattern: string) {
+	async function fetch_shape(chateau: string, shape_id: string) {
+		if (fetched_shapes[shape_id]) {
+			return fetched_shapes[shape_id];
+		}
+
+		let url = `https://birch.catenarymaps.org/get_shape?chateau=${encodeURIComponent(chateau)}&shape_id=${encodeURIComponent(shape_id)}`;
+
+		try {
+			const response = await fetch(url);
+			if (response.ok) {
+				const data = await response.json();
+				fetched_shapes[shape_id] = data;
+				return data;
+			}
+		} catch (e) {
+			console.error('Error fetching shape', e);
+		}
+		return null;
+	}
+
+	async function change_active_pattern(pattern: string) {
 		activePattern = pattern;
 
 		let map = get(map_pointer_store);
@@ -168,32 +189,64 @@
 		//console.log('shapeid', shape_id);
 
 		if (shape_id) {
-			if (route_data.shapes_polyline[shape_id]) {
-				let geojson_polyline_geo = polyline.toGeoJSON(route_data.shapes_polyline[shape_id]);
+			let geojson_polyline: any = null;
 
-				let geojson_polyline = {
-					geometry: geojson_polyline_geo,
+			// Check if we have the shape, or fetch it
+			if (fetched_shapes[shape_id]) {
+				geojson_polyline = fetched_shapes[shape_id];
+			} else {
+				// Fetch it
+				let shape_data = await fetch_shape(routestack.chateau_id, shape_id);
+				if (shape_data) {
+					geojson_polyline = shape_data;
+				}
+			}
+
+
+			if (geojson_polyline) {
+				// The new backend returns a Geometry (if asking for geojson), we need to wrap it in a Feature
+				// Or if it returns the full geojson structure from the tool description it says:
+				// "Default to GeoJSON ... GeoJson::Geometry(geometry)" which is just the geometry object if to_string() is called on that variant directly?
+				// Wait, the user provided backend says: `GeoJson::Geometry(geometry)` and `body(geojson.to_string())`.
+				// GeoJson enum to_string() usually produces `{"type": "LineString", "coordinates": [...]}` if it's a geometry variant.
+				// So we need to wrap it in a Feature.
+
+				let feature = {
 					type: 'Feature',
+					geometry: geojson_polyline.type ? geojson_polyline : geojson_polyline.geometry, // Handle if it returns geometry directly or wrapped
 					properties: {
 						text_color: route_data.text_color,
 						color: route_data.color,
 						route_label: route_data.route_short_name || route_data.route_long_name
 					}
 				};
+				
+				// Double check if fetch_shape returns the geometry directly or a feature.
+				// The backend returns `GeoJson::Geometry`.
+				// So `data` will be `{ "type": "LineString", "coordinates": [...] }`.
+				
+				if (!feature.geometry && geojson_polyline.coordinates) {
+					feature.geometry = geojson_polyline;
+				}
+
 
 				let geojson_source_new = {
 					type: 'FeatureCollection',
-					features: [geojson_polyline]
+					features: [feature]
 				};
 
-				map.getSource('transit_shape_context').setData(geojson_source_new);
+				if (map.getSource('transit_shape_context')) {
+					map.getSource('transit_shape_context').setData(geojson_source_new);
+				}
 
-				map?.getSource('transit_shape_context_detour').setData({
-					type: 'FeatureCollection',
-					features: []
-				});
+				if (map.getSource('transit_shape_context_detour')) {
+					map.getSource('transit_shape_context_detour').setData({
+						type: 'FeatureCollection',
+						features: []
+					});
+				}
 			}
-
+			
 			//now work on stops
 
 			let already_seen_stop_ids: string[] = [];
@@ -254,7 +307,9 @@
 				features: stops_features
 			};
 
-			map.getSource('stops_context').setData(stop_source_new);
+			if (map.getSource('stops_context')) {
+				map.getSource('stops_context').setData(stop_source_new);
+			}
 
 			//hide from background
 
@@ -395,7 +450,7 @@
 		}
 
 		let url = new URL(
-			`https://birch.catenarymaps.org/route_info?chateau=${encodeURIComponent(routestack.chateau_id)}&route_id=${encodeURIComponent(routestack.route_id.replace(/^\"/, '').replace(/\"$/, ''))}`
+			`https://birch.catenarymaps.org/route_info_v2?chateau=${encodeURIComponent(routestack.chateau_id)}&route_id=${encodeURIComponent(routestack.route_id.replace(/^\"/, '').replace(/\"$/, ''))}`
 		);
 
 		await fetch(url.toString()).then(async (response) => {
