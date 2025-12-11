@@ -91,7 +91,7 @@
 	}
 
 	function buildUrl(startSec: number, endSec: number) {
-		const base = 'https://birch.catenarymaps.org/departures_at_stop';
+		const base = 'https://birchdeparturesfromstop.catenarymaps.org/departures_at_stop';
 		const params = new URLSearchParams({
 			stop_id,
 			chateau_id: chateau,
