@@ -225,7 +225,7 @@
 	}
 
 	function get_shape_url(chateau: string, shape_id: string, params: any = {}) {
-		const base = 'https://birch.catenarymaps.org/get_shape';
+		const base = 'https://birchshapescustom.catenarymaps.org/get_shape';
 		const q = new URLSearchParams({
 			chateau,
 			shape_id,
