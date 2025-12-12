@@ -766,7 +766,7 @@
 									/>
 
 									{#if event.platform_string_realtime}
-										<p>{event.platform_string_realtime}</p>
+										<p>{$_("platform")} {event.platform_string_realtime}</p>
 									{/if}
 									{#if event.vehicle_number}
 										<p>{$_('vehicle')}: {event.vehicle_number}</p>
