@@ -9,39 +9,32 @@ export function calculateNewCoordinates(
 
 	const R = 6378.1; // Radius of the Earth
 	const brng = (bearing * Math.PI) / 180; // Convert bearing to radian
-	let lat = (latitude * Math.PI) / 180; // Current coords to radians
-	let lon = (longitude * Math.PI) / 180;
+	const lat1 = (latitude * Math.PI) / 180; // Current coords to radians
+	const lon1 = (longitude * Math.PI) / 180;
 
-	// Do the math magic
-	lat = Math.asin(
-		Math.sin(lat) * Math.cos(distance / R) + Math.cos(lat) * Math.sin(distance / R) * Math.cos(brng)
+	const lat2 = Math.asin(
+		Math.sin(lat1) * Math.cos(distance / R) + Math.cos(lat1) * Math.sin(distance / R) * Math.cos(brng)
 	);
-	lon += Math.atan2(
-		Math.sin(brng) * Math.sin(distance / R) * Math.cos(lat),
-		Math.cos(distance / R) - Math.sin(lat) * Math.sin(lat)
-	);
+	let lon2 =
+		lon1 +
+		Math.atan2(
+			Math.sin(brng) * Math.sin(distance / R) * Math.cos(lat1),
+			Math.cos(distance / R) - Math.sin(lat1) * Math.sin(lat2)
+		);
+
+	// Normalize to -180...180
+	lon2 = (lon2 + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
 
 	// Coords back to degrees and return
-	return { latitude: (lat * 180) / Math.PI, longitude: (lon * 180) / Math.PI };
+	return { latitude: (lat2 * 180) / Math.PI, longitude: (lon2 * 180) / Math.PI };
 }
 
 export function createGeoJSONCircle(center: number[], radiusInKm: number, points: number) {
-	const coords = {
-		latitude: center[1],
-		longitude: center[0]
-	};
-
 	const ret = [];
-	const distanceX = radiusInKm / (111.32 * Math.cos((coords.latitude * Math.PI) / 180));
-	const distanceY = radiusInKm / 110.574;
-
-	let theta, x, y;
 	for (let i = 0; i < points; i++) {
-		theta = (i / points) * (2 * Math.PI);
-		x = distanceX * Math.cos(theta);
-		y = distanceY * Math.sin(theta);
-
-		ret.push([coords.longitude + x, coords.latitude + y]);
+		const bearing = (i / points) * 360;
+		const newCoords = calculateNewCoordinates(center[1], center[0], bearing, radiusInKm);
+		ret.push([newCoords.longitude, newCoords.latitude]);
 	}
 	ret.push(ret[0]);
 
@@ -66,22 +59,11 @@ export function componentToHex(c: number) {
 }
 
 export function createGeoJSONCircleFeature(center: number[], radiusInKm: number, points: number) {
-	const coords = {
-		latitude: center[1],
-		longitude: center[0]
-	};
-
 	const ret = [];
-	const distanceX = radiusInKm / (111.32 * Math.cos((coords.latitude * Math.PI) / 180));
-	const distanceY = radiusInKm / 110.574;
-
-	let theta, x, y;
 	for (let i = 0; i < points; i++) {
-		theta = (i / points) * (2 * Math.PI);
-		x = distanceX * Math.cos(theta);
-		y = distanceY * Math.sin(theta);
-
-		ret.push([coords.longitude + x, coords.latitude + y]);
+		const bearing = (i / points) * 360;
+		const newCoords = calculateNewCoordinates(center[1], center[0], bearing, radiusInKm);
+		ret.push([newCoords.longitude, newCoords.latitude]);
 	}
 	ret.push(ret[0]);
 

@@ -21,7 +21,7 @@ export function addGeoRadius(map: maplibregl.Map) {
 			paint: {
 				'line-color': dark_mode ? '#dddddd' : '#121212',
 				'line-width': 1.2,
-				'line-opacity': 0.6
+				'line-opacity': 0.8
 				//'line-emissive-strength': 1
 			}
 		});
@@ -32,7 +32,7 @@ export function addGeoRadius(map: maplibregl.Map) {
 			source: 'km_source',
 			layout: {
 				'text-field': ['get', 'label'],
-				'text-font': ['Barlow-Medium'],
+				'text-font': ['Barlow-Bold'],
 				'symbol-placement': 'line',
 				'text-size': 8,
 				'symbol-spacing': 150,
@@ -61,7 +61,7 @@ export function addGeoRadius(map: maplibregl.Map) {
 			source: 'miles_source',
 			paint: {
 				'line-color': dark_mode ? '#dddddd' : '#121212',
-				'line-width': 1.2
+				'line-width': 1.5
 				//'line-emissive-strength': 1
 			}
 		});
@@ -95,7 +95,7 @@ export function setUserCircles(map: maplibregl.Map, lng: number, lat: number) {
 	const miles_source = map.getSource('miles_source') as maplibregl.GeoJSONSource;
 	const numberofpoints: number = 256;
 
-	const distances = [1, 2, 5, 10, 20, 50];
+	const distances = [0.5, 1, 2, 5, 10, 20, 50];
 
 	const feature_list = distances.map((dist) =>
 		createGeoJSONCircleFeature([lng, lat], dist, numberofpoints)
@@ -111,7 +111,16 @@ export function setUserCircles(map: maplibregl.Map, lng: number, lat: number) {
 	const use_us_units = get(usunits_store);
 
 	if (use_us_units) {
-		const miles_distances = [1, 2, 5, 10, 20, 50];
+		// Enabled: Make KM layer subtle
+		if (map.getLayer('km_line')) {
+			map.setPaintProperty('km_line', 'line-opacity', 0.4);
+		}
+		if (map.getLayer('km_text')) {
+			map.setLayoutProperty('km_text', 'text-font', ['Barlow-Medium']);
+			map.setPaintProperty('km_text', 'text-opacity', 0.4);
+		}
+
+		const miles_distances = [0.5, 1, 2, 5, 10, 20, 50];
 		const miles_feature_list = miles_distances.map((dist) => {
 			// Convert miles to KM for the geometry creation, but label it as miles
 			// 1 mile = 1.60934 km
@@ -131,6 +140,15 @@ export function setUserCircles(map: maplibregl.Map, lng: number, lat: number) {
 			});
 		}
 	} else {
+		// Disabled: Make KM layer prominent
+		if (map.getLayer('km_line')) {
+			map.setPaintProperty('km_line', 'line-opacity', 0.8);
+		}
+		if (map.getLayer('km_text')) {
+			map.setLayoutProperty('km_text', 'text-font', ['Barlow-Bold']);
+			map.setPaintProperty('km_text', 'text-opacity', 0.8);
+		}
+
 		if (miles_source) {
 			miles_source.setData({
 				type: 'FeatureCollection',
