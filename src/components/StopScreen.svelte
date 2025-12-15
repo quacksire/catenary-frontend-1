@@ -54,10 +54,10 @@
 	let eventIndex: Map<EventKey, { event: any; pageId: string; refreshedAt: number }>; // merged
 	let mergedEvents: any[] = [];
 
-	let pageTimers: Map<string, any>; // intervals per page
-
 	// dynamic page size in hours (auto-tunes based on density)
 	let currentPageHours = 1; // default page size
+
+	let refreshTimer: any;
 
 	let show_seconds = get(show_seconds_store);
 	let locale_inside_component = get(locale);
@@ -92,7 +92,9 @@
 		pages = [];
 		eventIndex = new Map();
 		mergedEvents = [];
-		pageTimers = new Map();
+		// Stop any existing refresh timer to restart fresh or just let it run?
+		// Better to restart it or just let the pages array being empty handle it.
+		// If we switch stops, pages=[] so refreshAllPages will do nothing.
 		dates_to_events_filtered = {};
 		fetched_shapes_cache = {};
 		data_meta = null;
@@ -179,14 +181,13 @@
 		).length;
 	}
 
-	async function fetchPage(startSec: number, endSec: number) {
-		const id = pageIdFor(startSec, endSec);
-		let page = pages.find((p) => p.id === id);
-		if (!page) {
-			page = { id, startSec, endSec, refreshedAt: 0, loading: true };
-			pages.push(page);
-		}
-		page.loading = true;
+	async function doFetch(
+		startSec: number,
+		endSec: number,
+		page?: { id: string; loading: boolean; refreshedAt: number; error?: string }
+	) {
+		const id = page?.id ?? pageIdFor(startSec, endSec);
+		if (page) page.loading = true;
 
 		try {
 			const resp = await fetch(buildUrl(startSec, endSec), { mode: 'cors' });
@@ -196,9 +197,9 @@
 			// Establish/merge meta (primary/routes/shapes) — keep latest
 			if (!data_meta) {
 				data_meta = data;
+				if (page) page.loading = false;
 				primeMapContextFromMeta();
 			} else {
-				// Merge routes/shapes per chateau
 				// Merge routes/shapes per chateau
 				if (!data_meta.routes) data_meta.routes = {};
 				for (const [chateau, routes] of Object.entries(data.routes || {})) {
@@ -212,38 +213,72 @@
 			}
 
 			const refreshedAt = Date.now();
-			page.refreshedAt = refreshedAt;
-			page.loading = false;
+			if (page) {
+				page.refreshedAt = refreshedAt;
+				page.loading = false;
+			}
 
 			const events = (data.events || []) as any[];
 			mergePageEvents(id, events, refreshedAt);
 
-			// Auto-tune next page size by density
-			currentPageHours = chooseNextPageHours(events.length);
-
-			// ensure per-page refresher
-			ensurePageRefresher(page);
+			// Auto-tune next page size by density (only if it's a primary page fetch)
+			if (page) {
+				currentPageHours = chooseNextPageHours(events.length);
+			}
 
 			await tick();
-			checkIfMoreNeeded(events.length === 0);
+			// Only check for more if this was a driven fetch (page exists) and not a background refresh
+			if (page) {
+				checkIfMoreNeeded(events.length === 0);
+			}
 		} catch (e) {
-			page.error = (e as Error).message;
-			page.loading = false;
+			if (page) {
+				page.error = (e as Error).message;
+				page.loading = false;
+			} else {
+				console.warn('Background refresh failed', e);
+			}
 		}
 	}
 
-	function ensurePageRefresher(page: { id: string; startSec: number; endSec: number }) {
-		if (pageTimers.has(page.id)) return;
-		const timer = setInterval(() => {
-			// Refetch this page; newer data will win during merge
-			fetchPage(page.startSec, page.endSec);
-		}, PAGE_REFRESH_MS);
-		pageTimers.set(page.id, timer);
+	async function fetchPage(startSec: number, endSec: number) {
+		const id = pageIdFor(startSec, endSec);
+		let page = pages.find((p) => p.id === id);
+		if (!page) {
+			page = { id, startSec, endSec, refreshedAt: 0, loading: true };
+			pages.push(page);
+		}
+		await doFetch(startSec, endSec, page);
 	}
 
-	function clearAllPageTimers() {
-		for (const [, t] of pageTimers) clearInterval(t);
-		pageTimers.clear();
+	async function refreshAllPages() {
+		if (pages.length === 0) return;
+
+		// Sort by startSec
+		const sorted = [...pages].sort((a, b) => a.startSec - b.startSec);
+
+		// Merge contiguous or overlapping intervals
+		const merged: { start: number; end: number }[] = [];
+		if (sorted.length > 0) {
+			let current = { start: sorted[0].startSec, end: sorted[0].endSec };
+
+			for (let i = 1; i < sorted.length; i++) {
+				const p = sorted[i];
+				// If overlap or adjacent (allowing small gaps? No, strictly contiguous/overlap)
+				// We definitely want to merge if they overlap.
+				if (p.startSec <= current.end) {
+					current.end = Math.max(current.end, p.endSec);
+				} else {
+					merged.push(current);
+					current = { start: p.startSec, end: p.endSec };
+				}
+			}
+			merged.push(current);
+		}
+
+		// Execute merged fetches
+		// We don't pass a 'page' object, so these are silent background updates
+		await Promise.all(merged.map((m) => doFetch(m.start, m.end)));
 	}
 
 	function get_shape_url(chateau: string, shape_id: string, params: any = {}) {
@@ -558,7 +593,6 @@
 	// React to input changes
 	$: if (chateau && stop_id) {
 		resetState();
-		clearAllPageTimers();
 		loadInitialPages();
 	}
 
@@ -654,9 +688,6 @@
 	}
 
 	onMount(() => {
-		resetState();
-		loadInitialPages();
-
 		current_time = Date.now();
 		const tick = setInterval(() => (current_time = Date.now()), 500);
 
@@ -665,9 +696,12 @@
 			map.on('moveend', updateShapesOnMove);
 		}
 
+		// Start global refresher
+		refreshTimer = setInterval(refreshAllPages, PAGE_REFRESH_MS);
+
 		return () => {
 			clearInterval(tick);
-			clearAllPageTimers();
+			clearInterval(refreshTimer);
 			const global_map_pointer = get(map_pointer_store);
 			global_map_pointer?.getSource('redpin')?.setData({ type: 'FeatureCollection', features: [] });
 
@@ -801,6 +835,12 @@
 								return filter_for_route_type(rType);
 							}) as event}
 								{#if [2].includes(data_meta.routes?.[event.chateau]?.[event.route_id]?.route_type ?? event.route_type)}
+									{@const route_id_local = event.route_id}
+									{@const agency_id_local =
+										data_meta.routes?.[event.chateau]?.[route_id_local]?.agency_id}
+									{@const show_route_name =
+										event.chateau !== 'nationalrailuk' ||
+										['TW', 'ME', 'LO', 'XR', 'HX'].includes(agency_id_local)}
 									<div
 										class="mx-1 py-2 border-b border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 flex flex-row"
 										on:click={() => {
@@ -824,7 +864,7 @@
 									>
 										<div class="flex-grow">
 											<div class="flex flex-row items-center gap-2 mb-1">
-												{#if data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
+												{#if show_route_name && data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
 													<span
 														class="rounded-xs font-bold px-1 py-0.5 text-sm"
 														style={`background: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.color}; color: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color};`}
@@ -833,28 +873,59 @@
 													</span>
 												{/if}
 												<div class="text-base font-normal leading-tight">
-													{#if event.trip_short_name}
-														<span class="font-bold mr-1">{event.trip_short_name}</span>
-													{/if}
 													{event.headsign}
+													{#if event.trip_short_name}
+														<span class="font-bold ml-1">{event.trip_short_name}</span>
+													{/if}
 												</div>
 											</div>
 											<div
 												class="flex flex-row text-sm text-gray-600 dark:text-gray-400 gap-2 items-center flex-wrap"
 											>
 												{#if data_meta.agencies?.[event.chateau]?.[data_meta.routes?.[event.chateau]?.[event.route_id]?.agency_id]?.agency_name}
-													<span
-														>{data_meta.agencies?.[event.chateau]?.[
-															data_meta.routes?.[event.chateau]?.[event.route_id]?.agency_id
-														]?.agency_name}</span
-													>
+													{@const agency_id =
+														data_meta.routes?.[event.chateau]?.[event.route_id]?.agency_id}
+													{@const agency_name =
+														data_meta.agencies?.[event.chateau]?.[agency_id]?.agency_name}
+													{#if agency_id === 'GWR' || agency_name?.trim().toLowerCase() === 'gwr'}
+														<img
+															src="/agencyicons/GreaterWesternRailway.svg"
+															alt={agency_name}
+															class="h-4 inline-block dark:hidden"
+														/>
+														<img
+															src="/agencyicons/GreaterWesternRailwayBrighter.svg"
+															alt={agency_name}
+															class="h-4 hidden dark:inline-block"
+														/>
+														<span class="ml-1">Great Western Railway</span>
+													{:else if agency_name?.trim().toLowerCase() === 'london overground'}
+														<img
+															src="/agencyicons/uk-london-overground.svg"
+															alt={agency_name}
+															class="h-4 inline-block"
+														/>
+													{:else if agency_name?.trim().toLowerCase() === 'elizabeth line'}
+														<img
+															src="/agencyicons/Elizabeth_line_roundel.png"
+															alt={agency_name}
+															class="h-4 inline-block"
+														/>
+													{:else}
+														<span>{agency_name}</span>
+													{/if}
 													<span class="opacity-80">•</span>
 												{/if}
 
-												<span class="font-medium">
-													{data_meta.routes?.[event.chateau]?.[event.route_id]?.long_name ||
-														data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
-												</span>
+												{#if show_route_name}
+													<span
+														class="font-bold px-1 py-0.5 rounded-xs text-xs"
+														style={`background: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.color}; color: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color};`}
+													>
+														{data_meta.routes?.[event.chateau]?.[event.route_id]?.long_name ||
+															data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
+													</span>
+												{/if}
 
 												{#if event.platform_string_realtime}
 													<span class="opacity-90">•</span>

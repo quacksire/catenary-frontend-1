@@ -276,25 +276,79 @@
 							</div>
 
 							<div class="flex flex-row gap-x-0.5 w-full flex-wrap gap-y-1">
-								{#each stops_preview_data.stops[option.data.chateau_id][option.data.stop_id].routes as route_id}
-									{@const routeInfo = stops_preview_data.routes[option.data.chateau_id][route_id]}
-									{#if routeInfo}
-										{#if isSubwayRouteId(route_id) && option.data.chateau_id === MTA_CHATEAU_ID}
-											<MtaBullet route_short_name={routeInfo.short_name} matchTextHeight={true} />
-										{:else}
-											<div
-												class="px-1 py-0.5 md:py-1 text-xs rounded-sm"
-												style={`background-color: ${routeInfo.color}; color: ${routeInfo.text_color};`}
-											>
-												{#if routeInfo.short_name}
-													<span class="font-medium">{routeInfo.short_name} </span>
-												{:else if routeInfo.long_name}
-													{routeInfo.long_name.replace(' Line', '')}
-												{/if}
-											</div>
-										{/if}
+								{#if true}
+									{@const current_routes =
+										stops_preview_data.stops[option.data.chateau_id][option.data.stop_id].routes}
+									{@const is_national_rail = option.data.chateau_id === 'nationalrailuk'}
+									{@const gwr_routes = is_national_rail
+										? current_routes.filter(
+												(r) =>
+													stops_preview_data.routes[option.data.chateau_id][r]?.agency_id === 'GW'
+											)
+										: []}
+									{@const sw_routes = is_national_rail
+										? current_routes.filter(
+												(r) =>
+													stops_preview_data.routes[option.data.chateau_id][r]?.agency_id === 'SW'
+											)
+										: []}
+
+									{#if gwr_routes.length > 0}
+										<div
+											class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded"
+										>
+											<img
+												src="/agencyicons/GreaterWesternRailway.svg"
+												alt="Great Western Railway"
+												class="h-3 inline-block dark:hidden mr-1"
+											/>
+											<img
+												src="/agencyicons/GreaterWesternRailwayBrighter.svg"
+												alt="Great Western Railway"
+												class="h-3 hidden dark:inline-block mr-1"
+											/>
+											<span class="text-xs font-semibold">Great Western Railway</span>
+										</div>
 									{/if}
-								{/each}
+
+									{#if sw_routes.length > 0}
+										<div
+											class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded"
+										>
+											<img
+												src="/agencyicons/SouthWesternRailway.svg"
+												alt="South Western Railway"
+												class="h-3 inline-block mr-1"
+											/>
+											<span class="text-xs font-semibold">South Western Railway</span>
+										</div>
+									{/if}
+
+									{#each current_routes as route_id}
+										{@const routeInfo = stops_preview_data.routes[option.data.chateau_id][route_id]}
+										{#if !gwr_routes.includes(route_id) && !sw_routes.includes(route_id)}
+											{#if routeInfo}
+												{#if isSubwayRouteId(route_id) && option.data.chateau_id === MTA_CHATEAU_ID}
+													<MtaBullet
+														route_short_name={routeInfo.short_name}
+														matchTextHeight={true}
+													/>
+												{:else}
+													<div
+														class="px-1 py-0.5 md:py-1 text-xs rounded-sm"
+														style={`background-color: ${routeInfo.color}; color: ${routeInfo.text_color};`}
+													>
+														{#if routeInfo.short_name}
+															<span class="font-medium">{routeInfo.short_name} </span>
+														{:else if routeInfo.long_name}
+															{routeInfo.long_name.replace(' Line', '')}
+														{/if}
+													</div>
+												{/if}
+											{/if}
+										{/if}
+									{/each}
+								{/if}
 							</div>
 						{/if}
 					{/if}
@@ -334,14 +388,12 @@
 					{#if isSubwayRouteId(option.data.route_id) && option.data.chateau_id === MTA_CHATEAU_ID}
 						<MtaBullet route_short_name={option.data.name} matchTextHeight={true} />
 						<span class="ml-1">{option.data.name}</span>
-					{:else}
-						{#if option.data.name}
-							<span
-								style={`color: ${darkMode ? lightenColour(option.data.colour) : option.data.colour}`}
-							>
-								{option.data.name}
-							</span>
-						{/if}
+					{:else if option.data.name}
+						<span
+							style={`color: ${darkMode ? lightenColour(option.data.colour) : option.data.colour}`}
+						>
+							{option.data.name}
+						</span>
 					{/if}
 				</div>
 			{/each}
