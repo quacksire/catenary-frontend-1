@@ -912,6 +912,15 @@
 															alt={agency_name}
 															class="h-4 inline-block"
 														/>
+													{:else if agency_id === 'CC' || agency_name
+															?.trim()
+															.toLowerCase() === 'c2c'}
+														<img
+															src="/agencyicons/c2c_logo.svg"
+															alt={agency_name}
+															class="h-4 inline-block"
+														/>
+														<span class="ml-1">c2c</span>
 													{:else if agency_name?.trim().toLowerCase() === 'elizabeth line'}
 														<img
 															src="/agencyicons/Elizabeth_line_roundel.png"

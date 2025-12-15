@@ -300,6 +300,13 @@
 											)
 										: []}
 
+									{@const cc_routes = is_national_rail
+										? current_routes.filter(
+												(r) =>
+													stops_preview_data.routes[option.data.chateau_id][r]?.agency_id === 'CC'
+											)
+										: []}
+
 									{#if gwr_routes.length > 0}
 										<div
 											class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded"
@@ -344,9 +351,22 @@
 										</div>
 									{/if}
 
+									{#if cc_routes.length > 0}
+										<div
+											class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded"
+										>
+											<img
+												src="/agencyicons/c2c_logo.svg"
+												alt="c2c"
+												class="h-3 inline-block mr-1"
+											/>
+											<span class="text-xs font-semibold">c2c</span>
+										</div>
+									{/if}
+
 									{#each current_routes as route_id}
 										{@const routeInfo = stops_preview_data.routes[option.data.chateau_id][route_id]}
-										{#if !gwr_routes.includes(route_id) && !sw_routes.includes(route_id) && !sn_routes.includes(route_id)}
+										{#if !gwr_routes.includes(route_id) && !sw_routes.includes(route_id) && !sn_routes.includes(route_id) && !cc_routes.includes(route_id)}
 											{#if routeInfo}
 												{#if isSubwayRouteId(route_id) && option.data.chateau_id === MTA_CHATEAU_ID}
 													<MtaBullet
