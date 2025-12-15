@@ -194,11 +194,13 @@
 			const text = await resp.text();
 			const data = JSON.parse(text);
 
+			let shouldPrimeMap = false;
+
 			// Establish/merge meta (primary/routes/shapes) — keep latest
 			if (!data_meta) {
 				data_meta = data;
 				if (page) page.loading = false;
-				primeMapContextFromMeta();
+				shouldPrimeMap = true;
 			} else {
 				// Merge routes/shapes per chateau
 				if (!data_meta.routes) data_meta.routes = {};
@@ -227,6 +229,11 @@
 			}
 
 			await tick();
+
+			if (shouldPrimeMap) {
+				setTimeout(() => primeMapContextFromMeta(), 0);
+			}
+
 			// Only check for more if this was a driven fetch (page exists) and not a background refresh
 			if (page) {
 				checkIfMoreNeeded(events.length === 0);
