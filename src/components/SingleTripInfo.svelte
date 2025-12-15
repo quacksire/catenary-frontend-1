@@ -44,7 +44,7 @@
 	let updatetimecounter: NodeJS.Timeout | null = null;
 	let show_previous_stops: boolean = false;
 	let bind_scrolling_div: null | HTMLElement = null;
-		let stop_connections: Record<string, any[]> = {};
+	let stop_connections: Record<string, any[]> = {};
 
 	export let window_height_known: number = 500;
 	onMount(() => {
@@ -82,6 +82,7 @@
 	import { occupancy_to_symbol } from './occupancy_to_symbol';
 	import StopTimeNumber from './StopTimeNumber.svelte';
 	import VehicleInfo from './vehicle_info.svelte';
+	import ConsolidatedRouteList from './ConsolidatedRouteList.svelte';
 
 	function fix_vehicle_number(chateau_id: string, vehicle_id: string) {
 		if (chateau_id == 'translink-queensland-au') {
@@ -152,75 +153,69 @@
 
 						if (vehicle_data) {
 							if (trip_data.route_type == 3) {
-							additional_filter_for_vehicles_store.set([
-								'all',
-								[
-									'!',
+								additional_filter_for_vehicles_store.set([
+									'all',
 									[
-										'all',
-										['==', ['get', 'chateau'], trip_selected.chateau_id],
-										['==', ['get', 'trip_id'], trip_selected.trip_id]
+										'!',
+										[
+											'all',
+											['==', ['get', 'chateau'], trip_selected.chateau_id],
+											['==', ['get', 'trip_id'], trip_selected.trip_id]
+										]
 									]
-								]
-							]);
-						}
+								]);
+							}
 
-						let map = get(map_pointer_store);
+							let map = get(map_pointer_store);
 
-						let contrasedcolors = getContrastColours(trip_data.color, darkMode);
+							let contrasedcolors = getContrastColours(trip_data.color, darkMode);
 
-						console.log(trip_data.color, 'contrasedcolors', contrasedcolors);
+							console.log(trip_data.color, 'contrasedcolors', contrasedcolors);
 
-						let feature_id = "livedots_context" + "-" + trip_selected.chateau_id + "-" + trip_selected.trip_id;
+							let feature_id =
+								'livedots_context' + '-' + trip_selected.chateau_id + '-' + trip_selected.trip_id;
 
-						if (map != null) {
-							let livedots_context = map.getSource('livedots_context');
-							if (livedots_context) {
-								let new_feature = {
-											type: 'Feature',
-											id: feature_id,
-											properties: {
-												chateau: trip_selected.chateau_id,
-												trip_id: trip_selected.trip_id,
-												color: trip_data.color,
-												text_color: trip_data.text_color,
-												tripIdLabel: trip_data.trip_short_name,
-												maptag: trip_data.route_short_name || trip_data.route_long_name || '',
-												trip_short_name: trip_data.trip_short_name,
-												route_short_name: trip_data.route_short_name,
-												route_long_name: trip_data.route_long_name,
-												contrastlightmode: contrasedcolors.contrastlightmode,
-												contrastdarkmode: contrasedcolors.contrastdarkmode,
-												contrastdarkmodebearing: contrasedcolors.contrastdarkmodebearing,
-												routeId: trip_data.route_id,
-												start_date: trip_selected.start_date,
-												start_time: trip_selected.start_time,
-												crowd_symbol: occupancy_to_symbol(vehicle_data.occupancy_status),
-												delay_label: makeDelayLabel(vehicle_data.trip.delay),
-												delay: vehicle_data.trip?.delay,
-												route_type: trip_data.route_type,
-												headsign: trip_data.trip_headsign
-											},
-											geometry: {
-												type: 'Point',
-												coordinates: [
-													vehicle_data.position.longitude,
-													vehicle_data.position.latitude
-												]
-											}
-										};
+							if (map != null) {
+								let livedots_context = map.getSource('livedots_context');
+								if (livedots_context) {
+									let new_feature = {
+										type: 'Feature',
+										id: feature_id,
+										properties: {
+											chateau: trip_selected.chateau_id,
+											trip_id: trip_selected.trip_id,
+											color: trip_data.color,
+											text_color: trip_data.text_color,
+											tripIdLabel: trip_data.trip_short_name,
+											maptag: trip_data.route_short_name || trip_data.route_long_name || '',
+											trip_short_name: trip_data.trip_short_name,
+											route_short_name: trip_data.route_short_name,
+											route_long_name: trip_data.route_long_name,
+											contrastlightmode: contrasedcolors.contrastlightmode,
+											contrastdarkmode: contrasedcolors.contrastdarkmode,
+											contrastdarkmodebearing: contrasedcolors.contrastdarkmodebearing,
+											routeId: trip_data.route_id,
+											start_date: trip_selected.start_date,
+											start_time: trip_selected.start_time,
+											crowd_symbol: occupancy_to_symbol(vehicle_data.occupancy_status),
+											delay_label: makeDelayLabel(vehicle_data.trip.delay),
+											delay: vehicle_data.trip?.delay,
+											route_type: trip_data.route_type,
+											headsign: trip_data.trip_headsign
+										},
+										geometry: {
+											type: 'Point',
+											coordinates: [vehicle_data.position.longitude, vehicle_data.position.latitude]
+										}
+									};
 
-								map.getSource('livedots_context').setData({
-									type: 'FeatureCollection',
-									features: [
-										new_feature
-									]
-								});
+									map.getSource('livedots_context').setData({
+										type: 'FeatureCollection',
+										features: [new_feature]
+									});
+								}
 							}
 						}
-						}
-
-						
 					} catch (e: any) {
 						console.error(e);
 					}
@@ -389,17 +384,17 @@
 					eachstoptime.scheduled_departure_time_unix_seconds ||
 					eachstoptime.scheduled_arrival_time_unix_seconds;
 
-				let time_text = "";
+				let time_text = '';
 
 				if (time_temp != null) {
-				time_text = new Date(time_temp * 1000).toLocaleTimeString('en-UK', {
-					timeZone: eachstoptime.timezone,
-					hour: '2-digit',
-					minute: '2-digit'
-				});
+					time_text = new Date(time_temp * 1000).toLocaleTimeString('en-UK', {
+						timeZone: eachstoptime.timezone,
+						hour: '2-digit',
+						minute: '2-digit'
+					});
 				}
 
-				let label = `${eachstoptime.schedule_relationship == 1 ? "(X)" : ""}${time_text} ${eachstoptime.name
+				let label = `${eachstoptime.schedule_relationship == 1 ? '(X)' : ''}${time_text} ${eachstoptime.name
 					.replace('Station ', '')
 					.replace(' Station', '')
 					.replace(', Bahnhof', '')
@@ -494,7 +489,7 @@
 						is_loading_trip_data = false;
 						trip_data = data;
 
-								// Build a per-stop connection map from connections_per_stop + connecting_routes
+						// Build a per-stop connection map from connections_per_stop + connecting_routes
 						let tmp_stop_connections: Record<string, any[]> = {};
 
 						if (trip_data.connections_per_stop && trip_data.connecting_routes) {
@@ -619,8 +614,6 @@
 							let transit_shape_context_for_stop = map?.getSource('transit_shape_context_for_stop');
 
 							transit_shape_context_for_stop.setData({ type: 'FeatureCollection', features: [] });
-
-							
 						}
 
 						if (map != null) {
@@ -980,13 +973,13 @@
 
 	{#if trip_data.is_cancelled}
 		<div class="mx-3">
-			<p class="text-red-600 dark:text-red-500 text-lg font-bold">{$_("cancelled")}</p>
+			<p class="text-red-600 dark:text-red-500 text-lg font-bold">{$_('cancelled')}</p>
 		</div>
 	{/if}
 
 	{#if trip_data.deleted}
 		<div class="mx-3">
-			<p class="text-red-600  dark:text-red-500 text-lg font-bold">{$_("deleted")}</p>
+			<p class="text-red-600 dark:text-red-500 text-lg font-bold">{$_('deleted')}</p>
 		</div>
 	{/if}
 
@@ -1204,13 +1197,11 @@
 							{#if all_exact_stoptimes == false}
 								{#if stoptime.timepoint == true}
 									<div class="text-xs inline-block align-middle">
-										<TimelineClockOutline
-										cssclass="h-4 w-4 text-gray-800 dark:text-gray-300"
-										/>
+										<TimelineClockOutline cssclass="h-4 w-4 text-gray-800 dark:text-gray-300" />
 									</div>
 								{/if}
 							{/if}
-								</div>
+						</div>
 
 						<StopTimeNumber {show_seconds} {stoptime} {trip_data} {current_time} />
 
@@ -1230,21 +1221,9 @@
 							</p>
 						{/if}
 
-						
 						{#if connectionKey}
 							<div class="flex flex-row flex-wrap gap-x-1 gap-y-1 mt-1">
-								{#each stop_connections[connectionKey] as conn}
-									<div
-											class="px-0.75 py-0.25 text-xs rounded-sm"
-											style={`background-color: ${conn.route.color}; color: ${conn.route.text_color};`}
-										>
-											{#if conn.route.short_name}
-												<span class="font-semibold">{conn.route.short_name}</span>
-											{:else if conn.route.long_name}
-												<span class="font-medium">{conn.route.long_name}</span>
-											{/if}
-										</div>
-								{/each}
+								<ConsolidatedRouteList connections={stop_connections[connectionKey]} {darkMode} />
 							</div>
 						{/if}
 

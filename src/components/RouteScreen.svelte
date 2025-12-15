@@ -60,6 +60,7 @@
 	import { refilter_stops, delete_filter_stops_background } from './makeFiltersForStop';
 	import { occupancy_to_symbol } from './occupancy_to_symbol';
 	import TripDataForVehicleOnRouteScreen from './TripDataForVehicleOnRouteScreen.svelte';
+	import ConsolidatedRouteList from './ConsolidatedRouteList.svelte';
 
 	let activePattern: string = '';
 
@@ -98,11 +99,11 @@
 	let count_per_direction_store: Record<string, number> = {};
 	let count_per_direction_parent_store: Record<string, number> = {};
 
-		let stop_connections: Record<string, any[]> = {};
+	let stop_connections: Record<string, any[]> = {};
 
 	let route_rt_last_updated: null | number = null;
 
-	let  new_directions_from_parent_store: Record<string, string[]> = {};
+	let new_directions_from_parent_store: Record<string, string[]> = {};
 
 	let sort_order_of_dir_parents_store: string[] = [];
 
@@ -179,10 +180,8 @@
 
 		let map = get(map_pointer_store);
 
-		
-		let directionIdFirst = new_directions_from_parent_store[pattern][0]
-		let directionReference = route_data.direction_patterns[directionIdFirst]
-				
+		let directionIdFirst = new_directions_from_parent_store[pattern][0];
+		let directionReference = route_data.direction_patterns[directionIdFirst];
 
 		let shape_id = directionReference.direction_pattern.gtfs_shape_id;
 
@@ -202,7 +201,6 @@
 				}
 			}
 
-
 			if (geojson_polyline) {
 				// The new backend returns a Geometry (if asking for geojson), we need to wrap it in a Feature
 				// Or if it returns the full geojson structure from the tool description it says:
@@ -220,15 +218,14 @@
 						route_label: route_data.route_short_name || route_data.route_long_name
 					}
 				};
-				
+
 				// Double check if fetch_shape returns the geometry directly or a feature.
 				// The backend returns `GeoJson::Geometry`.
 				// So `data` will be `{ "type": "LineString", "coordinates": [...] }`.
-				
+
 				if (!feature.geometry && geojson_polyline.coordinates) {
 					feature.geometry = geojson_polyline;
 				}
-
 
 				let geojson_source_new = {
 					type: 'FeatureCollection',
@@ -246,7 +243,7 @@
 					});
 				}
 			}
-			
+
 			//now work on stops
 
 			let already_seen_stop_ids: string[] = [];
@@ -264,10 +261,10 @@
 
 					if (route_data.stops[eachstoptime.stop_id]) {
 						if (route_data.stops[eachstoptime.stop_id].parent_station) {
-						parentStopOrStopId = route_data.stops[eachstoptime.stop_id].parent_station;
+							parentStopOrStopId = route_data.stops[eachstoptime.stop_id].parent_station;
 						}
 					}
-					
+
 					let refStop = route_data.stops[parentStopOrStopId];
 
 					return {
@@ -293,10 +290,7 @@
 							stop_route_type: route_data.route_type
 						},
 						geometry: {
-							coordinates: [
-								refStop.longitude,
-								refStop.latitude
-							],
+							coordinates: [refStop.longitude, refStop.latitude],
 							type: 'Point'
 						}
 					};
@@ -314,7 +308,7 @@
 			//hide from background
 
 			stops_to_hide_store.set({
-				[routestack.chateau_id]:  directionReference.rows.map(
+				[routestack.chateau_id]: directionReference.rows.map(
 					(eachstoptime: any) => eachstoptime.stop_id
 				)
 			});
@@ -329,99 +323,100 @@
 		//console.log('fetch vehicles for route', routestack.chateau_id, routestack.route_id);
 
 		if (routestack.chateau_id && routestack.route_id) {
-
 			let url = new URL(
-			`https://birch_rt.catenarymaps.org/get_rt_of_single_route?chateau=${encodeURIComponent(routestack.chateau_id)}&route_id=${encodeURIComponent(routestack.route_id.replace(/^\"/, '').replace(/\"$/, ''))}${route_rt_last_updated ? '&last_updated_time_ms=' + route_rt_last_updated : ''}`
-		);
+				`https://birch_rt.catenarymaps.org/get_rt_of_single_route?chateau=${encodeURIComponent(routestack.chateau_id)}&route_id=${encodeURIComponent(routestack.route_id.replace(/^\"/, '').replace(/\"$/, ''))}${route_rt_last_updated ? '&last_updated_time_ms=' + route_rt_last_updated : ''}`
+			);
 
-		await fetch(url.toString()).then(async (response) => {
-			let text = await response.text();
-			try {
-				const data = JSON.parse(text);
+			await fetch(url.toString()).then(async (response) => {
+				let text = await response.text();
+				try {
+					const data = JSON.parse(text);
 
-			//	console.log('data', data);
+					//	console.log('data', data);
 
-				if (data.vehicle_positions) {
-					vehicle_positions = data.vehicle_positions;
-				}
+					if (data.vehicle_positions) {
+						vehicle_positions = data.vehicle_positions;
+					}
 
-				route_rt_last_updated = data.last_updated_time_ms;
+					route_rt_last_updated = data.last_updated_time_ms;
 
-				let trip_updates_by_trip_id_tmp: Record<string, any[]> = {};
+					let trip_updates_by_trip_id_tmp: Record<string, any[]> = {};
 
-				let count_per_direction_id: Record<string, number> = {};
-				let count_per_direction_id_parent: Record<string, number> = {};
+					let count_per_direction_id: Record<string, number> = {};
+					let count_per_direction_id_parent: Record<string, number> = {};
 
-				let vehicles_under_direction_id_temp: Record<string, string[]> = {};
+					let vehicles_under_direction_id_temp: Record<string, string[]> = {};
 
-				let vehicles_under_direction_id_parent_temp: Record<string, string[]> = {};
+					let vehicles_under_direction_id_parent_temp: Record<string, string[]> = {};
 
-				for (const vehicle_update_key in vehicle_positions) {
-					//console.log(vehicle_update_key)
+					for (const vehicle_update_key in vehicle_positions) {
+						//console.log(vehicle_update_key)
 
-					let trip_id = vehicle_positions[vehicle_update_key].trip.trip_id;
+						let trip_id = vehicle_positions[vehicle_update_key].trip.trip_id;
 
-					if (trip_id) {
-						let trip_compressed = data.trips_to_trips_compressed[trip_id];
+						if (trip_id) {
+							let trip_compressed = data.trips_to_trips_compressed[trip_id];
 
-						if (trip_compressed) {
-							let direction_id =
-								data.itinerary_to_direction_id[trip_compressed.itinerary_pattern_id];
-							
-								let direction_parent = route_data.direction_patterns[direction_id].direction_pattern.direction_pattern_id_parents ||
-								 route_data.direction_patterns[direction_id].direction_pattern.direction_pattern_id;
+							if (trip_compressed) {
+								let direction_id =
+									data.itinerary_to_direction_id[trip_compressed.itinerary_pattern_id];
 
-							//console.log('direction parent', direction_parent);
+								let direction_parent =
+									route_data.direction_patterns[direction_id].direction_pattern
+										.direction_pattern_id_parents ||
+									route_data.direction_patterns[direction_id].direction_pattern
+										.direction_pattern_id;
 
-							if (count_per_direction_id_parent[direction_parent] == undefined) {
-								count_per_direction_id_parent[direction_parent] = 1;
-							} else {
-								count_per_direction_id_parent[direction_parent] = count_per_direction_id_parent[
-									direction_parent
-								] + 1;
-							}
+								//console.log('direction parent', direction_parent);
 
-							if (count_per_direction_id[direction_id] == undefined) {
-								count_per_direction_id[direction_id] = 1;
-							} else {
-								count_per_direction_id[direction_id] = count_per_direction_id[direction_id] + 1;
-							}
+								if (count_per_direction_id_parent[direction_parent] == undefined) {
+									count_per_direction_id_parent[direction_parent] = 1;
+								} else {
+									count_per_direction_id_parent[direction_parent] =
+										count_per_direction_id_parent[direction_parent] + 1;
+								}
 
-							if (vehicles_under_direction_id_temp[direction_id] == undefined) {
-								vehicles_under_direction_id_temp[direction_id] = [vehicle_update_key];
-							} else {
-								vehicles_under_direction_id_temp[direction_id].push(vehicle_update_key);
-							}
+								if (count_per_direction_id[direction_id] == undefined) {
+									count_per_direction_id[direction_id] = 1;
+								} else {
+									count_per_direction_id[direction_id] = count_per_direction_id[direction_id] + 1;
+								}
 
-							if (vehicles_under_direction_id_parent_temp[direction_parent] == undefined) {
-								vehicles_under_direction_id_parent_temp[direction_parent] = [vehicle_update_key];
-							} else {
-								vehicles_under_direction_id_parent_temp[direction_parent].push(vehicle_update_key);
+								if (vehicles_under_direction_id_temp[direction_id] == undefined) {
+									vehicles_under_direction_id_temp[direction_id] = [vehicle_update_key];
+								} else {
+									vehicles_under_direction_id_temp[direction_id].push(vehicle_update_key);
+								}
+
+								if (vehicles_under_direction_id_parent_temp[direction_parent] == undefined) {
+									vehicles_under_direction_id_parent_temp[direction_parent] = [vehicle_update_key];
+								} else {
+									vehicles_under_direction_id_parent_temp[direction_parent].push(
+										vehicle_update_key
+									);
+								}
 							}
 						}
 					}
-				}
 
-				for (const trip_update of data.trip_updates) {
-					if (trip_updates_by_trip_id_tmp[trip_update.trip.trip_id] == undefined) {
-						trip_updates_by_trip_id_tmp[trip_update.trip.trip_id] = [trip_update];
-					} else {
-						trip_updates_by_trip_id_tmp[trip_update.trip.trip_id].push(trip_update);
+					for (const trip_update of data.trip_updates) {
+						if (trip_updates_by_trip_id_tmp[trip_update.trip.trip_id] == undefined) {
+							trip_updates_by_trip_id_tmp[trip_update.trip.trip_id] = [trip_update];
+						} else {
+							trip_updates_by_trip_id_tmp[trip_update.trip.trip_id].push(trip_update);
+						}
 					}
-				}
 
-				//console.log(count_per_direction_id);
+					//console.log(count_per_direction_id);
 
-				count_per_direction_store = count_per_direction_id;
-				vehicles_under_direction_id = vehicles_under_direction_id_temp;
-				vehicles_under_direction_id_parent = vehicles_under_direction_id_parent_temp;
-				trip_updates_by_trip_id = trip_updates_by_trip_id_tmp;
-				count_per_direction_parent_store = count_per_direction_id_parent;
-			} catch (e) {}
-		});
+					count_per_direction_store = count_per_direction_id;
+					vehicles_under_direction_id = vehicles_under_direction_id_temp;
+					vehicles_under_direction_id_parent = vehicles_under_direction_id_parent_temp;
+					trip_updates_by_trip_id = trip_updates_by_trip_id_tmp;
+					count_per_direction_parent_store = count_per_direction_id_parent;
+				} catch (e) {}
+			});
 		}
-
-		
 	}
 
 	async function fetch_route_selected() {
@@ -485,7 +480,7 @@
 
 				route_data = data;
 
-							// build a per-stop connection map from connections_per_stop + connecting_routes
+				// build a per-stop connection map from connections_per_stop + connecting_routes
 				let tmp_stop_connections: Record<string, any[]> = {};
 
 				if (route_data.connections_per_stop && route_data.connecting_routes) {
@@ -549,23 +544,25 @@
 
 				//iter route_data.direction_patterns
 
-				Object.values(route_data.direction_patterns)
-				.forEach((direction_pattern: any) => {
+				Object.values(route_data.direction_patterns).forEach((direction_pattern: any) => {
 					//console.log('direction pattern', direction_pattern)
 
-					let parent_id = direction_pattern.direction_pattern.direction_pattern_id_parents || direction_pattern.direction_pattern.direction_pattern_id;
+					let parent_id =
+						direction_pattern.direction_pattern.direction_pattern_id_parents ||
+						direction_pattern.direction_pattern.direction_pattern_id;
 
 					new_directions_from_parent[parent_id] = [];
 
-					new_directions_from_parent[parent_id].push(direction_pattern.direction_pattern.direction_pattern_id);
+					new_directions_from_parent[parent_id].push(
+						direction_pattern.direction_pattern.direction_pattern_id
+					);
+				});
 
-				})
+				new_directions_from_parent_store = new_directions_from_parent;
 
-				 new_directions_from_parent_store =  new_directions_from_parent;
+				console.log('new dirs', Object.entries(new_directions_from_parent_store));
 
-				console.log('new dirs', Object.entries(new_directions_from_parent_store))
-
-				let sort_order_of_dir_parents = [...Object.keys(new_directions_from_parent_store)]
+				let sort_order_of_dir_parents = [...Object.keys(new_directions_from_parent_store)];
 
 				sort_order_of_dir_parents.sort((a, b) => {
 					let reference_direction_id_a = new_directions_from_parent_store[a][0];
@@ -574,17 +571,17 @@
 					let reference_direction_a = route_data.direction_patterns[reference_direction_id_a];
 					let reference_direction_b = route_data.direction_patterns[reference_direction_id_b];
 
-					return reference_direction_a.direction_pattern.headsign_or_destination < reference_direction_b.direction_pattern.headsign_or_destination ? -1 : 1;
-				})
+					return reference_direction_a.direction_pattern.headsign_or_destination <
+						reference_direction_b.direction_pattern.headsign_or_destination
+						? -1
+						: 1;
+				});
 
 				sort_order_of_dir_parents_store = sort_order_of_dir_parents;
 
-				if (activePattern == '') { 
-
-				change_active_pattern(sort_order_of_dir_parents[0]);
+				if (activePattern == '') {
+					change_active_pattern(sort_order_of_dir_parents[0]);
 				}
-
-
 
 				alerts = data.alert_id_to_alert;
 
@@ -601,7 +598,6 @@
 					});
 				});
 
-				
 				loaded = true;
 			} catch (err) {
 				console.error(err);
@@ -620,9 +616,8 @@
 	}
 
 	onMount(() => {
+		console.log('component mounted');
 
-		console.log("component mounted")
-		
 		fetch_route_selected();
 
 		fetch_vehicles_for_route();
@@ -641,14 +636,14 @@
 			let map = get(map_pointer_store);
 
 			if (map) {
-				
 				let transit_shape_context_for_stop = map?.getSource('transit_shape_context_for_stop');
 
 				transit_shape_context_for_stop?.setData({ type: 'FeatureCollection', features: [] });
 
-				map.getSource('transit_shape_context')?.setData({ type: 'FeatureCollection', features: [] });
+				map
+					.getSource('transit_shape_context')
+					?.setData({ type: 'FeatureCollection', features: [] });
 			}
-
 		};
 	});
 </script>
@@ -695,18 +690,18 @@
 		<p class="px-3 text-xl my-1">Directions</p>
 		<div class="flex flex-col mr-2 ml-2">
 			{#each sort_order_of_dir_parents_store as directionparentid, index}
-				
 				{@const directionIdFirst = new_directions_from_parent_store[directionparentid][0]}
 				{@const directionReference = route_data.direction_patterns[directionIdFirst]}
-				
+
 				<div
-					on:click={() =>
-						change_active_pattern(directionparentid)}
+					on:click={() => change_active_pattern(directionparentid)}
 					class={`border border-gray-500 py-1 px-1 text-sm  hover:bg-seashore flex rounded-md min-w-36  leading-tight ${directionparentid == activePattern ? 'bg-seashore' : 'bg-white dark:bg-slate-800'}`}
 				>
 					<p>
 						<span>{titleCase(directionReference.direction_pattern.headsign_or_destination)}</span>
-						<span class="text-xs">{' ('}{directionReference.rows.length}{' '}{$_('stops')}{' )'}</span>
+						<span class="text-xs"
+							>{' ('}{directionReference.rows.length}{' '}{$_('stops')}{' )'}</span
+						>
 						{#if count_per_direction_parent_store[directionparentid]}
 							<span class="relative">
 								<span
@@ -724,7 +719,9 @@
 
 		<div class="px-3">
 			<p class="text-xl my-1">
-				{count_per_direction_parent_store[activePattern] ? count_per_direction_parent_store[activePattern] : 0}
+				{count_per_direction_parent_store[activePattern]
+					? count_per_direction_parent_store[activePattern]
+					: 0}
 				{$_('vehicles')}
 			</p>
 
@@ -843,29 +840,33 @@
 
 		<div class="grow pt-2 flex flex-col">
 			{#if activePattern != ''}
-			{@const directionIdFirst = new_directions_from_parent_store[activePattern][0]}
+				{@const directionIdFirst = new_directions_from_parent_store[activePattern][0]}
 				{@const directionReference = route_data.direction_patterns[directionIdFirst]}
 				{#each directionReference.rows as stop, index}
-
 					{@const stopRefOriginal = route_data.stops[stop.stop_id]}
-			{#if stopRefOriginal != undefined}
+					{#if stopRefOriginal != undefined}
 						{@const stopRefParentId = route_data.stops[stop.stop_id].parent_station}
-						{@const stopRefToUse = stopRefParentId ? route_data.stops[stopRefParentId] : stopRefOriginal}
+						{@const stopRefToUse = stopRefParentId
+							? route_data.stops[stopRefParentId]
+							: stopRefOriginal}
 
 						{@const stopKeyParent = stopRefParentId}
 						{@const stopKeyChild = stop.stop_id}
-						{@const connectionKey = stopKeyParent && stop_connections[stopKeyParent]
-							? stopKeyParent
-							: stop_connections[stopKeyChild]
-								? stopKeyChild
-								: null}
+						{@const connectionKey =
+							stopKeyParent && stop_connections[stopKeyParent]
+								? stopKeyParent
+								: stop_connections[stopKeyChild]
+									? stopKeyChild
+									: null}
 
 						<div
-							aria-label={"Go to stop" + stopRefToUse.name}
+							aria-label={'Go to stop' + stopRefToUse.name}
 							class="relative px-3 underline decoration-sky-500/80 hover:decoration-sky-500 cursor-pointer"
 							on:click={() => {
 								data_stack_store.update((stack) => {
-									stack.push(new StackInterface(new StopStack(routestack.chateau_id, stop.stop_id)));
+									stack.push(
+										new StackInterface(new StopStack(routestack.chateau_id, stop.stop_id))
+									);
 
 									return stack;
 								});
@@ -883,7 +884,6 @@
 							}}
 						>
 							{#if index != directionReference.rows.length - 1}
-								
 								{#if index != 0}
 									<div
 										class={`absolute top-0 bottom-0 left-3 w-2 h-full z-30 `}
@@ -891,17 +891,17 @@
 									></div>
 								{/if}
 							{:else}
-							<div
-										class={`absolute top-0 h-[16px] left-3 w-2 z-30 rounded-b-full`}
-										style:background-color={route_data.color}
-									></div>
+								<div
+									class={`absolute top-0 h-[16px] left-3 w-2 z-30 rounded-b-full`}
+									style:background-color={route_data.color}
+								></div>
 							{/if}
 
 							{#if index == 0}
 								<div
-										class={`top-[8px] rounded-t-full absolute bottom-0 left-3 w-2 h-full z-30 `}
-										style:background-color={route_data.color}
-									></div>
+									class={`top-[8px] rounded-t-full absolute bottom-0 left-3 w-2 h-full z-30 `}
+									style:background-color={route_data.color}
+								></div>
 							{/if}
 							<div
 								class={`absolute top-[8px] bottom-1/2 left-2.5 w-3 h-3 rounded-full bg-white z-40 border-2`}
@@ -924,24 +924,11 @@
 
 							{#if connectionKey}
 								<div class="flex flex-row flex-wrap gap-x-1 gap-y-1 ml-4 mt-1 font-sm">
-									{#each stop_connections[connectionKey] as conn}
-										<div
-											class="px-0.75 py-0.25 text-xs rounded-sm"
-											style={`background-color: ${conn.route.color}; color: ${conn.route.text_color};`}
-										>
-											{#if conn.route.short_name}
-												<span class="font-semibold">{conn.route.short_name}</span>
-											{:else if conn.route.long_name}
-												<span class="font-medium">{conn.route.long_name}</span>
-											{/if}
-										</div>
-									{/each}
+									<ConsolidatedRouteList connections={stop_connections[connectionKey]} {darkMode} />
 								</div>
 							{/if}
 						</div>
 					{/if}
-
-					
 				{/each}
 			{/if}
 
