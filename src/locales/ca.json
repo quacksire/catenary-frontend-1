@@ -134,5 +134,6 @@
 	"occupancy_percentage": "Percentatge d'ocupació",
 	"cookie_consent_analytics": "Utilitzem galetes (cookies) per a analítiques per millorar la teva experiència. Hi consents?",
 	"accept": "Acceptar",
-	"decline": "Rebutjar"
+	"decline": "Rebutjar",
+	"show_arrivals": "Mostrar arribades a l'última estació"
 }

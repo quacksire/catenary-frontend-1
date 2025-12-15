@@ -153,5 +153,6 @@
 	"download": "Download",
 	"keepusingweb": "Keep using web",
 	"continue": "Continue",
-	"stop_cancelled": "Stop cancelled"
+	"stop_cancelled": "Stop cancelled",
+	"show_arrivals": "Show Arrivals at Last Station"
 }

@@ -115,5 +115,6 @@
 	"occupancy_status_not_boardable": "Nie nadaje się do wejścia",
 	"deleted": "Usunięto",
 	"starting_time": "Czas rozpoczęcia",
-	"ending_time": "Czas zakończenia"
+	"ending_time": "Czas zakończenia",
+	"show_arrivals": "Pokaż przyjazdy na ostatniej stacji"
 }

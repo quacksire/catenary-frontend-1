@@ -133,5 +133,6 @@
 	"new_rt_shape": "Rota de desvio em tempo real desenhada",
 	"level": "Nível",
 	"replaced_stop": "paragem substituída",
-	"noormdata": "Ocultar dados do Open Railway Map"
+	"noormdata": "Ocultar dados do Open Railway Map",
+	"show_arrivals": "Mostrar chegadas na última estação"
 }

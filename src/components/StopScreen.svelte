@@ -5,7 +5,7 @@
 	import * as turf from '@turf/turf';
 	import { writable, get } from 'svelte/store';
 	import { timezone_to_locale } from './timezone_to_locale';
-	import { 
+	import {
 		data_stack_store,
 		on_sidebar_trigger_store,
 		realtime_vehicle_locations_last_updated_store,
@@ -72,6 +72,20 @@
 	let previous_count = 0;
 	let fetched_shapes_cache: Record<string, any> = {};
 	let route_shapes_meta: Record<string, any> = {};
+
+	// Filters
+	let show_arrivals_only = false;
+	let filter_rail = true;
+	let filter_bus = true;
+	let filter_metro = true;
+	let filter_other = true;
+
+	function filter_for_route_type(route_type: number) {
+		if ([3, 11, 700].includes(route_type)) return filter_bus;
+		if ([0, 1, 5, 7, 12, 900].includes(route_type)) return filter_metro;
+		if ([2, 106, 107, 101, 100, 102, 103].includes(route_type)) return filter_rail;
+		return filter_other;
+	}
 
 	function resetState() {
 		// clear paging and data when stop changes
@@ -277,11 +291,11 @@
 
 			// If inner is basically the whole thing or invalid mapping, just return inner (high res)
 			// But here we want to KEEP the outer parts that are NOT covered by inner.
-			
+
 			// We construct: StartOfOuter -> startOnOuter ... (inner) ... endOnOuter -> EndOfOuter
 			// But wait, turf.lineSlice returns the segment.
 			// We need lineSlice from Start->StartOnOuter and EndOnOuter->End.
-			
+
 			const outerCoords = (outerF.geometry as any).coordinates;
 			const startOuterPt = turf.point(outerCoords[0]);
 			const endOuterPt = turf.point(outerCoords[outerCoords.length - 1]);
@@ -289,7 +303,7 @@
 			// ordering: assume outer goes start->end.
 			// If idx1 > idx2, inner is reversed relative to outer?? Or we just measured wrong?
 			// Let's assume consistent direction for now.
-			
+
 			const head = turf.lineSlice(startOuterPt, startOnOuter, outerF as any);
 			const tail = turf.lineSlice(endOnOuter, endOuterPt, outerF as any);
 
@@ -301,23 +315,24 @@
 			// Simplest: just concat head + inner + tail.
 			// However, if inner is reversed, we might make a U-turn.
 			// Check distance: dist(headLast, innerFirst) vs dist(headLast, innerLast)
-			
+
 			// Check if we need to reverse inner?
 			// usually local shape logic matches global shape logic in GTFS.
-			
+
 			let finalCoords = [...headCoords, ...innerCoords, ...tailCoords];
 			return turf.lineString(finalCoords).geometry;
-
 		} catch (e) {
-			console.warn("Splice failed", e);
+			console.warn('Splice failed', e);
 			return inner.geometry || inner; // fallback to high-res inner
 		}
 	}
 
-	async function fetchMissingShapes(missing_shapes: Array<{chateau: string, shape_id: string, route_type: number}>) {
+	async function fetchMissingShapes(
+		missing_shapes: Array<{ chateau: string; shape_id: string; route_type: number }>
+	) {
 		// Debounce or batch? For now just fetch parallel.
 		// Limit concurrency?
-		
+
 		const promises = missing_shapes.map(async ({ chateau, shape_id, route_type }) => {
 			if (fetched_shapes_cache[shape_id]) return; // already got it
 
@@ -333,16 +348,23 @@
 
 				// 1. High Detail Inner
 				// Center on stop. simplify=10
-				const center = data_meta?.primary ? { lat: data_meta.primary.stop_lat, lon: data_meta.primary.stop_lon } : null;
-				
+				const center = data_meta?.primary
+					? { lat: data_meta.primary.stop_lat, lon: data_meta.primary.stop_lon }
+					: null;
+
 				let innerPromise;
 				if (center) {
 					const bbox = calculateBoundingBox(center.lat, center.lon, 10); // 10km box
-					innerPromise = fetch(get_shape_url(chateau, shape_id, {
-						simplify: 0.5,
-						min_x: bbox.min_x, min_y: bbox.min_y, max_x: bbox.max_x, max_y: bbox.max_y,
-						format: 'geojson'
-					})).then(r => r.json());
+					innerPromise = fetch(
+						get_shape_url(chateau, shape_id, {
+							simplify: 0.5,
+							min_x: bbox.min_x,
+							min_y: bbox.min_y,
+							max_x: bbox.max_x,
+							max_y: bbox.max_y,
+							format: 'geojson'
+						})
+					).then((r) => r.json());
 				} else {
 					// fallback if no center known yet (unlikely)
 					innerPromise = Promise.resolve(null);
@@ -354,15 +376,17 @@
 				// "Fetch 2 (Outer): simplify=1000 (Low Detail), No bbox (if Rail)."
 				// What if it is NOT rail but IS lots? Maybe 100?
 				const outerSimplify = isRail ? 1000 : 100;
-				
-				const outerPromise = fetch(get_shape_url(chateau, shape_id, {
-					simplify: outerSimplify,
-					format: 'geojson'
-				})).then(r => r.json());
+
+				const outerPromise = fetch(
+					get_shape_url(chateau, shape_id, {
+						simplify: outerSimplify,
+						format: 'geojson'
+					})
+				).then((r) => r.json());
 
 				try {
 					const [inner, outer] = await Promise.all([innerPromise, outerPromise]);
-					
+
 					if (inner && outer) {
 						// Splice
 						const spliced = spliceLines(inner, outer);
@@ -374,18 +398,19 @@
 						fetched_shapes_cache[shape_id] = inner.geometry || inner;
 					}
 				} catch (e) {
-					console.error("Failed to fetch optimized shape", e);
+					console.error('Failed to fetch optimized shape', e);
 				}
-
 			} else {
 				// Standard Fetch
 				fetched_shapes_cache[shape_id] = { type: 'Pending' };
 				try {
-					const res = await fetch(get_shape_url(chateau, shape_id, { simplify: 10, format: 'geojson' }));
+					const res = await fetch(
+						get_shape_url(chateau, shape_id, { simplify: 10, format: 'geojson' })
+					);
 					const json = await res.json();
 					fetched_shapes_cache[shape_id] = json.geometry || json;
 				} catch (e) {
-					console.error("Failed fetch shape", e);
+					console.error('Failed fetch shape', e);
 				}
 			}
 		});
@@ -421,7 +446,7 @@
 		});
 
 		const geojson_shapes_list: any[] = [];
-		const missing_shapes: Array<{chateau: string, shape_id: string, route_type: number}> = [];
+		const missing_shapes: Array<{ chateau: string; shape_id: string; route_type: number }> = [];
 
 		for (const [chateau_id, routes] of Object.entries<any>(data_meta.routes || {})) {
 			for (const [route_id, route] of Object.entries<any>(routes)) {
@@ -513,13 +538,13 @@
 			// We can assume eventual consistency or the user accepts the risk/behavior.
 			// But maybe we should check if we are already loading another page?
 			// fetchPage sets page.loading=false before calling this.
-			
-			// To be safe, maybe limit how far ahead we look? 
+
+			// To be safe, maybe limit how far ahead we look?
 			// But for now, I will implement exactly as requested.
-			
+
 			// We need to verify we aren't already loading the *next* page.
 			// loadNextPage checks pages logic.
-			
+
 			// We delay slightly to ensure UI is stable
 			setTimeout(() => {
 				// Re-check
@@ -547,24 +572,24 @@
 			const bounds = map.getBounds();
 			// Iterate over shapes that we know have a low-res outer part
 			// We can check route_shapes_meta
-			
+
 			const promises: Promise<void>[] = [];
 
 			for (const [shape_id, meta] of Object.entries(route_shapes_meta)) {
 				// checks
 				if (!meta.outerSimplify || meta.outerSimplify <= 10) continue; // already high res or not optimized
-				
-				// Identify if this shape is in view? 
+
+				// Identify if this shape is in view?
 				// We don't have an easy distinct index of "where is this shape".
 				// But we can check if the shape's bbox intersects the map bbox?
 				// Calculating exact shape bbox might be expensive if not cached.
 				// However, we are only dealing with the shapes *for this stop*.
 				// So there shouldn't be thousands.
-				
+
 				// Just blindly fetch high res for this bbox?
 				// Efficient enough for < 20 routes? Yes.
-				
-				// We need chateau for this shape. 
+
+				// We need chateau for this shape.
 				// We can find it in data_meta or just store it in meta.
 				// I'll scan data_meta to find chateau for shape_id (inefficient loop but safe)
 				let chateau = '';
@@ -581,34 +606,46 @@
 				}
 				if (!found) continue;
 
-				promises.push((async () => {
-					// Fetch high res for current bounds
-					const { _sw, _ne } = bounds;
-					try {
-						const res = await fetch(get_shape_url(chateau, shape_id, {
-							simplify: 10,
-							min_x: _sw.lng, min_y: _sw.lat, max_x: _ne.lng, max_y: _ne.lat,
-							format: 'geojson'
-						}));
-						const json = await res.json();
-						
-						// If empty geometry (lines are not in view), ignore
-						if (!json || (json.geometry && json.geometry.coordinates.length === 0) || (json.coordinates && json.coordinates.length === 0)) return;
-						
-						// Splice
-						const current = fetched_shapes_cache[shape_id];
-						if (current && current.type !== 'Pending') {
-							const spliced = spliceLines(json, current); // new inner (json) + old outer (current)
-							fetched_shapes_cache[shape_id] = spliced;
-							// We don't update meta.outerSimplify because we still have outer parts elsewhere.
-							// But we have localized high res.
+				promises.push(
+					(async () => {
+						// Fetch high res for current bounds
+						const { _sw, _ne } = bounds;
+						try {
+							const res = await fetch(
+								get_shape_url(chateau, shape_id, {
+									simplify: 10,
+									min_x: _sw.lng,
+									min_y: _sw.lat,
+									max_x: _ne.lng,
+									max_y: _ne.lat,
+									format: 'geojson'
+								})
+							);
+							const json = await res.json();
+
+							// If empty geometry (lines are not in view), ignore
+							if (
+								!json ||
+								(json.geometry && json.geometry.coordinates.length === 0) ||
+								(json.coordinates && json.coordinates.length === 0)
+							)
+								return;
+
+							// Splice
+							const current = fetched_shapes_cache[shape_id];
+							if (current && current.type !== 'Pending') {
+								const spliced = spliceLines(json, current); // new inner (json) + old outer (current)
+								fetched_shapes_cache[shape_id] = spliced;
+								// We don't update meta.outerSimplify because we still have outer parts elsewhere.
+								// But we have localized high res.
+							}
+						} catch (e) {
+							// ignore errors (maybe network fail or no data)
 						}
-					} catch (e) { 
-						// ignore errors (maybe network fail or no data)
-					}
-				})());
+					})()
+				);
 			}
-			
+
 			if (promises.length > 0) {
 				await Promise.all(promises);
 				primeMapContextFromMeta();
@@ -622,7 +659,7 @@
 
 		current_time = Date.now();
 		const tick = setInterval(() => (current_time = Date.now()), 500);
-		
+
 		const map = get(map_pointer_store);
 		if (map) {
 			map.on('moveend', updateShapesOnMove);
@@ -633,12 +670,18 @@
 			clearAllPageTimers();
 			const global_map_pointer = get(map_pointer_store);
 			global_map_pointer?.getSource('redpin')?.setData({ type: 'FeatureCollection', features: [] });
-			
+
 			if (global_map_pointer) {
 				global_map_pointer.off('moveend', updateShapesOnMove);
-				global_map_pointer.getSource('transit_shape_context_for_stop')?.setData({ type: 'FeatureCollection', features: [] });
-				global_map_pointer.getSource('transit_shape_context')?.setData({ type: 'FeatureCollection', features: [] });
-				global_map_pointer.getSource('stops_context')?.setData({ type: 'FeatureCollection', features: [] });
+				global_map_pointer
+					.getSource('transit_shape_context_for_stop')
+					?.setData({ type: 'FeatureCollection', features: [] });
+				global_map_pointer
+					.getSource('transit_shape_context')
+					?.setData({ type: 'FeatureCollection', features: [] });
+				global_map_pointer
+					.getSource('stops_context')
+					?.setData({ type: 'FeatureCollection', features: [] });
 			}
 		};
 	});
@@ -665,7 +708,46 @@
 							/>
 						</p>
 					</div>
-					<p class="text-sm ml-1">{data_meta.primary.timezone}</p>
+					<p class="text-sm ml-1 mb-2">{data_meta.primary.timezone}</p>
+
+					<!-- Filters -->
+					<div class="flex flex-row flex-wrap gap-2 ml-1 mb-4 items-center">
+						<button
+							class={`px-3 py-1.5 rounded-full text-sm font-medium border border-gray-300 dark:border-gray-600 ${filter_rail ? 'bg-blue-100 dark:bg-blue-900 border-blue-400' : 'bg-gray-100 dark:bg-gray-800 opacity-60'}`}
+							on:click={() => (filter_rail = !filter_rail)}
+						>
+							{$_('headingIntercityRail')}
+						</button>
+						<button
+							class={`px-3 py-1.5 rounded-full text-sm font-medium border border-gray-300 dark:border-gray-600 ${filter_metro ? 'bg-blue-100 dark:bg-blue-900 border-blue-400' : 'bg-gray-100 dark:bg-gray-800 opacity-60'}`}
+							on:click={() => (filter_metro = !filter_metro)}
+						>
+							{$_('headingLocalRail')}
+						</button>
+						<button
+							class={`px-3 py-1.5 rounded-full text-sm font-medium border border-gray-300 dark:border-gray-600 ${filter_bus ? 'bg-blue-100 dark:bg-blue-900 border-blue-400' : 'bg-gray-100 dark:bg-gray-800 opacity-60'}`}
+							on:click={() => (filter_bus = !filter_bus)}
+						>
+							{$_('headingBus')}
+						</button>
+						<button
+							class={`px-3 py-1.5 rounded-full text-sm font-medium border border-gray-300 dark:border-gray-600 ${filter_other ? 'bg-blue-100 dark:bg-blue-900 border-blue-400' : 'bg-gray-100 dark:bg-gray-800 opacity-60'}`}
+							on:click={() => (filter_other = !filter_other)}
+						>
+							{$_('headingOther')}
+						</button>
+					</div>
+
+					<label
+						class="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full cursor-pointer select-none border border-gray-300 dark:border-gray-600"
+					>
+						<input
+							type="checkbox"
+							bind:checked={show_arrivals_only}
+							class="form-checkbox h-4 w-4 text-blue-600"
+						/>
+						<span class="text-sm font-medium">{$_('show_arrivals')}</span>
+					</label>
 
 					{#if previous_count > 0}
 						<button
@@ -703,75 +785,170 @@
 							{#each dates_to_events_filtered[date_code].filter((event) => {
 								let cutoff = 60;
 								if (show_previous_departures) cutoff = 1800;
-								return (event.realtime_departure || event.scheduled_departure) >= current_time / 1000 - cutoff;
-							}) as event}
-								<div
-									class="mx-1 py-1 border-b-1 border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800"
-									on:click={() => {
-										data_stack_store.update((x) => {
-											x.push(
-												new StackInterface(
-													new SingleTrip(
-														event.chateau,
-														event.trip_id,
-														event.route_id,
-														null,
-														event.service_date.replace(/-/g, ''),
-														null,
-														null
-													)
-												)
-											);
-											return x;
-										});
-									}}
-								>
-									<div
-										class={`${(event.realtime_departure || event.scheduled_departure) < current_time / 1000 && event.scheduled_departure < current_time / 1000 ? 'opacity-80' : ''} ${event.trip_cancelled ? 'opacity-60' : ''}`}
-									>
-										<p>
-											{#if data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
-												<span
-													class="rounded-xs font-bold px-0.5 mx-1 py-0.5"
-													style={`background: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.color}; color: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color};`}
-												>
-													{data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
-												</span>
-											{:else if data_meta.routes?.[event.chateau]?.[event.route_id]?.long_name}
-												<span
-													class="rounded-xs font-semibold px-0.5 mx-1 py-0.5"
-													style={`background: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.color}; color: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color};`}
-												>
-													{data_meta.routes?.[event.chateau]?.[event.route_id]?.long_name}
-												</span>
-											{/if}
-											{#if event.trip_short_name}
-												<span class="font-bold">{event.trip_short_name}</span>
-											{/if}
-											{event.headsign}
-										</p>
+								// Filter by time
+								const relevant_time = event.last_stop ? event.realtime_arrival || event.scheduled_arrival : event.realtime_departure || event.scheduled_departure;
+								if (relevant_time < current_time / 1000 - cutoff) return false;
 
-										{#if event.last_stop}
+								if (event.last_stop && !show_arrivals_only) return false;
+
+								// Filter by mode
+								// Route type might be on event or in route definition
+								// Usually on route definition in GTFS, but let's check where it is available.
+								// In mergePageEvents we have the event.
+								// Do we have route_type on event? Checking StopScreenRow usage mostly implies route info is in data_meta.routes
+								const routeDef = data_meta.routes?.[event.chateau]?.[event.route_id];
+								const rType = routeDef?.route_type ?? event.route_type ?? 3; // default to bus if unknown
+								return filter_for_route_type(rType);
+							}) as event}
+								{#if [2].includes(data_meta.routes?.[event.chateau]?.[event.route_id]?.route_type ?? event.route_type)}
+									<div
+										class="mx-1 py-2 border-b border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 flex flex-row"
+										on:click={() => {
+											data_stack_store.update((x) => {
+												x.push(
+													new StackInterface(
+														new SingleTrip(
+															event.chateau,
+															event.trip_id,
+															event.route_id,
+															null,
+															event.service_date.replace(/-/g, ''),
+															null,
+															null
+														)
+													)
+												);
+												return x;
+											});
+										}}
+									>
+										<div class="flex-grow">
+											<div class="flex flex-row items-center gap-2 mb-1">
+												{#if data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
+													<span
+														class="rounded-xs font-bold px-1 py-0.5 text-sm"
+														style={`background: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.color}; color: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color};`}
+													>
+														{data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
+													</span>
+												{/if}
+												<div class="text-base font-normal leading-tight">
+													{#if event.trip_short_name}
+														<span class="font-bold mr-1">{event.trip_short_name}</span>
+													{/if}
+													{event.headsign}
+												</div>
+											</div>
+											<div
+												class="flex flex-row text-sm text-gray-600 dark:text-gray-400 gap-2 items-center flex-wrap"
+											>
+												{#if data_meta.agencies?.[event.chateau]?.[data_meta.routes?.[event.chateau]?.[event.route_id]?.agency_id]?.agency_name}
+													<span
+														>{data_meta.agencies?.[event.chateau]?.[
+															data_meta.routes?.[event.chateau]?.[event.route_id]?.agency_id
+														]?.agency_name}</span
+													>
+													<span class="opacity-80">•</span>
+												{/if}
+
+												<span class="font-medium">
+													{data_meta.routes?.[event.chateau]?.[event.route_id]?.long_name ||
+														data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
+												</span>
+
+												{#if event.platform_string_realtime}
+													<span class="opacity-90">•</span>
+													<span
+														class="bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs font-bold text-gray-800 dark:text-gray-200"
+													>
+														Plat {event.platform_string_realtime}
+													</span>
+												{/if}
+											</div>
+										</div>
+										<div class="flex-none flex flex-col items-end justify-center min-w-[80px]">
+											<StopScreenRow
+												{event}
+												data_from_server={data_meta}
+												{current_time}
+												{show_seconds}
+												show_arrivals={event.last_stop}
+												vertical={true}
+											/>
+										</div>
+									</div>
+								{:else}
+									<div
+										class="mx-1 py-1 border-b-1 border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800"
+										on:click={() => {
+											data_stack_store.update((x) => {
+												x.push(
+													new StackInterface(
+														new SingleTrip(
+															event.chateau,
+															event.trip_id,
+															event.route_id,
+															null,
+															event.service_date.replace(/-/g, ''),
+															null,
+															null
+														)
+													)
+												);
+												return x;
+											});
+										}}
+									>
+										<div
+											class={`${(event.realtime_departure || event.scheduled_departure) < current_time / 1000 && event.scheduled_departure < current_time / 1000 ? 'opacity-80' : ''} ${event.trip_cancelled ? 'opacity-60' : ''}`}
+										>
 											<p>
-												<span class="ml-1 text-xs font-bold align-middle"> {$_('last_stop')}</span>
+												{#if data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
+													<span
+														class="rounded-xs font-bold px-0.5 mx-1 py-0.5"
+														style={`background: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.color}; color: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color};`}
+													>
+														{data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
+													</span>
+												{:else if data_meta.routes?.[event.chateau]?.[event.route_id]?.long_name}
+													<span
+														class="rounded-xs font-semibold px-0.5 mx-1 py-0.5"
+														style={`background: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.color}; color: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color};`}
+													>
+														{data_meta.routes?.[event.chateau]?.[event.route_id]?.long_name}
+													</span>
+												{/if}
+												{#if event.trip_short_name}
+													<span class="font-bold">{event.trip_short_name}</span>
+												{/if}
+												{event.headsign}
 											</p>
+
+											{#if event.last_stop}
+												<p>
+													<span class="ml-1 text-xs font-bold align-middle">
+														{$_('last_stop')}</span
+													>
+												</p>
+											{/if}
+										</div>
+
+										<StopScreenRow
+											{event}
+											data_from_server={data_meta}
+											{current_time}
+											{show_seconds}
+											show_arrivals={event.last_stop}
+										/>
+
+										{#if event.platform_string_realtime}
+											<p>{$_('platform')} {event.platform_string_realtime}</p>
+										{/if}
+										{#if event.vehicle_number}
+											<p>{$_('vehicle')}: {event.vehicle_number}</p>
 										{/if}
 									</div>
-
-									<StopScreenRow
-										{event}
-										data_from_server={data_meta}
-										{current_time}
-										{show_seconds}
-									/>
-
-									{#if event.platform_string_realtime}
-										<p>{$_("platform")} {event.platform_string_realtime}</p>
-									{/if}
-									{#if event.vehicle_number}
-										<p>{$_('vehicle')}: {event.vehicle_number}</p>
-									{/if}
-								</div>
+								{/if}
 							{/each}
 						{/each}
 

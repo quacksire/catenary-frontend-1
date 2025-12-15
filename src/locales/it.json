@@ -126,5 +126,6 @@
 	"service_alerts": "Avvisi di servizio",
 	"cookie_consent_analytics": "Utilizziamo i cookie per l'analisi per migliorare la tua esperienza. Acconsenti?",
 	"accept": "Accetta",
-	"decline": "Rifiuta"
+	"decline": "Rifiuta",
+	"show_arrivals": "Mostra arrivi all'ultima stazione"
 }

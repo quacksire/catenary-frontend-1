@@ -115,5 +115,6 @@
 	"occupancy_status_not_boardable": "Невозможно посадить",
 	"deleted": "Удалено",
 	"starting_time": "Время начала",
-	"ending_time": "Время окончания"
+	"ending_time": "Время окончания",
+	"show_arrivals": "Показать прибытия на последней станции"
 }

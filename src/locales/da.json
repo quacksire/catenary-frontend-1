@@ -119,5 +119,6 @@
 	"ending_time": "Sluttidspunkt",
 	"cookie_consent_analytics": "Vi bruger cookies til analyse for at forbedre din oplevelse. Giver du samtykke?",
 	"accept": "Accepter",
-	"decline": "Afvis"
+	"decline": "Afvis",
+	"show_arrivals": "Vis ankomster ved sidste station"
 }

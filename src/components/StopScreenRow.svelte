@@ -10,13 +10,15 @@
 	export let data_from_server: any;
 	export let current_time: number;
 	export let show_seconds: boolean;
+	export let show_arrivals: boolean = false;
+	export let vertical: boolean = false;
 
-	$: shared_rt_time = event.realtime_departure;
+	$: shared_rt_time = show_arrivals ? event.realtime_arrival : event.realtime_departure;
 
-	$: shared_scheduled_time = event.scheduled_departure;
+	$: shared_scheduled_time = show_arrivals ? event.scheduled_arrival : event.scheduled_departure;
 </script>
 
-<div class="flex flex-row">
+<div class={`flex ${vertical ? 'flex-col items-end' : 'flex-row'}`}>
 	{#if event.trip_cancelled}
 		<div class="flex flex-row w-full">
 			<span class="text-red-500 font-semibold">{$_('cancelled')}</span>
@@ -51,7 +53,7 @@
 			</div>
 		</div>
 	{:else}
-		{event.last_stop ? $_('arrival') : $_('departure')}:
+		{event.last_stop || show_arrivals ? $_('arrival') : $_('departure')}:
 		<TimeDiff
 			large={false}
 			show_brackets={false}
@@ -61,8 +63,8 @@
 
 		<span class="ml-1">
 			{#if shared_rt_time}
-			{#if shared_scheduled_time}
-				<DelayDiff diff={shared_rt_time - shared_scheduled_time} {show_seconds} />
+				{#if shared_scheduled_time}
+					<DelayDiff diff={shared_rt_time - shared_scheduled_time} {show_seconds} />
 				{/if}
 			{/if}
 		</span>

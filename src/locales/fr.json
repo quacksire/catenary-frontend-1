@@ -153,5 +153,6 @@
 	"download": "Télécharger",
 	"keepusingweb": "Continuer sur le web",
 	"continue": "Continuer",
-	"stop_cancelled": "Arrêt annulé"
+	"stop_cancelled": "Arrêt annulé",
+	"show_arrivals": "Afficher les arrivées à la dernière station"
 }
