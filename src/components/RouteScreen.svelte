@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { batchFetchShapes } from '../utils/shape_api';
 	import { json } from '@sveltejs/kit';
 	import { RouteStack, SingleTrip, StackInterface, StopStack } from './stackenum';
 	import { onDestroy, onMount } from 'svelte';
@@ -160,12 +161,14 @@
 			return fetched_shapes[shape_id];
 		}
 
-		let url = `https://birch.catenarymaps.org/get_shape?chateau=${encodeURIComponent(chateau)}&shape_id=${encodeURIComponent(shape_id)}`;
-
 		try {
-			const response = await fetch(url);
-			if (response.ok) {
-				const data = await response.json();
+			const result = await batchFetchShapes([{ chateau, shape_id }], {
+				format: 'geojson',
+				simplify: 10
+			});
+			// result is { [shape_id]: geometry }
+			if (result[shape_id]) {
+				const data = result[shape_id];
 				fetched_shapes[shape_id] = data;
 				return data;
 			}

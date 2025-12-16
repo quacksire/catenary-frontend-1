@@ -4,6 +4,7 @@
 	import polyline from '@mapbox/polyline';
 	import * as turf from '@turf/turf';
 	import { writable, get } from 'svelte/store';
+	import { batchFetchShapes } from '../utils/shape_api';
 	import { timezone_to_locale } from './timezone_to_locale';
 	import {
 		data_stack_store,
@@ -288,16 +289,6 @@
 		await Promise.all(merged.map((m) => doFetch(m.start, m.end)));
 	}
 
-	function get_shape_url(chateau: string, shape_id: string, params: any = {}) {
-		const base = 'https://birchshapescustom.catenarymaps.org/get_shape';
-		const q = new URLSearchParams({
-			chateau,
-			shape_id,
-			...params
-		});
-		return `${base}?${q.toString()}`;
-	}
-
 	function calculateBoundingBox(lat: number, lon: number, km: number) {
 		// rough approximation: 1 deg lat = 111km, 1 deg lon = 111km * cos(lat)
 		const latDelta = km / 111;
@@ -372,92 +363,175 @@
 	async function fetchMissingShapes(
 		missing_shapes: Array<{ chateau: string; shape_id: string; route_type: number }>
 	) {
-		// Debounce or batch? For now just fetch parallel.
-		// Limit concurrency?
+		const isLots = missing_shapes.length > 7;
 
-		const promises = missing_shapes.map(async ({ chateau, shape_id, route_type }) => {
-			if (fetched_shapes_cache[shape_id]) return; // already got it
+		// Groups for batching
+		// 1. Inner (High Detail, BBox) - For Rail/Lots
+		const groupInner: { chateau: string; shape_id: string }[] = [];
+		// 2. Outer Rail (Low Detail 1000)
+		const groupOuterRail: { chateau: string; shape_id: string }[] = [];
+		// 3. Outer Other (Low Detail 100)
+		const groupOuterOther: { chateau: string; shape_id: string }[] = [];
+		// 4. Standard (Simplify 10) - For few items
+		const groupStandard: { chateau: string; shape_id: string }[] = [];
 
-			// Condition: Rail (2) OR "LOTS" (e.g. queue size > 10, or just always do it for optimization?)
-			// The prompt says "If it is a train station (has route type 2), or we are requesting LOTS of shapes"
-			// "LOTS" might mean the total number of shapes in `missing_shapes` is large.
-			const isRail = route_type === 2;
-			const isLots = missing_shapes.length > 7;
+		const center = data_meta?.primary
+			? { lat: data_meta.primary.stop_lat, lon: data_meta.primary.stop_lon }
+			: null;
+		const bbox = center ? calculateBoundingBox(center.lat, center.lon, 10) : null;
+
+		for (const item of missing_shapes) {
+			// Optimization logic:
+			// If Rail (2) OR Lots (>7) -> Use Inner/Outer Strategy
+			// Else -> Standard Strategy
+			const isRail = item.route_type === 2;
+
+			if (fetched_shapes_cache[item.shape_id]) continue;
+			fetched_shapes_cache[item.shape_id] = { type: 'Pending' };
 
 			if (isRail || isLots) {
-				// Optimization strategy
-				fetched_shapes_cache[shape_id] = { type: 'Pending' }; // mark in progress
-
-				// 1. High Detail Inner
-				// Center on stop. simplify=10
-				const center = data_meta?.primary
-					? { lat: data_meta.primary.stop_lat, lon: data_meta.primary.stop_lon }
-					: null;
-
-				let innerPromise;
-				if (center) {
-					const bbox = calculateBoundingBox(center.lat, center.lon, 10); // 10km box
-					innerPromise = fetch(
-						get_shape_url(chateau, shape_id, {
-							simplify: 0.5,
-							min_x: bbox.min_x,
-							min_y: bbox.min_y,
-							max_x: bbox.max_x,
-							max_y: bbox.max_y,
-							format: 'geojson'
-						})
-					).then((r) => r.json());
-				} else {
-					// fallback if no center known yet (unlikely)
-					innerPromise = Promise.resolve(null);
+				if (center && bbox) {
+					groupInner.push(item);
 				}
-
-				// 2. Low Detail Outer
-				// simplify=1000 for Rail, 100 for others? User said "outer should be 1000m simplified for rail lines".
-				// implementation_plan said 100 for non-rail? Re-reading plan:
-				// "Fetch 2 (Outer): simplify=1000 (Low Detail), No bbox (if Rail)."
-				// What if it is NOT rail but IS lots? Maybe 100?
-				const outerSimplify = isRail ? 1000 : 100;
-
-				const outerPromise = fetch(
-					get_shape_url(chateau, shape_id, {
-						simplify: outerSimplify,
-						format: 'geojson'
-					})
-				).then((r) => r.json());
-
-				try {
-					const [inner, outer] = await Promise.all([innerPromise, outerPromise]);
-
-					if (inner && outer) {
-						// Splice
-						const spliced = spliceLines(inner, outer);
-						fetched_shapes_cache[shape_id] = spliced;
-						route_shapes_meta[shape_id] = { spliced: true, outerSimplify };
-					} else if (outer) {
-						fetched_shapes_cache[shape_id] = outer.geometry || outer;
-					} else if (inner) {
-						fetched_shapes_cache[shape_id] = inner.geometry || inner;
-					}
-				} catch (e) {
-					console.error('Failed to fetch optimized shape', e);
+				if (isRail) {
+					groupOuterRail.push(item);
+				} else {
+					groupOuterOther.push(item);
 				}
 			} else {
-				// Standard Fetch
-				fetched_shapes_cache[shape_id] = { type: 'Pending' };
-				try {
-					const res = await fetch(
-						get_shape_url(chateau, shape_id, { simplify: 10, format: 'geojson' })
-					);
-					const json = await res.json();
-					fetched_shapes_cache[shape_id] = json.geometry || json;
-				} catch (e) {
-					console.error('Failed fetch shape', e);
-				}
+				groupStandard.push(item);
 			}
-		});
+		}
+
+		// Execute Batches
+		const promises: Promise<void>[] = [];
+
+		// Batch 1: Inner
+		if (groupInner.length > 0 && bbox) {
+			promises.push(
+				batchFetchShapes(groupInner, {
+					simplify: 0.5,
+					...bbox,
+					format: 'geojson'
+				}).then((results) => {
+					for (const [id, geom] of Object.entries(results)) {
+						// Store temporarily to splice later?
+						// Or just update cache with 'Inner' part?
+						// We need to wait for Outer to splice.
+						// Let's store in a temp map or attach to cache?
+						// We can attach to `fetched_shapes_cache` as a partial object if we want,
+						// but simpler: we just wait for all promises to resolve then splice.
+						// Actually, we can't easily wait across different batch calls unless we coordinate.
+						// So we'll update the cache with what we get, and splice if both exist?
+
+						// Strategy: Store partials in a side-cache?
+						// `fetched_shapes_cache` can hold { inner?: Geometry, outer?: Geometry } temporarily?
+						// But the renderer expects Geometry.
+
+						// Let's overwrite safely.
+						const current = fetched_shapes_cache[id];
+						if (current && current.type === 'Pending') {
+							fetched_shapes_cache[id] = { inner: geom, type: 'Partial' };
+						} else if (current && current.type === 'Partial') {
+							// We have outer?
+							if (current.outer) {
+								fetched_shapes_cache[id] = spliceLines(geom, { geometry: current.outer });
+								route_shapes_meta[id] = {
+									spliced: true,
+									outerSimplify: 1000 /* unknown really but low res */
+								};
+							} else {
+								// just inner
+								fetched_shapes_cache[id] = { ...current, inner: geom };
+							}
+						}
+					}
+				})
+			);
+		}
+
+		// Batch 2: Outer Rail
+		if (groupOuterRail.length > 0) {
+			promises.push(
+				batchFetchShapes(groupOuterRail, {
+					simplify: 1000,
+					format: 'geojson'
+				}).then((results) => {
+					for (const [id, geom] of Object.entries(results)) {
+						const current = fetched_shapes_cache[id];
+						if (current && current.type === 'Pending') {
+							// Just outer so far (unlikely if inner fired, but maybe inner failed or handled differently)
+							fetched_shapes_cache[id] = { outer: geom, type: 'Partial' };
+						} else if (current && current.type === 'Partial') {
+							if (current.inner) {
+								fetched_shapes_cache[id] = spliceLines(
+									{ geometry: current.inner },
+									{ geometry: geom }
+								);
+								route_shapes_meta[id] = { spliced: true, outerSimplify: 1000 };
+							} else {
+								fetched_shapes_cache[id] = { ...current, outer: geom };
+							}
+						}
+					}
+				})
+			);
+		}
+
+		// Batch 3: Outer Other
+		if (groupOuterOther.length > 0) {
+			promises.push(
+				batchFetchShapes(groupOuterOther, {
+					simplify: 100,
+					format: 'geojson'
+				}).then((results) => {
+					for (const [id, geom] of Object.entries(results)) {
+						const current = fetched_shapes_cache[id];
+						if (current && current.type === 'Pending') {
+							fetched_shapes_cache[id] = { outer: geom, type: 'Partial' };
+						} else if (current && current.type === 'Partial') {
+							if (current.inner) {
+								fetched_shapes_cache[id] = spliceLines(
+									{ geometry: current.inner },
+									{ geometry: geom }
+								);
+								route_shapes_meta[id] = { spliced: true, outerSimplify: 100 };
+							} else {
+								fetched_shapes_cache[id] = { ...current, outer: geom };
+							}
+						}
+					}
+				})
+			);
+		}
+
+		// Batch 4: Standard
+		if (groupStandard.length > 0) {
+			promises.push(
+				batchFetchShapes(groupStandard, {
+					simplify: 10,
+					format: 'geojson'
+				}).then((results) => {
+					for (const [id, geom] of Object.entries(results)) {
+						fetched_shapes_cache[id] = geom;
+					}
+				})
+			);
+		}
 
 		await Promise.all(promises);
+
+		// Cleanup: If any remain 'Partial' or 'Pending', finalize them
+		// Pending -> Failed
+		// Partial -> Use what we have (Inner or Outer)
+		for (const item of missing_shapes) {
+			const c = fetched_shapes_cache[item.shape_id];
+			if (c && c.type === 'Partial') {
+				// If we have just inner or just outer
+				fetched_shapes_cache[item.shape_id] = c.inner || c.outer || { type: 'Pending' }; // Fallback
+			}
+		}
+
 		primeMapContextFromMeta(); // re-render
 	}
 
@@ -611,27 +685,16 @@
 		clearTimeout(moveTimeout);
 		moveTimeout = setTimeout(async () => {
 			const bounds = map.getBounds();
-			// Iterate over shapes that we know have a low-res outer part
-			// We can check route_shapes_meta
+			const zoom = map.getZoom();
 
-			const promises: Promise<void>[] = [];
+			// Iterate over shapes that we know have a low-res outer part
+			const itemsToUpdate: { chateau: string; shape_id: string }[] = [];
 
 			for (const [shape_id, meta] of Object.entries(route_shapes_meta)) {
 				// checks
 				if (!meta.outerSimplify || meta.outerSimplify <= 10) continue; // already high res or not optimized
 
-				// Identify if this shape is in view?
-				// We don't have an easy distinct index of "where is this shape".
-				// But we can check if the shape's bbox intersects the map bbox?
-				// Calculating exact shape bbox might be expensive if not cached.
-				// However, we are only dealing with the shapes *for this stop*.
-				// So there shouldn't be thousands.
-
-				// Just blindly fetch high res for this bbox?
-				// Efficient enough for < 20 routes? Yes.
-
-				// We need chateau for this shape.
-				// We can find it in data_meta or just store it in meta.
+				// Find chateau for this shape_id
 				// I'll scan data_meta to find chateau for shape_id (inefficient loop but safe)
 				let chateau = '';
 				let found = false;
@@ -646,50 +709,49 @@
 					}
 				}
 				if (!found) continue;
-
-				promises.push(
-					(async () => {
-						// Fetch high res for current bounds
-						const { _sw, _ne } = bounds;
-						try {
-							const res = await fetch(
-								get_shape_url(chateau, shape_id, {
-									simplify: 10,
-									min_x: _sw.lng,
-									min_y: _sw.lat,
-									max_x: _ne.lng,
-									max_y: _ne.lat,
-									format: 'geojson'
-								})
-							);
-							const json = await res.json();
-
-							// If empty geometry (lines are not in view), ignore
-							if (
-								!json ||
-								(json.geometry && json.geometry.coordinates.length === 0) ||
-								(json.coordinates && json.coordinates.length === 0)
-							)
-								return;
-
-							// Splice
-							const current = fetched_shapes_cache[shape_id];
-							if (current && current.type !== 'Pending') {
-								const spliced = spliceLines(json, current); // new inner (json) + old outer (current)
-								fetched_shapes_cache[shape_id] = spliced;
-								// We don't update meta.outerSimplify because we still have outer parts elsewhere.
-								// But we have localized high res.
-							}
-						} catch (e) {
-							// ignore errors (maybe network fail or no data)
-						}
-					})()
-				);
+				itemsToUpdate.push({ chateau, shape_id });
 			}
 
-			if (promises.length > 0) {
-				await Promise.all(promises);
-				primeMapContextFromMeta();
+			if (itemsToUpdate.length > 0) {
+				const { _sw, _ne } = bounds;
+				// Dynamic simplification based on zoom logic (User Request)
+				// e.g. Zoom 14+ -> simplify 2m, else 10m?
+				const dynamicSimplify = zoom > 14 ? 2 : 10;
+
+				try {
+					const results = await batchFetchShapes(itemsToUpdate, {
+						simplify: dynamicSimplify,
+						min_x: _sw.lng,
+						min_y: _sw.lat,
+						max_x: _ne.lng,
+						max_y: _ne.lat,
+						format: 'geojson'
+					});
+
+					for (const [shape_id, json_geom] of Object.entries(results)) {
+						if (!json_geom) continue;
+
+						// If empty coordinates, ignore
+						const coords = json_geom.coordinates;
+						if (!coords || coords.length === 0) continue;
+
+						// Splice
+						const current = fetched_shapes_cache[shape_id];
+						// We expect current to be the "Outer" or previously spliced.
+						// The "Splice" function expects features/geometries.
+
+						// Current must be valid
+						if (current && current.type !== 'Pending' && current.type !== 'Partial') {
+							// If current is Geometry
+							const spliced = spliceLines({ geometry: json_geom }, { geometry: current });
+							fetched_shapes_cache[shape_id] = spliced;
+						}
+					}
+
+					primeMapContextFromMeta();
+				} catch (e) {
+					console.error('Failed to batch update shapes on move', e);
+				}
 			}
 		}, 500); // 500ms debounce
 	}
@@ -876,7 +938,6 @@
 														class="rounded-xs font-bold px-1 py-0.5 text-sm"
 														style={`background: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.color}; color: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color};`}
 													>
-														
 													</span>
 												{/if}
 												<div class="text-base font-normal leading-tight">
@@ -948,7 +1009,8 @@
 													<span
 														class="bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs font-bold text-gray-800 dark:text-gray-200"
 													>
-														Plat {event.platform_string_realtime}
+														{$_('platform')}
+														{event.platform_string_realtime.replace('Track', '').trim()}
 													</span>
 												{/if}
 											</div>
