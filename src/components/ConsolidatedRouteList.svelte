@@ -11,12 +11,14 @@
 	$: sw_routes = national_rail_connections.filter((c) => c.route.agency_id === 'SW');
 	$: sn_routes = national_rail_connections.filter((c) => c.route.agency_id === 'SN');
 	$: cc_routes = national_rail_connections.filter((c) => c.route.agency_id === 'CC');
+	$: le_routes = national_rail_connections.filter((c) => c.route.agency_id === 'LE');
 
 	$: grouped_route_ids = new Set([
 		...gwr_routes.map((c) => c.route_id),
 		...sw_routes.map((c) => c.route_id),
 		...sn_routes.map((c) => c.route_id),
-		...cc_routes.map((c) => c.route_id)
+		...cc_routes.map((c) => c.route_id),
+		...le_routes.map((c) => c.route_id)
 	]);
 </script>
 
@@ -58,6 +60,12 @@
 	<div class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded">
 		<img src="/agencyicons/c2c_logo.svg" alt="c2c" class="h-3 inline-block mr-1" />
 		<span class="text-xs font-semibold">c2c</span>
+	</div>
+{/if}
+
+{#if le_routes.length > 0}
+	<div class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded">
+		<span class="text-xs font-semibold">Greater Anglia</span>
 	</div>
 {/if}
 
