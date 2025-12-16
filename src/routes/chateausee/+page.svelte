@@ -1,8 +1,6 @@
 <script lang="ts">
-	//@ts-nocheck
-	import {Map, AttributionControl} from 'maplibre-gl';
+	import { Map } from 'maplibre-gl';
 	import { onMount } from 'svelte';
-	import { addShapes } from '../../components/addLayers/addShapes';
 
 	let centerinit: [number, number] = [-118, 33.9];
 	let zoominit = 8.1;
@@ -15,10 +13,6 @@
 			container: 'map',
 			crossSourceCollisions: true,
 			hash: 'pos',
-			preserveDrawingBuffer: false,
-			attributionControl: new AttributionControl({
-        compact: true
-    }),
 			//	antialias: true,
 			style: '/dark-style.json', // stylesheet location
 			center: centerinit, // starting position [lng, lat]
@@ -95,8 +89,8 @@
 				filter: chateauFilter ? ['==', 'chateau', chateauFilter] : ['all'],
 				paint: {
 					'fill-color': ['get', 'color'],
-					'fill-opacity': 0.03,
-				//	'fill-emissive-strength': 1
+					'fill-opacity': 0.03
+					//	'fill-emissive-strength': 1
 				}
 			});
 			map.addLayer({
@@ -125,7 +119,6 @@
 					'text-halo-blur': 5
 				}
 			});
-
 		});
 	});
 </script>
