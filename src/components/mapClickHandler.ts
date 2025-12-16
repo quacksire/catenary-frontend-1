@@ -14,11 +14,12 @@ import {
 	StopMapSelector
 } from './stackenum';
 
-export function setup_click_handler(
-	map: maplibregl.Map,
-	layerspercategory: Record<string, any>,
-	setSidebarOpen: () => void
-) {
+export function
+	setup_click_handler(
+		map: maplibregl.Map,
+		layerspercategory: Record<string, any>,
+		setSidebarOpen: () => void
+	) {
 	// Precompute interactive layers array
 	map.on('click', (e) => {
 		console.log('click');
@@ -27,6 +28,9 @@ export function setup_click_handler(
 			.filter(Boolean);
 
 		console.log('interactiveLayers', interactiveLayers);
+
+
+		interactiveLayers.push('ferryshapes');
 
 		let current_layers = map.getStyle().layers;
 
@@ -96,7 +100,8 @@ export function setup_click_handler(
 					x.source === 'busshapes' ||
 					x.source === 'localcityrailshapes' ||
 					x.source === 'intercityrailshapes' ||
-					x.source == 'othershapes'
+					x.source == 'othershapes' ||
+					x.layer.id === "ferryshapes"
 			);
 
 			const selected_routes_key_unique = new Set();
