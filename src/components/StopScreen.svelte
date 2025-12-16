@@ -876,7 +876,7 @@
 														class="rounded-xs font-bold px-1 py-0.5 text-sm"
 														style={`background: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.color}; color: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color};`}
 													>
-														{data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
+														
 													</span>
 												{/if}
 												<div class="text-base font-normal leading-tight">
@@ -938,8 +938,8 @@
 														class="font-bold px-1 py-0.5 rounded-xs text-xs"
 														style={`background: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.color}; color: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color};`}
 													>
-														{data_meta.routes?.[event.chateau]?.[event.route_id]?.long_name ||
-															data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
+														{data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name ||
+															data_meta.routes?.[event.chateau]?.[event.route_id]?.long_name}
 													</span>
 												{/if}
 
