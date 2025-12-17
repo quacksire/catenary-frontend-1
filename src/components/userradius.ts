@@ -111,13 +111,12 @@ export function setUserCircles(map: maplibregl.Map, lng: number, lat: number) {
 	const use_us_units = get(usunits_store);
 
 	if (use_us_units) {
-		// Enabled: Make KM layer subtle
+		// Enabled: Hide KM layers completely
 		if (map.getLayer('km_line')) {
-			map.setPaintProperty('km_line', 'line-opacity', 0.4);
+			map.setLayoutProperty('km_line', 'visibility', 'none');
 		}
 		if (map.getLayer('km_text')) {
-			map.setLayoutProperty('km_text', 'text-font', ['Barlow-Medium']);
-			map.setPaintProperty('km_text', 'text-opacity', 0.4);
+			map.setLayoutProperty('km_text', 'visibility', 'none');
 		}
 
 		const miles_distances = [0.5, 1, 2, 5, 10, 20, 50];
@@ -140,13 +139,12 @@ export function setUserCircles(map: maplibregl.Map, lng: number, lat: number) {
 			});
 		}
 	} else {
-		// Disabled: Make KM layer prominent
+		// Disabled: Show KM layers
 		if (map.getLayer('km_line')) {
-			map.setPaintProperty('km_line', 'line-opacity', 0.8);
+			map.setLayoutProperty('km_line', 'visibility', 'visible');
 		}
 		if (map.getLayer('km_text')) {
-			map.setLayoutProperty('km_text', 'text-font', ['Barlow-Bold']);
-			map.setPaintProperty('km_text', 'text-opacity', 0.8);
+			map.setLayoutProperty('km_text', 'visibility', 'visible');
 		}
 
 		if (miles_source) {
