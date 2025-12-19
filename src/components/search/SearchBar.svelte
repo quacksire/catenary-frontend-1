@@ -42,7 +42,10 @@
 		new_query,
 		autocomplete_focus_state,
 		show_back_button_recalc,
-		show_back_button_store
+		show_back_button_store,
+		selected_result_index_store,
+		displayed_results_store,
+		select_result_item
 	} from './search_data';
 
 	let show_back_button = false;
@@ -90,6 +93,30 @@
 
 		show_back_button_recalc();
 	}
+
+	function handle_keydown(event: KeyboardEvent) {
+		const total_results = get(displayed_results_store).length;
+		let current_index = get(selected_result_index_store);
+
+		if (event.key === 'ArrowDown' || (event.key === 'Tab' && !event.shiftKey)) {
+			event.preventDefault();
+			if (total_results > 0) {
+				current_index = (current_index + 1) % total_results;
+				selected_result_index_store.set(current_index);
+			}
+		} else if (event.key === 'ArrowUp' || (event.key === 'Tab' && event.shiftKey)) {
+			event.preventDefault();
+			if (total_results > 0) {
+				current_index = (current_index - 1 + total_results) % total_results;
+				selected_result_index_store.set(current_index);
+			}
+		} else if (event.key === 'Enter') {
+			if (current_index >= 0 && current_index < total_results) {
+				event.preventDefault();
+				select_result_item(get(displayed_results_store)[current_index]);
+			}
+		}
+	}
 </script>
 
 {#if !$isLoading}
@@ -116,6 +143,7 @@
 				on:input={handle_text_change}
 				on:focusout={focus_on_input}
 				on:blur={on_blur_input}
+				on:keydown={handle_keydown}
 				bind:value={text_input}
 				class="w-full focus:outline-none"
 				placeholder={$_('search_here')}

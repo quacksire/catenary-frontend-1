@@ -69,7 +69,27 @@ export async function setup_load_map(
 		addGeoRadius(map);
 		makeGpsLayer(map);
 
-		const emptyGeoJSON = { type: 'FeatureCollection', features: [] };
+		const emptyGeoJSON = { type: 'FeatureCollection', features: [] } as any;
+
+		map.addSource('cypress_results', {
+			type: 'geojson',
+			data: emptyGeoJSON
+		});
+
+		map.addLayer({
+			id: 'cypress_results_symbol',
+			type: 'symbol',
+			source: 'cypress_results',
+			layout: {
+				'icon-image': 'station-enter',
+				'icon-size': 0.3,
+				'icon-allow-overlap': true,
+				'icon-ignore-placement': true
+			},
+			paint: {
+				'icon-opacity': 0.9
+			}
+		});
 
 		update_geolocation_source();
 
@@ -210,49 +230,49 @@ function addStationLayers(
 ) {
 	try {
 		map.addLayer(
-		{
-			id: 'stationenter',
-			type: 'symbol',
-			source: 'stationfeatures',
-			filter: ['all', ['==', 2, ['get', 'location_type']]],
-			'source-layer': 'data',
-			layout: {
-				'icon-image': 'station-enter',
-				'icon-size': ['interpolate', ['linear'], ['zoom'], 14, 0.2, 15, 0.2, 16, 0.25, 18, 0.4],
-				'icon-ignore-placement': false,
-				'icon-allow-overlap': true
-			},
+			{
+				id: 'stationenter',
+				type: 'symbol',
+				source: 'stationfeatures',
+				filter: ['all', ['==', 2, ['get', 'location_type']]],
+				'source-layer': 'data',
+				layout: {
+					'icon-image': 'station-enter',
+					'icon-size': ['interpolate', ['linear'], ['zoom'], 14, 0.2, 15, 0.2, 16, 0.25, 18, 0.4],
+					'icon-ignore-placement': false,
+					'icon-allow-overlap': true
+				},
 
-			minzoom: minZoom
-		},
-		layerspercategory.bus.stops
-	);
-
-	map.addLayer(
-		{
-			id: 'stationenterlabel',
-			type: 'symbol',
-			source: 'stationfeatures',
-			filter: ['all', ['==', 2, ['get', 'location_type']]],
-			'source-layer': 'data',
-			layout: {
-				'text-field': ['get', 'name'],
-				'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
-				'text-size': ['interpolate', ['linear'], ['zoom'], 15, 5, 17, 8, 19, 9.5],
-				'text-radial-offset': 1,
-				'text-allow-overlap': true,
-				'text-font': ['Barlow-Bold']
+				minzoom: minZoom
 			},
-			paint: {
-				'text-color': darkMode ? '#bae6fd' : '#1d4ed8',
-				'text-halo-color': darkMode ? '#0f172a' : '#ffffff',
-				'text-halo-width': darkMode ? 0.4 : 0.2
-			},
+			layerspercategory.bus.stops
+		);
 
-			minzoom: window.innerWidth >= 1023 ? 17.5 : 17
-		},
-		layerspercategory.bus.stops
-	);
+		map.addLayer(
+			{
+				id: 'stationenterlabel',
+				type: 'symbol',
+				source: 'stationfeatures',
+				filter: ['all', ['==', 2, ['get', 'location_type']]],
+				'source-layer': 'data',
+				layout: {
+					'text-field': ['get', 'name'],
+					'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
+					'text-size': ['interpolate', ['linear'], ['zoom'], 15, 5, 17, 8, 19, 9.5],
+					'text-radial-offset': 1,
+					'text-allow-overlap': true,
+					'text-font': ['Barlow-Bold']
+				},
+				paint: {
+					'text-color': darkMode ? '#bae6fd' : '#1d4ed8',
+					'text-halo-color': darkMode ? '#0f172a' : '#ffffff',
+					'text-halo-width': darkMode ? 0.4 : 0.2
+				},
+
+				minzoom: window.innerWidth >= 1023 ? 17.5 : 17
+			},
+			layerspercategory.bus.stops
+		);
 	} catch (e) {
 		console.error(e);
 	}
