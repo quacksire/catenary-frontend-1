@@ -167,7 +167,7 @@ function drawRoutePath() {
                 'line-color': '#c41e3a', // Santa Red
                 'line-width': 2,
                 'line-opacity': 0.6,
-                'line-dasharray': [2, 4] // Dashed line
+                'line-dasharray': [1, 2] // Dashed line
             }
         }, SANTA_LAYER_ID); // Draw beneath the Santa marker
     }
