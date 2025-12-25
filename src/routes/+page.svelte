@@ -1,5 +1,4 @@
 <script lang="ts">
-	
 	//@ts-nocheck
 	import maplibregl from 'maplibre-gl';
 	import mlcontour from 'maplibre-contour';
@@ -22,8 +21,12 @@
 	import { autocomplete_focus_state } from '../components/search/search_data';
 	import { deep_link_url_reader } from '../components/deeplinkreader';
 	import { add_image_pedestrian_pattern } from '../components/pedestrian_layer';
-	import {applyVehicleFilters, additional_filter_for_vehicles_store, resetAdditionalVehicleFilter} from '../components/filterState';
-	import {isChromiumDesktop} from '../browserinfo'
+	import {
+		applyVehicleFilters,
+		additional_filter_for_vehicles_store,
+		resetAdditionalVehicleFilter
+	} from '../components/filterState';
+	import { isChromiumDesktop } from '../browserinfo';
 	import {
 		getLocationFromLocalStorage,
 		saveLocationToLocalStorage
@@ -79,6 +82,7 @@
 
 	import ConsentBanner from '../components/ConsentBanner.svelte';
 	import AndroidDownloadPopup from '../components/AndroidDownloadPopup.svelte';
+	import { startSantaTracking } from '../components/santa_tracker';
 	const enabledlayerstyle =
 		'text-black dark:text-white bg-blue-200 dark:bg-gray-700 border border-blue-800 dark:border-blue-200 text-sm md:text-sm';
 
@@ -142,48 +146,43 @@
 	let current_orm_layer_type: string | null = null;
 
 	if (typeof window !== 'undefined') {
-		
-			
-	geolocation_store.subscribe((g) => {
-		geolocation = g;
-	});
+		geolocation_store.subscribe((g) => {
+			geolocation = g;
+		});
 
-	lock_on_gps_store.subscribe((value) => {
-		lockongps = value;
-	});
+		lock_on_gps_store.subscribe((value) => {
+			lockongps = value;
+		});
 
+		autocomplete_focus_state.subscribe((new_data) => {
+			autocomplete_focus_state_local = new_data;
+		});
 
-			autocomplete_focus_state.subscribe((new_data) => {
-		autocomplete_focus_state_local = new_data;
-	});
+		consentGiven.subscribe((value) => {
+			// Wait until gtag is loaded
+			if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
 
+			if (value === true) {
+				// 1) Update consent
+				window.gtag('consent', 'update', {
+					analytics_storage: 'granted'
+				});
 
-			consentGiven.subscribe((value) => {
-    // Wait until gtag is loaded
-    if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
+				// 2) (Optional but common) re-run config so GA4 starts logging
+				window.gtag('config', 'G-QJRT4Q71T1');
+			} else {
+				// If you also support "reject" later:
+				window.gtag('consent', 'update', {
+					analytics_storage: 'denied'
+				});
+			}
+		});
 
-    if (value === true) {
-      // 1) Update consent
-      window.gtag('consent', 'update', {
-        analytics_storage: 'granted'
-      });
-
-      // 2) (Optional but common) re-run config so GA4 starts logging
-      window.gtag('config', 'G-QJRT4Q71T1');
-    } else {
-      // If you also support "reject" later:
-      window.gtag('consent', 'update', {
-        analytics_storage: 'denied'
-      });
-    }
-  });
-
-			
-	locale.subscribe((value) => {
-		if (typeof window != 'undefined') {
-			window.localStorage.language = value;
-		}
-	});
+		locale.subscribe((value) => {
+			if (typeof window != 'undefined') {
+				window.localStorage.language = value;
+			}
+		});
 
 		top_margin_collapser_sidebar = `${window.innerHeight / 2 - 15}px`;
 
@@ -642,12 +641,12 @@
 				interpretLabelsToCode(this_layer_settings.label, usunits)
 			);
 
-			if (category == "bus") {
+			if (category == 'bus') {
 				mapglobal.setLayoutProperty(
-					"livedots_context_bus_major_label",
-					"text-field",
+					'livedots_context_bus_major_label',
+					'text-field',
 					interpretLabelsToCode(this_layer_settings.label, usunits)
-				)
+				);
 			}
 
 			applyVehicleFilters(categoryvalues);
@@ -1197,7 +1196,6 @@
 	start_location_watch();
 
 	async function new_map() {
-
 		console.log('new map created');
 		//#region On the fly IP geolocation
 
@@ -1263,9 +1261,7 @@
 
 		// https://raw.githubusercontent.com/catenarytransit/betula-celtiberica-cdn/refs/heads/main/data/chateaus.json
 		// https://birch.catenarymaps.org/getchateaus
-		fetch(
-			'https://birch.catenarymaps.org/getchateaus'
-		)
+		fetch('https://birch.catenarymaps.org/getchateaus')
 			.then(function (response) {
 				return response.json();
 			})
@@ -1299,18 +1295,18 @@
 			})
 			.catch((err) => console.error(err));
 
-			if (navigator.hardwareConcurrency > 10) {
-				maplibregl.setWorkerCount(navigator.hardwareConcurrency);
-			} else {
-				maplibregl.setWorkerCount(4);
-			}
+		if (navigator.hardwareConcurrency > 10) {
+			maplibregl.setWorkerCount(navigator.hardwareConcurrency);
+		} else {
+			maplibregl.setWorkerCount(4);
+		}
 
 		let desync = true;
 
 		let is_chrome = navigator.userAgent.match(/Chrome\/\d+/) !== null;
 
 		if (is_chrome == true && isChromiumDesktop()) {
-			console.log('chromium dekstop, disabling desyncronised rendering')
+			console.log('chromium dekstop, disabling desyncronised rendering');
 			desync = false;
 		}
 
@@ -1321,7 +1317,7 @@
 				desynchronized: desync
 			},
 			container: 'map',
-	        localIdeographFontFamily: false,
+			localIdeographFontFamily: false,
 			light: { anchor: 'viewport', color: 'white', intensity: 0.4 },
 			hash: 'pos',
 			pixelRatio: window.devicePixelRatio * get_shortest_screen_dimension() > 800 ? 2 : 1.5,
@@ -1332,7 +1328,6 @@
 			center: centerinit, // starting position [lng, lat]
 			zoom: zoominit // starting zoom (must be greater than 8.1)
 		});
-
 
 		mapglobal = map;
 
@@ -1363,7 +1358,6 @@
 		if (darkMode) {
 		}
 
-		
 		const demSource = new mlcontour.DemSource({
 			//url: 'https://birchtiles123.catenarymaps.org/terrain_tiles_proxy_aws/{z}/{x}/{y}',
 			url: 'https://birchtiles123.catenarymaps.org/maptiler_terrain_tiles_proxy/{z}/{x}/{y}.webp',
@@ -1435,7 +1429,9 @@
 								console.log(`Successfully validated and added source: ${key}`);
 								map.addSource(key, value);
 							} else {
-								console.error(`Failed to fetch source ${key}: ${response.status} ${response.statusText}`);
+								console.error(
+									`Failed to fetch source ${key}: ${response.status} ${response.statusText}`
+								);
 							}
 						} catch (e) {
 							console.error(`Error adding source ${key} with url ${value.url}:`, e);
@@ -1496,7 +1492,6 @@
 
 			demSource.setupMaplibre(maplibregl);
 
-			
 			map.addSource('dem', {
 				type: 'raster-dem',
 				tiles: [demSource.sharedDemProtocolUrl],
@@ -1586,7 +1581,6 @@
 				},
 				'waterway_tunnel'
 			);
-			
 
 			show_topo_global_store.subscribe((value: boolean) => {
 				if (value === true) {
@@ -1629,6 +1623,9 @@
 				let chateau_feed_results = determineFeedsUsingChateaus(map);
 				chateaus_in_frame.set(Array.from(chateau_feed_results.chateaus));
 			}, 5000);
+
+			// Start Santa tracking during Christmas window
+			startSantaTracking(map);
 		});
 
 		maplibregl.setRTLTextPlugin(
@@ -1688,8 +1685,6 @@
 
 	try {
 		onMount(() => {
-
-			
 			new_map();
 
 			if ('serviceWorker' in navigator) {
@@ -1698,10 +1693,10 @@
 					.then((registration) => {
 						// Preload the map selection screen so it's ready when the user clicks on the map
 						import('../components/MapSelectionScreen.svelte');
-						import("../components/LayerSettingsBox.svelte");
-						import("../components/RouteHeading.svelte");
-						import("../components/RouteHeading.svelte");
-						import("../components/StopScreen.svelte");
+						import('../components/LayerSettingsBox.svelte');
+						import('../components/RouteHeading.svelte');
+						import('../components/RouteHeading.svelte');
+						import('../components/StopScreen.svelte');
 						// registration worked
 						console.log('Registration succeeded.');
 					})
@@ -1710,7 +1705,6 @@
 						console.error(`Registration failed with ${error}`);
 					});
 			}
-
 
 			// A simple boolean check for Android
 			isAndroid = /android/i.test(navigator.userAgent);
@@ -1725,16 +1719,13 @@
 				} else {
 					console.log('This is an Android device, but popup was dismissed.');
 				}
+			} else {
+				console.log('This is not an Android device.');
 			}
-			 else {
-					console.log('This is not an Android device.');
-				}
 		});
 	} catch (e) {
 		console.error(e);
 	}
-
-	
 </script>
 
 <svelte:head>
@@ -1776,7 +1767,7 @@
 		rel="stylesheet"
 	/>
 
-		<!-- Google tag (gtag.js) -->
+	<!-- Google tag (gtag.js) -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QJRT4Q71T1"></script>
 	<script>
 		// Set up dataLayer and gtag function
@@ -1788,22 +1779,19 @@
 		// Initialize gtag and set default consent to 'denied'
 		gtag('js', new Date());
 		gtag('consent', 'default', {
-			'analytics_storage': 'denied'
+			analytics_storage: 'denied'
 		});
 	</script>
 </svelte:head>
 
-
-
 <svelte:boundary>
 	<div class="w-full">
 		{#if showAndroidDownloadPopup || urlParams.get('androidpopup')}
-	<AndroidDownloadPopup/>
-{/if}
+			<AndroidDownloadPopup />
+		{/if}
 
-<ConsentBanner />
-		<div id="map" class="fixed top-0 left-0 w-[100vw] h-[100vh]" >
-		</div>
+		<ConsentBanner />
+		<div id="map" class="fixed top-0 left-0 w-[100vw] h-[100vh]"></div>
 
 		{#key top_margin_collapser_sidebar}
 			<div
