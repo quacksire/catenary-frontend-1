@@ -22,7 +22,6 @@ export function adjustGamma(
 	r = Math.min(255, Math.max(0, r));
 	g = Math.min(255, Math.max(0, g));
 	b = Math.min(255, Math.max(0, b));
-	
 
 	// Return the new RGB values as an array
 	return [r, g, b];

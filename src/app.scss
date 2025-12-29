@@ -1,39 +1,10 @@
 @import 'tailwindcss';
 
-@font-face {
-	font-family: 'Helvetica Neue';
-	src: url('/HelveticaNeue/HelveticaNeue-Thin.otf') format('opentype');
-	font-weight: 100;
-	font-style: normal;
-}
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
-@font-face {
-	font-family: 'Helvetica Neue';
-	src: url('/HelveticaNeue/HelveticaNeue-Light.otf') format('opentype');
-	font-weight: 300;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: 'Helvetica Neue';
-	src: url('/HelveticaNeue/HelveticaNeue-Roman.otf') format('opentype');
-	font-weight: normal;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: 'Helvetica Neue';
-	src: url('/HelveticaNeue/HelveticaNeue-Medium.otf') format('opentype');
-	font-weight: 500;
-	font-style: normal;
-}
-
-@font-face {
-	font-family: 'Helvetica Neue';
-	src: url('/HelveticaNeue/HelveticaNeue-Bold.otf') format('opentype');
-	font-weight: bold;
-	font-style: normal;
-}
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -92,6 +63,8 @@ body::-webkit-scrollbar-thumb {
 html,
 body {
 	overscroll-behavior: none;
+	font-family:
+		'Noto Sans', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans SC', sans-serif;
 }
 
 /*PROGRESS BAR*/
@@ -145,17 +118,21 @@ body {
 		0% {
 			transform: translateX(0) scaleX(0);
 		}
+
 		40% {
 			transform: translateX(0) scaleX(0.4);
 		}
+
 		100% {
 			transform: translateX(100%) scaleX(0.5);
 		}
 	}
+
 	@keyframes transformOrigin {
 		0% {
 			transform-origin: 0% 50%;
 		}
+
 		100% {
 			transform-origin: 100% 50%;
 		}
@@ -202,7 +179,9 @@ $icon-padding: 0.4em;
 	font-weight: bold;
 	text-transform: uppercase;
 	color: #000;
-	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	font-family:
+		'Helvetica Neue', 'Noto Sans', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans SC', Helvetica, Arial,
+		sans-serif;
 
 	&::before {
 		content: '';

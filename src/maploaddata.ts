@@ -8,17 +8,14 @@ export function determineFeedsUsingChateaus(map: any) {
 	const chateaus = new Set<string>();
 
 	features.forEach((feature: any) => {
-
 		if (!chateaus.has(feature.properties.chateau)) {
-		chateaus.add(feature.properties.chateau);
-		const this_realtime_feeds_list: string[] = JSON.parse(feature.properties.realtime_feeds);
-		const this_schedule_feeds_list: string[] = JSON.parse(feature.properties.schedule_feeds);
+			chateaus.add(feature.properties.chateau);
+			const this_realtime_feeds_list: string[] = JSON.parse(feature.properties.realtime_feeds);
+			const this_schedule_feeds_list: string[] = JSON.parse(feature.properties.schedule_feeds);
 
-		this_realtime_feeds_list.forEach((realtime) => realtime_feeds.add(realtime));
-		this_schedule_feeds_list.forEach((sched) => schedule_feeds.add(sched));
+			this_realtime_feeds_list.forEach((realtime) => realtime_feeds.add(realtime));
+			this_schedule_feeds_list.forEach((sched) => schedule_feeds.add(sched));
 		}
-
-		
 	});
 
 	//console.log("realtime feeds list: ", realtime_feeds);

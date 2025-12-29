@@ -7,25 +7,24 @@
 	let zoominit = 8.1;
 
 	onMount(() => {
-
-        if (navigator.hardwareConcurrency > 8) {
-				maplibregl.setWorkerCount(8);
-			} else {
-				maplibregl.setWorkerCount(4);
-			}
+		if (navigator.hardwareConcurrency > 8) {
+			maplibregl.setWorkerCount(8);
+		} else {
+			maplibregl.setWorkerCount(4);
+		}
 
 		const map = new maplibregl.Map({
-            canvasContextAttributes: {
+			canvasContextAttributes: {
 				antialias: true,
 				powerPreference: 'high-performance',
-           //     failIfMajorPerformanceCaveat: true,
+				//     failIfMajorPerformanceCaveat: true,
 				desynchronized: true,
 				//preserveDrawingBuffer: true,
 				contextType: 'webgl2'
 			},
 			container: 'map',
-		//	hash: 'pos',
-			
+			//	hash: 'pos',
+
 			//	antialias: true,
 			style: '/dark-style.json', // stylesheet location
 			center: centerinit, // starting position [lng, lat]
@@ -34,9 +33,7 @@
 			zoom: zoominit, // starting zoom (must be greater than 8.1)
 			fadeDuration: 0
 		});
-
-    });
-
+	});
 </script>
 
 <title>Catenary Maps - Chateaus</title>

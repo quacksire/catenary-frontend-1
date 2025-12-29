@@ -15,8 +15,8 @@
 			hash: 'pos',
 			preserveDrawingBuffer: false,
 			attributionControl: new maplibregl.AttributionControl({
-        compact: true
-    }),
+				compact: true
+			}),
 			//	antialias: true,
 			style: '/dark-style.json', // stylesheet location
 			center: centerinit, // starting position [lng, lat]
@@ -93,8 +93,8 @@
 				filter: chateauFilter ? ['==', 'chateau', chateauFilter] : ['all'],
 				paint: {
 					'fill-color': ['get', 'color'],
-					'fill-opacity': 0.03,
-				//	'fill-emissive-strength': 1
+					'fill-opacity': 0.03
+					//	'fill-emissive-strength': 1
 				}
 			});
 			map.addLayer({

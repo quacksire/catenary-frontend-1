@@ -13,16 +13,14 @@
 	import HomeButton from './SidebarParts/home_button.svelte';
 
 	import { locales_options, locales_options_lookup } from '../i18n';
-	import {onMount} from 'svelte';
+	import { onMount } from 'svelte';
 
 	let this_locale: string | undefined | null;
 	import { getLocaleStorageOrNav } from '../i18n';
 	import { init_stores } from './init_stores';
 	init_stores();
 
-	    	import {
-		consentGiven,
-	} from '../globalstores';
+	import { consentGiven } from '../globalstores';
 
 	let consentGivenThisComponent = get(consentGiven);
 
@@ -38,9 +36,8 @@
 			consentGiven.set(true);
 		} else if (consent === 'false') {
 			consentGiven.set(false);
-		} 
+		}
 	});
-
 
 	let show_seconds = get(show_seconds_store);
 
@@ -251,15 +248,14 @@
 	</div>
 
 	{#if commitID}
-	<a
-		target={'_blank'}
-		href="https://github.com/catenarytransit/catenary-frontend/commit/{commitID}"
-	>
-		<br />{$_('commitid')}: <u>{commitID.substring(0, 7)}</u>
-	</a>
+		<a
+			target={'_blank'}
+			href="https://github.com/catenarytransit/catenary-frontend/commit/{commitID}"
+		>
+			<br />{$_('commitid')}: <u>{commitID.substring(0, 7)}</u>
+		</a>
 	{/if}
 	{#if commitDate}
-
-	<p>{$_('commitdate')}: {commitDate}</p>
+		<p>{$_('commitdate')}: {commitDate}</p>
 	{/if}
 </div>

@@ -7,27 +7,27 @@
 
 	onMount(() => {
 		if (navigator.hardwareConcurrency > 8) {
-				maplibregl.setWorkerCount(8);
-			} else {
-				maplibregl.setWorkerCount(4);
-			}
-	
+			maplibregl.setWorkerCount(8);
+		} else {
+			maplibregl.setWorkerCount(4);
+		}
+
 		const map = new maplibregl.Map({
 			canvasContextAttributes: {
 				antialias: false,
 				powerPreference: 'high-performance',
 				desynchronized: false,
-				contextType: "webgl2"
+				contextType: 'webgl2'
 			},
 			container: 'map',
-	       // localIdeographFontFamily: false,
+			// localIdeographFontFamily: false,
 			hash: 'pos',
-		//	pixelRatio: window.devicePixelRatio * 1.5,
-		//	maxPitch: window.innerHeight / window.innerWidth > 1.5 ? 60 : 85,
-		//	validateStyle: true,
-		//	fadeDuration: 100,
-			style: "https://api.maptiler.com/maps/streets-v4/style.json?key=tf30gb2F4vIsBW5k9Msd", // stylesheet location
-			center: [11.57500,48.13750], // starting position [lng, lat]
+			//	pixelRatio: window.devicePixelRatio * 1.5,
+			//	maxPitch: window.innerHeight / window.innerWidth > 1.5 ? 60 : 85,
+			//	validateStyle: true,
+			//	fadeDuration: 100,
+			style: 'https://api.maptiler.com/maps/streets-v4/style.json?key=tf30gb2F4vIsBW5k9Msd', // stylesheet location
+			center: [11.575, 48.1375], // starting position [lng, lat]
 			zoom: 13 // starting zoom (must be greater than 8.1)
 		});
 

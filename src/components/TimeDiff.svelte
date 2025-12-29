@@ -20,6 +20,8 @@
 
 	export let show_plus: boolean = false;
 
+	export let stylesForUnits: string = '';
+
 	setInterval;
 
 	let this_locale: string | null | undefined = null;
@@ -133,19 +135,27 @@
 	</span>
 	{#if d > 0}
 		<span class={large ? 'text-lg' : 'text-sm'}>{d}</span>
-		<span class={large ? 'text-sm' : 'text-xs'}>{locale_day_marking(this_locale)}</span>
+		<span class={`${large ? 'text-sm' : 'text-xs'} ${stylesForUnits}`}
+			>{locale_day_marking(this_locale)}</span
+		>
 	{/if}
 	{#if h > 0}
 		<span class={large ? 'text-sm' : 'text-sm'}>{h}</span>
-		<span class={large ? 'text-sm' : 'text-xs'}>{locale_hour_marking(this_locale)}</span>
+		<span class={`${large ? 'text-sm' : 'text-xs'}  ${stylesForUnits}`}
+			>{locale_hour_marking(this_locale)}</span
+		>
 	{/if}
 	{#if h > 0 || m > 0 || (!show_seconds && m >= 0 && diff != 0)}
 		<span class={large ? 'text-base' : 'text-sm'}>{m}</span>
-		<span class={large ? 'text-sm' : 'text-xs'}>{locale_min_marking(this_locale)}</span>
+		<span class={`${large ? 'text-sm' : 'text-xs'}  ${stylesForUnits}`}
+			>{locale_min_marking(this_locale)}</span
+		>
 	{/if}
 	{#if show_seconds}
 		<span class={large ? 'text-base' : 'text-sm'}>{s.toFixed(0)}</span>
-		<span class={large ? 'text-sm' : 'text-xs'}>{locale_s_marking(this_locale)}</span>
+		<span class={`${large ? 'text-sm' : 'text-xs'}  ${stylesForUnits}`}
+			>{locale_s_marking(this_locale)}</span
+		>
 	{/if}
 
 	{#if show_brackets}

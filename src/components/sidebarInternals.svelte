@@ -41,9 +41,7 @@
 	import { getLocaleStorageOrNav } from '../i18n';
 	import TidbitSidebarCard from './SidebarParts/tidbits.svelte';
 	import { locales_options, locales_options_lookup } from '../i18n';
-	import {
-		MTA_CHATEAU_ID, isSubwayRouteId
-	} from '../utils/mta_subway_utils';
+	import { MTA_CHATEAU_ID, isSubwayRouteId } from '../utils/mta_subway_utils';
 	import MtaBullet from './mtabullet.svelte';
 
 	import VehicleInfo from './vehicle_info.svelte';
@@ -58,7 +56,6 @@
 	show_gtfs_ids_store.subscribe((value) => {
 		show_gtfs_ids = value;
 	});
-
 </script>
 
 <div class="md:mt-12"></div>
@@ -139,8 +136,7 @@
 			{/key}
 		{/await}-->
 
-		
-				<RouteScreen {darkMode} routestack={latest_item_on_stack.data} />
+		<RouteScreen {darkMode} routestack={latest_item_on_stack.data} />
 	{/if}
 {:else if false}
 	<p>Loading home page</p>

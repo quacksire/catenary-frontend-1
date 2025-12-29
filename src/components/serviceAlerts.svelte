@@ -100,9 +100,7 @@
 								<p class={`text-sm`}>
 									{#each each_header_translation_obj.text.split(/(\[[A-Z0-9]+\])/g) as part, i}
 										{#if i % 2 === 1}
-											<MtaBullet 
-											matchTextHeight={true}
-											route_short_name={part.slice(1, -1)} />
+											<MtaBullet matchTextHeight={true} route_short_name={part.slice(1, -1)} />
 										{:else}
 											{@html part.replaceAll(/\<(\/)?p\>/g, '').replaceAll(/\<(\/)?b\>/g, '')}
 										{/if}
@@ -118,9 +116,7 @@
 										<div class="text-xs pt-0.5">
 											{#each each_desc_line.split(/(\[[A-Z0-9]+\])/g) as part, i}
 												{#if i % 2 === 1}
-													<MtaBullet
-													matchTextHeight={true}
-													route_short_name={part.slice(1, -1)} />
+													<MtaBullet matchTextHeight={true} route_short_name={part.slice(1, -1)} />
 												{:else}
 													{@html part
 														.replaceAll(
