@@ -225,7 +225,7 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 			'text-font': [
 				'step',
 				['zoom'],
-				['literal', ['Barlow-Regular']],
+				['literal', ['NimbusSans-Regular']],
 				12,
 				['literal', ['Barlow-Medium']]
 			]
@@ -285,7 +285,7 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 			'text-font': [
 				'step',
 				['zoom'],
-				['literal', ['Barlow-Regular']],
+				['literal', ['NimbusSans-Regular']],
 				12,
 				['literal', ['Barlow-Medium']]
 			]
@@ -345,7 +345,7 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 			'text-font': [
 				'step',
 				['zoom'],
-				['literal', ['Barlow-Regular']],
+				['literal', ['NimbusSans-Regular']],
 				8.5,
 				['literal', ['Barlow-Medium']]
 			]
@@ -395,7 +395,7 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 			//'icon-ignore-placement': false,
 			//'text-allow-overlap': true,
 			//'symbol-avoid-edges': false,
-			'text-font': ['literal', ['Barlow-Bold']]
+			'text-font': ['literal', ['NimbusSans-Bold']]
 		},
 		paint: {
 			'text-color': darkMode ? '#eee6fe' : '#2a2a2a',

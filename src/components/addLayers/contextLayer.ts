@@ -167,7 +167,7 @@ export async function makeContextLayerDataset(map: maplibregl.Map) {
 			//'text-field': ['coalesce', ['get', 'route_label']],
 			'text-field': ['get', 'route_label'],
 			//'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
-			'text-font': ['literal', ['Barlow-Regular']],
+			'text-font': ['literal', ['NimbusSans-Regular']],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 5, 9, 9, 10, 11, 12, 13, 15],
 			'text-ignore-placement': false,
 			'text-allow-overlap': false,
@@ -251,7 +251,7 @@ export async function makeContextLayerDataset(map: maplibregl.Map) {
 			'text-font': [
 				'step',
 				['zoom'],
-				['literal', ['Barlow-Regular']],
+				['literal', ['NimbusSans-Regular']],
 				13,
 				['literal', ['Barlow-Medium']]
 			]
@@ -345,7 +345,7 @@ export async function makeContextLayerDataset(map: maplibregl.Map) {
 			'text-font': [
 				'step',
 				['zoom'],
-				['literal', ['Barlow-Regular']],
+				['literal', ['NimbusSans-Regular']],
 				6,
 				['literal', ['Barlow-Medium']]
 			]

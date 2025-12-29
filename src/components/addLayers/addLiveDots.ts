@@ -443,19 +443,19 @@ export async function makeCircleLayers(map: Map, darkMode: boolean, layerspercat
 		layout: {
 			'text-field': ['get', 'maptag'],
 			/*'text-field': [
-                "concat",
-                ['get', 'maptag'],
-                " | ",
-                ['get', 'vehicleId']
-            ],*/
+				"concat",
+				['get', 'maptag'],
+				" | ",
+				['get', 'vehicleId']
+			],*/
 			'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
 			'text-radial-offset': 0.2,
 			'text-font': [
 				'step',
 				['zoom'],
-				['literal', ['Barlow-Regular']],
+				['literal', ['NimbusSans-Regular']],
 				9,
-				['literal', ['Barlow-Bold']]
+				['literal', ['NimbusSans-Bold']]
 			],
 			'text-size': other_label_text_size,
 			'text-ignore-placement': ['step', ['zoom'], false, 9.5, true]
@@ -582,11 +582,11 @@ export async function makeCircleLayers(map: Map, darkMode: boolean, layerspercat
 		layout: {
 			'text-field': ['get', 'maptag'],
 			/*'text-field': [
-                "concat",
-                ['get', 'maptag'],
-                " | ",
-                ['get', 'vehicleId']
-            ],*/
+				"concat",
+				['get', 'maptag'],
+				" | ",
+				['get', 'vehicleId']
+			],*/
 			'text-variable-anchor': ['top'],
 			'text-radial-offset': 0,
 			'text-font': ['literal', ['Barlow-Medium']],
@@ -683,11 +683,11 @@ export async function makeCircleLayers(map: Map, darkMode: boolean, layerspercat
 		layout: {
 			'text-field': ['get', 'maptag'],
 			/*'text-field': [
-                "concat",
-                ['get', 'maptag'],
-                " | ",
-                ['get', 'vehicleId']
-            ],*/
+				"concat",
+				['get', 'maptag'],
+				" | ",
+				['get', 'vehicleId']
+			],*/
 			'text-variable-anchor': ['top'],
 			'text-radial-offset': 0,
 			'text-font': ['literal', ['Barlow-Medium']],
@@ -787,11 +787,11 @@ export async function makeCircleLayers(map: Map, darkMode: boolean, layerspercat
 		layout: {
 			'text-field': ['get', 'maptag'],
 			/*'text-field': [
-                "concat",
-                ['get', 'maptag'],
-                " | ",
-                ['get', 'vehicleId']
-            ],*/
+				"concat",
+				['get', 'maptag'],
+				" | ",
+				['get', 'vehicleId']
+			],*/
 			'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
 			'text-radial-offset': 0,
 			'text-font': ['literal', ['Barlow-Medium']],

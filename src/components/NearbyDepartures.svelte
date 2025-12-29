@@ -53,9 +53,7 @@
 		nearby_departures_filter,
 		nearby_pick_state_store,
 		nearby_user_picks_store,
-
 		show_gtfs_ids_store
-
 	} from '../globalstores';
 
 	import type { UserPicksNearby } from '../globalstores';
@@ -756,14 +754,14 @@
 							<span class="font-medium align-bottom ml-1">
 								{#if route_group.route_type == 0}
 									<span
-										class="ml-auto material-symbols-outlined leading-none no-underline select-none  text-lg"
+										class="ml-auto material-symbols-outlined leading-none no-underline select-none text-lg"
 									>
 										<span class="text-base leading-none">tram</span>
 									</span>
 								{/if}
 								{#if route_group.route_type == 1}
 									<span
-										class="ml-auto material-symbols-outlined leading-none no-underline select-none  text-lg"
+										class="ml-auto material-symbols-outlined leading-none no-underline select-none text-lg"
 									>
 										<span class="text-base leading-none">subway</span>
 									</span>
@@ -777,7 +775,7 @@
 								{/if}
 								{#if route_group.route_type == 3 && false}
 									<span
-										class="ml-auto material-symbols-outlined leading-none no-underline select-none  text-lg"
+										class="ml-auto material-symbols-outlined leading-none no-underline select-none text-lg"
 									>
 										<span class="text-base leading-none">directions_bus</span>
 									</span>
@@ -849,7 +847,7 @@
 										new Date((trip.departure_realtime || trip.departure_schedule) * 1000)
 									)}`}
 									class="bg-white dark:bg-darksky
-									 hover:bg-blue-100 hover:dark:bg-hover p-0.5 
+									 hover:bg-blue-100 hover:dark:bg-hover p-0.5
 									 mb-1 rounded-sm min-w-20 flex justify-center"
 									on:click={() => {
 										data_stack_store.update((stack) => {
@@ -894,6 +892,7 @@
 													show_seconds={false}
 													diff={(trip.departure_realtime || trip.departure_schedule) -
 														current_time / 1000}
+													stylesForUnits={'font-medium'}
 												/>
 											{:else}
 												<span class="text-md font-bold">{$_('now')}</span>
@@ -961,10 +960,14 @@
 										{/if}
 
 										{#if show_gtfs_ids}
-											<p class="text-xs font-mono text-gray-500 dark:text-gray-400">{trip.trip_id}</p>
+											<p class="text-xs font-mono text-gray-500 dark:text-gray-400">
+												{trip.trip_id}
+											</p>
 
 											{#if trip.gtfs_frequency_start_time}
-												<p class="text-xs font-mono text-gray-500 dark:text-gray-400 italics">{trip.gtfs_frequency_start_time}</p>
+												<p class="text-xs font-mono text-gray-500 dark:text-gray-400 italics">
+													{trip.gtfs_frequency_start_time}
+												</p>
 											{/if}
 										{/if}
 									</div>

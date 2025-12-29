@@ -145,17 +145,21 @@ body {
 		0% {
 			transform: translateX(0) scaleX(0);
 		}
+
 		40% {
 			transform: translateX(0) scaleX(0.4);
 		}
+
 		100% {
 			transform: translateX(100%) scaleX(0.5);
 		}
 	}
+
 	@keyframes transformOrigin {
 		0% {
 			transform-origin: 0% 50%;
 		}
+
 		100% {
 			transform-origin: 100% 50%;
 		}
@@ -239,7 +243,9 @@ $icon-padding: 0.4em;
 
 		@if $value2==$mta-yellow {
 			color: #000;
-		} @else {
+		}
+
+		@else {
 			color: #fff;
 		}
 	}

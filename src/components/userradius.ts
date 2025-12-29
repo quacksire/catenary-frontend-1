@@ -37,7 +37,7 @@ export function addGeoRadius(map: maplibregl.Map) {
             source: 'km_source',
             layout: {
                 'text-field': ['get', 'label'],
-                'text-font': ['Barlow-Bold'],
+                'text-font': ['NimbusSans-Bold'],
                 'symbol-placement': 'line',
                 'text-size': 8,
                 'symbol-spacing': 150,
@@ -77,7 +77,7 @@ export function addGeoRadius(map: maplibregl.Map) {
             source: 'miles_source',
             layout: {
                 'text-field': ['get', 'label'],
-                'text-font': ['Barlow-Bold'],
+                'text-font': ['NimbusSans-Bold'],
                 'symbol-placement': 'line',
                 'text-size': 8,
                 'symbol-spacing': 150,
@@ -102,7 +102,7 @@ export function addGeoRadius(map: maplibregl.Map) {
 export function setUserCircles(map: maplibregl.Map, lng: number, lat: number) {
     const km_source = map.getSource('km_source') as maplibregl.GeoJSONSource;
     const miles_source = map.getSource('miles_source') as maplibregl.GeoJSONSource;
-    
+
     if (!km_source || !miles_source) return;
 
     const numberofpoints: number = 256;
@@ -112,7 +112,7 @@ export function setUserCircles(map: maplibregl.Map, lng: number, lat: number) {
         // 1. Ensure KM layers are hidden before updating data to prevent flicker
         if (map.getLayer('km_line')) map.setLayoutProperty('km_line', 'visibility', 'none');
         if (map.getLayer('km_text')) map.setLayoutProperty('km_text', 'visibility', 'none');
-        
+
         // 2. Clear KM source to free resources
         km_source.setData({ type: 'FeatureCollection', features: [] });
 

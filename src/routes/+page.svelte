@@ -614,7 +614,7 @@
 					} else {
 						mapglobal.setLayoutProperty(categoryvalues.labeldots, 'text-font', {
 							stops: [
-								[6, ['Barlow-Regular']],
+								[6, ['NimbusSans-Regular']],
 								[14.5, ['Barlow-Medium']]
 							]
 						});
@@ -1570,7 +1570,7 @@
 						'symbol-placement': 'line',
 						'text-size': 10,
 						'text-field': ['concat', ['number-format', ['get', 'ele'], {}], 'm'],
-						'text-font': ['Barlow-Bold'],
+						'text-font': ['NimbusSans-Bold'],
 						'text-pitch-alignment': 'viewport'
 					},
 					paint: {
@@ -1761,10 +1761,6 @@
 	<link
 		rel="stylesheet"
 		href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0"
-	/>
-	<link
-		href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
-		rel="stylesheet"
 	/>
 
 	<!-- Google tag (gtag.js) -->
@@ -1994,7 +1990,7 @@
 
 	<style>
 		body {
-			font-family: 'Barlow', sans-serif;
+			font-family: 'Nimbus', 'Noto Sans', sans-serif;
 		}
 
 		.material-symbols-outlined {

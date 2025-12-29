@@ -100,16 +100,16 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 			//'text-field': ['coalesce', ['get', 'route_label']],
 			'text-field': urlParams.get('debug')
 				? [
-						'concat',
-						['get', 'onestop_feed_id'],
-						'|',
-						['get', 'shape_id'],
-						'|',
-						['coalesce', ['get', 'route_label']]
-					]
+					'concat',
+					['get', 'onestop_feed_id'],
+					'|',
+					['get', 'shape_id'],
+					'|',
+					['coalesce', ['get', 'route_label']]
+				]
 				: ['coalesce', ['get', 'route_label']],
 			//'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
-			'text-font': ['literal', ['Barlow-Regular']],
+			'text-font': ['literal', ['NimbusSans-Regular']],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 10, 5, 11, 7, 13, 10],
 			'text-ignore-placement': false,
 			'text-allow-overlap': false,
@@ -184,7 +184,7 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 			'symbol-placement': 'line',
 			'text-field': ['coalesce', ['get', 'route_label']],
 			//'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
-			'text-font': ['Barlow-Regular'],
+			'text-font': ['NimbusSans-Regular'],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 3, 7, 9, 9, 13, 11],
 			'text-ignore-placement': false,
 
@@ -241,7 +241,7 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 				[
 					'all',
 					['==', 'f-renfe~media~larga~distancia~y~ave', ['get', 'chateau']],
-						['==', "f-ahverkehrsverbund~schleswig~holstein~nah", ['get', 'chateau']],
+					['==', "f-ahverkehrsverbund~schleswig~holstein~nah", ['get', 'chateau']],
 					['==', true, ['get', 'stop_to_stop_generated']]
 				]
 			]
@@ -323,7 +323,7 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 			'symbol-placement': 'line',
 			'text-field': ['coalesce', ['get', 'route_label']],
 			//'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
-			'text-font': ['Barlow-Bold'],
+			'text-font': ['NimbusSans-Bold'],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 3, 7, 9, 9, 13, 11],
 			'text-ignore-placement': false,
 			'symbol-spacing': ['step', ['zoom'], 20, 6, 40, 9, 70, 13, 80, 15, 100],
@@ -431,7 +431,7 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 			'symbol-placement': 'line',
 			'text-field': ['coalesce', ['get', 'route_label']],
 			//'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
-			'text-font': ['Barlow-Bold'],
+			'text-font': ['NimbusSans-Bold'],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 3, 7, 9, 9, 13, 11],
 			'text-ignore-placement': false,
 			'symbol-spacing': ['step', ['zoom'], 20, 6, 40, 9, 70, 13, 80, 15, 100],
@@ -474,7 +474,7 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 				[
 					'all',
 					['==', 'f-renfe~media~larga~distancia~y~ave', ['get', 'chateau']],
-						['==', "f-ahverkehrsverbund~schleswig~holstein~nah", ['get', 'chateau']],
+					['==', "f-ahverkehrsverbund~schleswig~holstein~nah", ['get', 'chateau']],
 					['==', true, ['get', 'stop_to_stop_generated']]
 				]
 			]
@@ -491,7 +491,7 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 				['zoom'],
 				['literal', ['Barlow-SemiBold']],
 				7,
-				['literal', ['Barlow-Bold']]
+				['literal', ['NimbusSans-Bold']]
 			],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 3, 6, 6, 7, 9, 9, 13, 11],
 			'text-ignore-placement': false,
