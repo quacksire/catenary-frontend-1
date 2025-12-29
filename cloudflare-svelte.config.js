@@ -14,22 +14,22 @@ const config = {
 	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
 	// for more information about preprocessors
 	preprocess: vitePreprocess(),
-		server: {
-			fs: {
-				allow: ['../dist']
-			}
-		},
-		test: {
-			include: ['src/**/*.{test,spec}.{js,ts}']
-		},
-		define: {
-			_COMMIT_ID: JSON.stringify(execSync('git rev-parse HEAD').toString().trim()),
-			_COMMIT_DATE: JSON.stringify(
-				execSync('git log -1 --format="%at" | xargs -I{} date -ud @{} \"+%Y-%m-%dT%H:%M:%SZ\"')
-					.toString()
-					.trim()
-			)
-		},
+	server: {
+		fs: {
+			allow: ['../dist']
+		}
+	},
+	test: {
+		include: ['src/**/*.{test,spec}.{js,ts}']
+	},
+	define: {
+		_COMMIT_ID: JSON.stringify(execSync('git rev-parse HEAD').toString().trim()),
+		_COMMIT_DATE: JSON.stringify(
+			execSync('git log -1 --format="%at" | xargs -I{} date -ud @{} \"+%Y-%m-%dT%H:%M:%SZ\"')
+				.toString()
+				.trim()
+		)
+	},
 	kit: {
 		// adapter-auto only supports some environments, see https://kit.svelte.dev/docs/adapter-auto for a list.
 		// If your environment is not supported or you settled on a specific environment, switch out the adapter.

@@ -167,7 +167,6 @@
 				}}
 			>
 				{#if isSubway && short_name}
-
 					<MtaBullet route_short_name={short_name} matchTextHeight={true} />
 				{:else if short_name}
 					<span class="font-bold">{fixRouteName(chateau_id, short_name, route_id)}</span>

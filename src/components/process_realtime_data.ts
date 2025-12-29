@@ -56,11 +56,12 @@ function category_name_to_source_name(category: string): string {
 
 const fetches_in_progress: Writable<Set<String>> = writable(new Set());
 
-function fetch_routes_of_chateau_by_agency(chateau_id: string, agency_id_list: string[],
+function fetch_routes_of_chateau_by_agency(
+	chateau_id: string,
+	agency_id_list: string[],
 	rerender_categories: Set<string>
 ) {
-
-	let stringified_key = chateau_id + ":" + JSON.stringify(agency_id_list.toSorted());
+	let stringified_key = chateau_id + ':' + JSON.stringify(agency_id_list.toSorted());
 
 	if (get(fetches_in_progress).has(stringified_key)) {
 		return;
@@ -116,8 +117,8 @@ function fetch_routes_of_chateau_by_agency(chateau_id: string, agency_id_list: s
 			});
 
 			rerender_categories.forEach((rerender_category) => {
-				rerender_category_live_dots(rerender_category, get(map_pointer_store))
-			})
+				rerender_category_live_dots(rerender_category, get(map_pointer_store));
+			});
 		})
 		.catch((error) => {
 			console.log('error fetching routes', error);

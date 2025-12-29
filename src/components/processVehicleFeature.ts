@@ -1,8 +1,14 @@
 import { componentToHex } from '../geoMathsAssist';
 import { titleCase } from '../utils/titleCase';
 import { get } from 'svelte/store';
-import { hexToRgb, rgbToHsl, hslToRgb, relativeLuminance, srgbToLinear, 
-    brightenForDarkModeKeepSat } from '../utils/colour';
+import {
+	hexToRgb,
+	rgbToHsl,
+	hslToRgb,
+	relativeLuminance,
+	srgbToLinear,
+	brightenForDarkModeKeepSat
+} from '../utils/colour';
 import { calculateGamma } from './colour/computeBrightness';
 import { fixHeadsignText, fixRouteName } from './agencyspecific';
 import { adjustGamma } from './colour/readjustGamma';
@@ -79,20 +85,48 @@ export function getRouteInfo(
 			text_colour = route.text_color;
 
 			switch (maptag) {
-				case 'Metro E Line': maptag = 'E'; break;
-				case 'Metro A Line': maptag = 'A'; break;
-				case 'Metro B Line': maptag = 'B'; break;
-				case 'Metro C Line': maptag = 'C'; break;
-				case 'Metro D Line': maptag = 'D'; break;
-				case 'Metro L Line': maptag = 'L'; break;
-				case 'Metro K Line': maptag = 'K'; break;
-				case 'Metrolink Ventura County Line': maptag = 'Ventura'; break;
-				case 'Metrolink Antelope Valley Line': maptag = 'Antelope'; break;
-				case 'Metrolink San Bernardino Line': maptag = 'SB'; break;
-				case 'Metrolink Riverside Line': maptag = 'Riverside'; break;
-				case 'Metrolink Orange County Line': maptag = 'Orange'; break;
-				case 'Metrolink 91/Perris Valley Line': maptag = '91/Perris'; break;
-				case 'Metrolink Inland Empire-Orange County Line': maptag = 'IE-OC'; break;
+				case 'Metro E Line':
+					maptag = 'E';
+					break;
+				case 'Metro A Line':
+					maptag = 'A';
+					break;
+				case 'Metro B Line':
+					maptag = 'B';
+					break;
+				case 'Metro C Line':
+					maptag = 'C';
+					break;
+				case 'Metro D Line':
+					maptag = 'D';
+					break;
+				case 'Metro L Line':
+					maptag = 'L';
+					break;
+				case 'Metro K Line':
+					maptag = 'K';
+					break;
+				case 'Metrolink Ventura County Line':
+					maptag = 'Ventura';
+					break;
+				case 'Metrolink Antelope Valley Line':
+					maptag = 'Antelope';
+					break;
+				case 'Metrolink San Bernardino Line':
+					maptag = 'SB';
+					break;
+				case 'Metrolink Riverside Line':
+					maptag = 'Riverside';
+					break;
+				case 'Metrolink Orange County Line':
+					maptag = 'Orange';
+					break;
+				case 'Metrolink 91/Perris Valley Line':
+					maptag = '91/Perris';
+					break;
+				case 'Metrolink Inland Empire-Orange County Line':
+					maptag = 'IE-OC';
+					break;
 			}
 		}
 	}
@@ -118,11 +152,11 @@ export function getContrastColours(colour: string, darkMode: boolean) {
 	if (colour && darkMode === true) {
 		const rgb = hexToRgb(colour);
 		if (rgb != null) {
-			let newdarkrgb =  brightenForDarkModeKeepSat(rgb, 0.5);
+			let newdarkrgb = brightenForDarkModeKeepSat(rgb, 0.5);
 
-            let newdarkhsl = rgbToHsl(newdarkrgb.r, newdarkrgb.g, newdarkrgb.b);
+			let newdarkhsl = rgbToHsl(newdarkrgb.r, newdarkrgb.g, newdarkrgb.b);
 
-			const newdarkbearingline =  brightenForDarkModeKeepSat(rgb, 0.3);
+			const newdarkbearingline = brightenForDarkModeKeepSat(rgb, 0.3);
 
 			contrastdarkmode = `#${componentToHex(newdarkrgb.r)}${componentToHex(newdarkrgb.g)}${componentToHex(newdarkrgb.b)}`;
 			contrastdarkmodebearing = `#${componentToHex(newdarkbearingline.r)}${componentToHex(newdarkbearingline.g)}${componentToHex(newdarkbearingline.b)}`;
@@ -132,12 +166,12 @@ export function getContrastColours(colour: string, darkMode: boolean) {
 	return { contrastdarkmode, contrastdarkmodebearing, contrastlightmode };
 }
 
-export function makeDelayLabel(delay: number):string {
-const prefix = delay < 0 ? '-' : '+';
-		const abs_delay = Math.abs(delay);
-		const minutes = Math.floor(abs_delay / 60);
-		const hours = Math.floor(minutes / 60);
-		return `${prefix}${hours > 0 ? `${hours}h` : ''}${minutes % 60}m`;
+export function makeDelayLabel(delay: number): string {
+	const prefix = delay < 0 ? '-' : '+';
+	const abs_delay = Math.abs(delay);
+	const minutes = Math.floor(abs_delay / 60);
+	const hours = Math.floor(minutes / 60);
+	return `${prefix}${hours > 0 ? `${hours}h` : ''}${minutes % 60}m`;
 }
 
 export function processVehicleFeature(
@@ -152,8 +186,15 @@ export function processVehicleFeature(
 	const { tripIdLabel, trip_short_name, headsign } = getTripInfo(vehicle_data, chateau_id);
 	const routeId = vehicle_data.trip?.route_id;
 	const chateau_route_cache = route_cache_data[chateau_id];
-	const { colour, text_colour, maptag, route_short_name, route_long_name } = getRouteInfo(routeId, chateau_id, chateau_route_cache);
-	const { contrastdarkmode, contrastdarkmodebearing, contrastlightmode } = getContrastColours(colour, darkMode);
+	const { colour, text_colour, maptag, route_short_name, route_long_name } = getRouteInfo(
+		routeId,
+		chateau_id,
+		chateau_route_cache
+	);
+	const { contrastdarkmode, contrastdarkmodebearing, contrastlightmode } = getContrastColours(
+		colour,
+		darkMode
+	);
 
 	let speedstr = '';
 	if (typeof vehicle_data.position.speed == 'number') {
@@ -167,11 +208,11 @@ export function processVehicleFeature(
 		delay_label = makeDelayLabel(vehicle_data.trip.delay);
 	}
 
-    let feature_id = chateau_id + "_" + routeId + "_" + tripIdLabel + "_" + vehiclelabel;
+	let feature_id = chateau_id + '_' + routeId + '_' + tripIdLabel + '_' + vehiclelabel;
 
 	return {
 		type: 'Feature',
-        id: feature_id,
+		id: feature_id,
 		properties: {
 			vehicleIdLabel: vehiclelabel,
 			speed: speedstr,

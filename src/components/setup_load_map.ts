@@ -182,7 +182,7 @@ export async function setup_load_map(
 		chateaus_in_frame.set(Array.from(initialChateauData.chateaus));
 
 		updateInterval = setInterval(() => {
-			console.log('interval fetch')
+			console.log('interval fetch');
 
 			fetch_realtime_vehicle_locations(
 				layersettings,

@@ -198,7 +198,7 @@
 			{/if}
 			{#if shared_rt_time && shared_scheduled_time}
 				{#if shared_scheduled_time != 0 && shared_scheduled_time != null}
-				<DelayDiff diff={shared_rt_time - shared_scheduled_time} {show_seconds} />
+					<DelayDiff diff={shared_rt_time - shared_scheduled_time} {show_seconds} />
 				{/if}
 			{/if}
 			<div class="ml-auto text-sm">

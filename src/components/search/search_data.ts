@@ -7,13 +7,7 @@ import {
 	map_pointer_store,
 	data_stack_store
 } from '../../globalstores';
-import {
-	StackInterface,
-	OsmItemStack,
-	RouteStack,
-	StopStack
-} from '../stackenum';
-
+import { StackInterface, OsmItemStack, RouteStack, StopStack } from '../stackenum';
 
 interface SearchQueryResponse {
 	stops_section: StopsSection;
@@ -30,7 +24,6 @@ interface RoutesSection {
 	routes: Record<string, Record<string, any>>;
 	ranking: Array<RoutesRanking>;
 }
-
 
 interface StopsRanking {
 	gtfs_id: string;
@@ -66,7 +59,8 @@ interface CypressFeatureCollection {
 }
 
 export const data_store_text_queries: Writable<Record<string, SearchQueryResponse>> = writable({});
-export const cypress_response_queries: Writable<Record<string, CypressFeatureCollection>> = writable({});
+export const cypress_response_queries: Writable<Record<string, CypressFeatureCollection>> =
+	writable({});
 
 export const latest_query_data: Writable<SearchQueryResponse | null> = writable(null);
 export const latest_cypress_data: Writable<CypressFeatureCollection | null> = writable(null);
@@ -140,7 +134,6 @@ export function select_result_item(item: SearchResultItem) {
 		}
 	}
 }
-
 
 geolocation_store.subscribe((g) => {
 	geolocation = g;
@@ -218,7 +211,6 @@ export function new_query(text: string) {
 				latest_cypress_data.set(data);
 				selected_result_index_store.set(-1);
 
-
 				// Update Map source if it exists
 				if (map && map.getSource('cypress_results')) {
 					(map.getSource('cypress_results') as maplibregl.GeoJSONSource).setData(data);
@@ -240,7 +232,6 @@ export function new_query(text: string) {
 				latest_query_data.set(data);
 				text_input_matches_current_result.set(true);
 				selected_result_index_store.set(-1);
-
 			} else {
 				if (get(text_input_matches_current_result) == false) {
 					latest_query_data.set(data);

@@ -386,13 +386,9 @@ export async function makeContextLayerDataset(map: maplibregl.Map) {
 	});
 
 	//context live dots section
-
-	
-
 }
 
 export async function makeContextLayerDots(map: maplibregl.Map) {
-
 	let darkMode = determineDarkModeToBool();
 
 	const urlParams =
@@ -400,9 +396,9 @@ export async function makeContextLayerDots(map: maplibregl.Map) {
 			? new URLSearchParams(window.location.search)
 			: new URLSearchParams();
 
-	const contextBusSymbol = await map.loadImage("/icons/bus_context_symbol_v2.png");
+	const contextBusSymbol = await map.loadImage('/icons/bus_context_symbol_v2.png');
 
-	map.addImage("bus_context_symbol", contextBusSymbol.data)
+	map.addImage('bus_context_symbol', contextBusSymbol.data);
 
 	/*
 	map.addLayer({
@@ -435,33 +431,32 @@ export async function makeContextLayerDots(map: maplibregl.Map) {
 		minzoom: 5
 	});*/
 
-	
 	map.addLayer({
-		'id': "livedots_context_bus_major_dot_context",
-		'type': "symbol",
-		'source': "livedots_context",
+		id: 'livedots_context_bus_major_dot_context',
+		type: 'symbol',
+		source: 'livedots_context',
 		paint: {
-				'icon-opacity': 0.85,	
+			'icon-opacity': 0.85
 		},
 		layout: {
 			'icon-image': 'bus_context_symbol',
-			'icon-size': 0.20,
-	
+			'icon-size': 0.2,
+
 			'icon-allow-overlap': true,
 			'icon-ignore-placement': true,
-			'icon-offset': [0, 0],
+			'icon-offset': [0, 0]
 		},
 		filter: ['all', ['any', ['==', ['get', 'route_type'], 3]]],
 		minzoom: 5
 	});
-	
+
 	map.addLayer({
-		id: "livedots_context_bus_major_label",
+		id: 'livedots_context_bus_major_label',
 		type: 'symbol',
-		source:  "livedots_context",
+		source: 'livedots_context',
 		layout: {
 			'text-field': ['get', 'maptag'],
-			'text-variable-anchor': [ 'left', 'right'],
+			'text-variable-anchor': ['left', 'right'],
 			'text-radial-offset': 0.5,
 			'text-allow-overlap': false,
 			'text-font': ['Barlow-SemiBold'],
@@ -470,15 +465,15 @@ export async function makeContextLayerDots(map: maplibregl.Map) {
 		},
 		minzoom: 7,
 		paint: {
-			'text-color':  ["get", 'text_color'],
+			'text-color': ['get', 'text_color'],
 			//'text-color': ['get', 'color'],
 			//'text-halo-color': '#ededed',
-			'text-halo-color': ["get", 'color'],
+			'text-halo-color': ['get', 'color'],
 			'text-halo-width': 4,
 			'text-halo-blur': 0.6,
 			'text-opacity': ['interpolate', ['linear'], ['zoom'], 7.9, 0.4, 8, 0.9, 11, 0.95, 12, 1]
 		},
-		filter: ['all', ['any', ['==', ['get', 'route_type'], 3]]],
+		filter: ['all', ['any', ['==', ['get', 'route_type'], 3]]]
 	});
 }
 

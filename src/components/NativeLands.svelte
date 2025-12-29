@@ -12,12 +12,12 @@
 
 	if (browser) {
 		locale.subscribe((value) => {
-		if (value) {
-			saved_locale = value;
+			if (value) {
+				saved_locale = value;
 
-			recompute_text();
-		}
-	});
+				recompute_text();
+			}
+		});
 	}
 
 	let title_to_use: string | null = null;

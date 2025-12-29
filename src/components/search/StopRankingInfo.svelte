@@ -21,9 +21,7 @@
 		show_topo_global_store,
 		current_orm_layer_type_store
 	} from '../../globalstores';
-	import {
-		MTA_CHATEAU_ID, isSubwayRouteId
-	} from '../../utils/mta_subway_utils';
+	import { MTA_CHATEAU_ID, isSubwayRouteId } from '../../utils/mta_subway_utils';
 	export let stop: any;
 	import haversine from 'haversine-distance';
 

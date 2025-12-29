@@ -13,7 +13,8 @@ export function calculateNewCoordinates(
 	const lon1 = (longitude * Math.PI) / 180;
 
 	const lat2 = Math.asin(
-		Math.sin(lat1) * Math.cos(distance / R) + Math.cos(lat1) * Math.sin(distance / R) * Math.cos(brng)
+		Math.sin(lat1) * Math.cos(distance / R) +
+			Math.cos(lat1) * Math.sin(distance / R) * Math.cos(brng)
 	);
 	let lon2 =
 		lon1 +
@@ -23,7 +24,7 @@ export function calculateNewCoordinates(
 		);
 
 	// Normalize to -180...180
-	lon2 = (lon2 + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
+	lon2 = ((lon2 + 3 * Math.PI) % (2 * Math.PI)) - Math.PI;
 
 	// Coords back to degrees and return
 	return { latitude: (lat2 * 180) / Math.PI, longitude: (lon2 * 180) / Math.PI };

@@ -12,8 +12,8 @@ let geolocation: GeolocationPosition | null;
 
 if (browser) {
 	geolocation_store.subscribe((g) => {
-	geolocation = g;
-});
+		geolocation = g;
+	});
 }
 
 export function start_location_watch() {

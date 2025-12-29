@@ -25,7 +25,7 @@ const config = {
 	build: {
 		sourcemap: true,
 		minify: false
-	 },
+	},
 	define: {
 		_COMMIT_ID: JSON.stringify(execSync('git rev-parse HEAD').toString().trim()),
 		_COMMIT_DATE: JSON.stringify(

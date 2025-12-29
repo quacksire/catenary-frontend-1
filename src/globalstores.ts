@@ -9,8 +9,7 @@ import {
 	RouteMapSelector
 } from './components/stackenum';
 
-
-	export const consentGiven = writable<boolean | null>(null);
+export const consentGiven = writable<boolean | null>(null);
 
 import { writable } from 'svelte/store';
 import type { Writable } from 'svelte/store';
@@ -125,4 +124,3 @@ export const show_topo_global_store = writable(false);
 
 //chateau -> Vec<stop_id>
 export const stops_to_hide_store: Writable<Record<string, string[]>> = writable({});
-
