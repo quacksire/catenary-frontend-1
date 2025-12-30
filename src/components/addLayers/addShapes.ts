@@ -109,7 +109,7 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 					]
 				: ['coalesce', ['get', 'route_label']],
 			//'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
-			'text-font': ['literal', ['NimbusSans-Regular']],
+			'text-font': ['literal', ['NotoSans-Regular']],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 10, 5, 11, 7, 13, 10],
 			'text-ignore-placement': false,
 			'text-allow-overlap': false,
@@ -489,7 +489,7 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 			'text-font': [
 				'step',
 				['zoom'],
-				['literal', ['Barlow-SemiBold']],
+				['literal', ['Noto-SemiBold']],
 				7,
 				['literal', ['NimbusSans-Bold']]
 			],

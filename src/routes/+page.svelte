@@ -607,23 +607,23 @@
 					if (shortest_side >= 1600) {
 						mapglobal.setLayoutProperty(categoryvalues.labeldots, 'text-font', {
 							stops: [
-								[6, ['Barlow-Medium']],
-								[12, ['Barlow-SemiBold']]
+								[6, ['NotoSans-Medium']],
+								[12, ['Noto-SemiBold']]
 							]
 						});
 					} else {
 						mapglobal.setLayoutProperty(categoryvalues.labeldots, 'text-font', {
 							stops: [
 								[6, ['NimbusSans-Regular']],
-								[14.5, ['Barlow-Medium']]
+								[14.5, ['NotoSans-Medium']]
 							]
 						});
 					}
 				} else {
 					mapglobal.setLayoutProperty(categoryvalues.labeldots, 'text-font', {
 						stops: [
-							[6, ['Barlow-Medium']],
-							[11, ['Barlow-SemiBold']]
+							[6, ['NotoSans-Medium']],
+							[11, ['Noto-SemiBold']]
 						]
 					});
 

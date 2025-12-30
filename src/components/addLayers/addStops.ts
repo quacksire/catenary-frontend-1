@@ -169,7 +169,7 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 			//'icon-ignore-placement': false,
 			//'text-allow-overlap': true,
 			//'symbol-avoid-edges': false,
-			'text-font': ['Barlow-Medium']
+			'text-font': ['NotoSans-Medium']
 		},
 		paint: {
 			'text-color': darkMode ? '#eee6fe' : '#2a2a2a',
@@ -225,9 +225,9 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 			'text-font': [
 				'step',
 				['zoom'],
-				['literal', ['NimbusSans-Regular']],
+				['literal', ['NotoSans-Regular']],
 				12,
-				['literal', ['Barlow-Medium']]
+				['literal', ['NotoSans-Medium']]
 			]
 		},
 		paint: {
@@ -285,9 +285,9 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 			'text-font': [
 				'step',
 				['zoom'],
-				['literal', ['NimbusSans-Regular']],
+				['literal', ['NotoSans-Regular']],
 				12,
-				['literal', ['Barlow-Medium']]
+				['literal', ['NotoSans-Medium']]
 			]
 		},
 		paint: {
@@ -345,9 +345,9 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 			'text-font': [
 				'step',
 				['zoom'],
-				['literal', ['NimbusSans-Regular']],
+				['literal', ['NotoSans-Regular']],
 				8.5,
-				['literal', ['Barlow-Medium']]
+				['literal', ['NotoSans-Medium']]
 			]
 		},
 		paint: {
