@@ -355,8 +355,8 @@ export async function makeCircleLayers(map: Map, darkMode: boolean, layerspercat
 			'text-radial-offset': 0.2,
 			'text-font': {
 				stops: [
-					[6, ['Barlow-Medium']],
-					[11, ['Barlow-SemiBold']]
+					[6, ['NotoSans-Medium']],
+					[11, ['Noto-SemiBold']]
 				]
 			},
 			'text-size': bus_label_text_size,
@@ -453,7 +453,7 @@ export async function makeCircleLayers(map: Map, darkMode: boolean, layerspercat
 			'text-font': [
 				'step',
 				['zoom'],
-				['literal', ['NimbusSans-Regular']],
+				['literal', ['NotoSans-Regular']],
 				9,
 				['literal', ['NimbusSans-Bold']]
 			],
@@ -589,7 +589,7 @@ export async function makeCircleLayers(map: Map, darkMode: boolean, layerspercat
 			],*/
 			'text-variable-anchor': ['top'],
 			'text-radial-offset': 0,
-			'text-font': ['literal', ['Barlow-Medium']],
+			'text-font': ['literal', ['NotoSans-Medium']],
 			'text-size': tram_label_text_size,
 			'text-ignore-placement': ['step', ['zoom'], false, 9.5, true]
 		},
@@ -690,7 +690,7 @@ export async function makeCircleLayers(map: Map, darkMode: boolean, layerspercat
 			],*/
 			'text-variable-anchor': ['top'],
 			'text-radial-offset': 0,
-			'text-font': ['literal', ['Barlow-Medium']],
+			'text-font': ['literal', ['NotoSans-Medium']],
 			'text-size': metro_label_text_size,
 			'text-ignore-placement': ['step', ['zoom'], false, 9.5, true]
 		},
@@ -794,7 +794,7 @@ export async function makeCircleLayers(map: Map, darkMode: boolean, layerspercat
 			],*/
 			'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
 			'text-radial-offset': 0,
-			'text-font': ['literal', ['Barlow-Medium']],
+			'text-font': ['literal', ['NotoSans-Medium']],
 			'text-size': intercityrail_label_text_size,
 			'text-ignore-placement': ['step', ['zoom'], false, 9.5, true]
 		},

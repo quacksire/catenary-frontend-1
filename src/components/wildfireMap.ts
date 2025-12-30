@@ -25,7 +25,7 @@ async function make_fire_names(map: maplibregl.Map) {
 			'text-offset': [0, 1],
 			'text-anchor': 'top',
 			'text-size': ['interpolate', ['linear'], ['zoom'], 6, 6, 12, 14],
-			'text-font': ['Barlow-Medium'],
+			'text-font': ['NotoSans-Medium'],
 			'text-ignore-placement': true,
 			"icon-ignore-placement": true
 		},
@@ -63,7 +63,7 @@ async function make_fire_names(map: maplibregl.Map) {
 			'text-offset': [0, 1.5],
 			'text-anchor': 'top',
 			'text-size': ['interpolate', ['linear'], ['zoom'], 6, 6, 12, 14],
-			'text-font': ['Barlow-Medium'],
+			'text-font': ['NotoSans-Medium'],
 			'text-ignore-placement': true,
 			'icon-ignore-placement': true
 		},
@@ -520,7 +520,7 @@ export function makeFireMap(map: maplibregl.Map, chateaus_in_frame: Writable<str
 		layout: {
 			'text-field': ['concat', ['get', 'attr_IncidentName'], ' FIRE'],
 			'text-size': 10,
-			'text-font': ['Barlow-Medium']
+			'text-font': ['NotoSans-Medium']
 		},
 		minzoom: 5
 	});
