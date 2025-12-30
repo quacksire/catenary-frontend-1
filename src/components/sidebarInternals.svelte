@@ -113,7 +113,6 @@
 		</div>
 	{/if}
 	{#if latest_item_on_stack.data instanceof SingleTrip}
-		<HomeButton />
 		<SingleTripInfo
 			{usunits}
 			{darkMode}
