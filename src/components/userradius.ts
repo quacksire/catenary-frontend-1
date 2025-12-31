@@ -1,6 +1,6 @@
 import { get } from 'svelte/store';
 import { createGeoJSONCircleFeature } from '../geoMathsAssist';
-import { ui_theme_store, usunits_store } from '../globalstores';
+import { ui_theme_store, usunits_store, show_my_location_store } from '../globalstores';
 import { determineDarkModeToBool } from './determineDarkModeToBool';
 
 /**
@@ -105,6 +105,20 @@ export function setUserCircles(map: maplibregl.Map, lng: number, lat: number) {
 
 	if (!km_source || !miles_source) return;
 
+	const show_my_location = get(show_my_location_store);
+
+	// If user location display is disabled, hide all radius circles
+	if (!show_my_location) {
+		if (map.getLayer('km_line')) map.setLayoutProperty('km_line', 'visibility', 'none');
+		if (map.getLayer('km_text')) map.setLayoutProperty('km_text', 'visibility', 'none');
+		if (map.getLayer('miles_line')) map.setLayoutProperty('miles_line', 'visibility', 'none');
+		if (map.getLayer('miles_text')) map.setLayoutProperty('miles_text', 'visibility', 'none');
+
+		km_source.setData({ type: 'FeatureCollection', features: [] });
+		miles_source.setData({ type: 'FeatureCollection', features: [] });
+		return;
+	}
+
 	const numberofpoints: number = 256;
 	const use_us_units = get(usunits_store);
 
@@ -117,7 +131,7 @@ export function setUserCircles(map: maplibregl.Map, lng: number, lat: number) {
 		km_source.setData({ type: 'FeatureCollection', features: [] });
 
 		// 3. Generate and set Miles data
-		const miles_distances = [0.5, 1, 2, 5, 10, 20, 50];
+		const miles_distances = [0.25, 0.5, 1, 2, 3, 5, 10, 20, 50];
 		const miles_feature_list = miles_distances.map((dist) => {
 			const distInKm = dist * 1.60934;
 			const feature = createGeoJSONCircleFeature([lng, lat], distInKm, numberofpoints);
