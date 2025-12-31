@@ -320,12 +320,12 @@
 											class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded"
 										>
 											<img
-												src="/agencyicons/GreaterWesternRailway.svg"
+												src="https://maps.catenarymaps.org/agencyicons/GreaterWesternRailway.svg"
 												alt="Great Western Railway"
 												class="h-3 inline-block dark:hidden mr-1"
 											/>
 											<img
-												src="/agencyicons/GreaterWesternRailwayBrighter.svg"
+												src="https://maps.catenarymaps.org/agencyicons/GreaterWesternRailway.svg"
 												alt="Great Western Railway"
 												class="h-3 hidden dark:inline-block mr-1"
 											/>
@@ -338,7 +338,7 @@
 											class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded"
 										>
 											<img
-												src="/agencyicons/SouthWesternRailway.svg"
+												src="https://maps.catenarymaps.org/agencyicons/SouthWesternRailway.svg"
 												alt="South Western Railway"
 												class="h-3 inline-block mr-1"
 											/>
@@ -351,7 +351,7 @@
 											class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded"
 										>
 											<img
-												src="/agencyicons/SouthernIcon.svg"
+												src="https://maps.catenarymaps.org/agencyicons/SouthernIcon.svg"
 												alt="Southern"
 												class="h-3 inline-block mr-1"
 											/>
@@ -364,7 +364,7 @@
 											class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded"
 										>
 											<img
-												src="/agencyicons/c2c_logo.svg"
+												src="https://maps.catenarymaps.org/agencyicons/c2c_logo.svg"
 												alt="c2c"
 												class="h-3 inline-block mr-1"
 											/>
