@@ -31,6 +31,7 @@
 	import { locale, _ } from 'svelte-i18n';
 	import Clock from './Clock.svelte';
 	import StopScreenRow from './StopScreenRow.svelte';
+	import StationScreenTrainRow from './StationScreenTrainRow.svelte';
 	import { SingleTrip, StackInterface } from './stackenum';
 
 	// ---------- Paging controls ----------
@@ -75,17 +76,39 @@
 	let route_shapes_meta: Record<string, any> = {};
 
 	// Filters
-	let show_arrivals_only = false;
-	let filter_rail = true;
-	let filter_bus = true;
-	let filter_metro = true;
-	let filter_other = true;
+	type Mode = 'rail' | 'metro' | 'bus' | 'other';
+	let active_tab: Mode = 'bus'; // default, will auto-correct
+	let available_modes: Mode[] = [];
 
-	function filter_for_route_type(route_type: number) {
-		if ([3, 11, 700].includes(route_type)) return filter_bus;
-		if ([0, 1, 5, 7, 12, 900].includes(route_type)) return filter_metro;
-		if ([2, 106, 107, 101, 100, 102, 103].includes(route_type)) return filter_rail;
-		return filter_other;
+	function get_mode_for_route_type(route_type: number): Mode {
+		if ([3, 11, 700].includes(route_type)) return 'bus';
+		if ([0, 1, 5, 7, 12, 900].includes(route_type)) return 'metro';
+		if ([2, 106, 107, 101, 100, 102, 103].includes(route_type)) return 'rail';
+		return 'other';
+	}
+
+	$: {
+		const modes = new Set<Mode>();
+		// Scan all events (mergedEvents contains everything we know about on this page)
+		// We should also check data_meta? No, mergedEvents is what defines the "content" we are filtering.
+		// If we load more pages, mergedEvents grows, modes might appear.
+		for (const ev of mergedEvents) {
+			const routeDef = data_meta?.routes?.[ev.chateau]?.[ev.route_id];
+			const rType = routeDef?.route_type ?? ev.route_type ?? 3;
+			modes.add(get_mode_for_route_type(rType));
+		}
+		
+		// Stable order
+		const order: Mode[] = ['rail', 'metro', 'bus', 'other'];
+		available_modes = order.filter(m => modes.has(m));
+
+		// Auto-select tab logic
+		if (available_modes.length > 0) {
+			// If current tab is not available, switch to first available
+			if (!available_modes.includes(active_tab)) {
+				active_tab = available_modes[0];
+			}
+		}
 	}
 
 	function resetState() {
@@ -813,44 +836,45 @@
 					</div>
 					<p class="text-sm ml-1 mb-2">{data_meta.primary.timezone}</p>
 
-					<!-- Filters -->
-					<div class="flex flex-row flex-wrap gap-2 ml-1 mb-4 items-center">
-						<button
-							class={`px-3 py-1.5 rounded-full text-sm font-medium border border-gray-300 dark:border-gray-600 ${filter_rail ? 'bg-blue-100 dark:bg-blue-900 border-blue-400' : 'bg-gray-100 dark:bg-gray-800 opacity-60'}`}
-							on:click={() => (filter_rail = !filter_rail)}
-						>
-							{$_('headingIntercityRail')}
-						</button>
-						<button
-							class={`px-3 py-1.5 rounded-full text-sm font-medium border border-gray-300 dark:border-gray-600 ${filter_metro ? 'bg-blue-100 dark:bg-blue-900 border-blue-400' : 'bg-gray-100 dark:bg-gray-800 opacity-60'}`}
-							on:click={() => (filter_metro = !filter_metro)}
-						>
-							{$_('headingLocalRail')}
-						</button>
-						<button
-							class={`px-3 py-1.5 rounded-full text-sm font-medium border border-gray-300 dark:border-gray-600 ${filter_bus ? 'bg-blue-100 dark:bg-blue-900 border-blue-400' : 'bg-gray-100 dark:bg-gray-800 opacity-60'}`}
-							on:click={() => (filter_bus = !filter_bus)}
-						>
-							{$_('headingBus')}
-						</button>
-						<button
-							class={`px-3 py-1.5 rounded-full text-sm font-medium border border-gray-300 dark:border-gray-600 ${filter_other ? 'bg-blue-100 dark:bg-blue-900 border-blue-400' : 'bg-gray-100 dark:bg-gray-800 opacity-60'}`}
-							on:click={() => (filter_other = !filter_other)}
-						>
-							{$_('headingOther')}
-						</button>
+					{#if available_modes.length > 1}
+					<div class="flex flex-row flex-wrap gap-2 ml-1 mb-4 items-center border-b border-gray-200 dark:border-gray-700 w-full">
+						{#each available_modes as mode}
+							{#if mode === 'rail'}
+								<button
+									class={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${active_tab === 'rail' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'}`}
+									on:click={() => (active_tab = 'rail')}
+								>
+									<span class="material-symbols-outlined text-lg">train</span>
+									{$_('headingIntercityRail')}
+								</button>
+							{:else if mode === 'metro'}
+								<button
+									class={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${active_tab === 'metro' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'}`}
+									on:click={() => (active_tab = 'metro')}
+								>
+									<span class="material-symbols-outlined text-lg">tram</span>
+									{$_('headingLocalRail')}
+								</button>
+							{:else if mode === 'bus'}
+								<button
+									class={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${active_tab === 'bus' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'}`}
+									on:click={() => (active_tab = 'bus')}
+								>
+									<span class="material-symbols-outlined text-lg">directions_bus</span>
+									{$_('headingBus')}
+								</button>
+							{:else if mode === 'other'}
+								<button
+									class={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${active_tab === 'other' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'}`}
+									on:click={() => (active_tab = 'other')}
+								>
+									<span class="material-symbols-outlined text-lg">more_horiz</span>
+									{$_('headingOther')}
+								</button>
+							{/if}
+						{/each}
 					</div>
-
-					<label
-						class="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full cursor-pointer select-none border border-gray-300 dark:border-gray-600"
-					>
-						<input
-							type="checkbox"
-							bind:checked={show_arrivals_only}
-							class="form-checkbox h-4 w-4 text-blue-600"
-						/>
-						<span class="text-sm font-medium">{$_('show_arrivals')}</span>
-					</label>
+					{/if}				
 
 					{#if previous_count > 0}
 						<button
@@ -888,145 +912,80 @@
 							{#each dates_to_events_filtered[date_code].filter((event) => {
 								let cutoff = 60;
 								if (show_previous_departures) cutoff = 1800;
+								// Filter by mode
+								const routeDef = data_meta.routes?.[event.chateau]?.[event.route_id];
+								const rType = routeDef?.route_type ?? event.route_type ?? 3; // default to bus if unknown
+								
 								// Filter by time
 								const relevant_time = event.last_stop ? event.realtime_arrival || event.scheduled_arrival : event.realtime_departure || event.scheduled_departure;
 								if (relevant_time < current_time / 1000 - cutoff) return false;
 
 								if (event.last_stop && !show_arrivals_only) return false;
-
-								// Filter by mode
-								// Route type might be on event or in route definition
-								// Usually on route definition in GTFS, but let's check where it is available.
-								// In mergePageEvents we have the event.
-								// Do we have route_type on event? Checking StopScreenRow usage mostly implies route info is in data_meta.routes
-								const routeDef = data_meta.routes?.[event.chateau]?.[event.route_id];
-								const rType = routeDef?.route_type ?? event.route_type ?? 3; // default to bus if unknown
-								return filter_for_route_type(rType);
+								
+								// If we have tabs (multiple modes), filter by active tab
+								if (available_modes.length > 1) {
+									return get_mode_for_route_type(rType) === active_tab;
+								}
+								// If we don't have tabs (1 mode), we show everything that matches the single mode (which is everything in this logic)
+								return true;
 							}) as event}
-								{#if [2].includes(data_meta.routes?.[event.chateau]?.[event.route_id]?.route_type ?? event.route_type)}
-									{@const route_id_local = event.route_id}
-									{@const agency_id_local =
-										data_meta.routes?.[event.chateau]?.[route_id_local]?.agency_id}
-									{@const show_route_name =
-										event.chateau !== 'nationalrailuk' ||
-										['TW', 'ME', 'LO', 'XR', 'HX'].includes(agency_id_local)}
-									<div
-										class="mx-1 py-2 border-b border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 flex flex-row"
-										on:click={() => {
-											data_stack_store.update((x) => {
-												x.push(
-													new StackInterface(
-														new SingleTrip(
-															event.chateau,
-															event.trip_id,
-															event.route_id,
-															null,
-															event.service_date.replace(/-/g, ''),
-															null,
-															null
-														)
-													)
-												);
-												return x;
-											});
-										}}
-									>
-										<div class="flex-grow">
-											<div class="flex flex-row items-center gap-2 mb-1">
-												{#if show_route_name && data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
-													<span
-														class="rounded-xs font-bold px-1 py-0.5 text-sm"
-														style={`background: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.color}; color: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color};`}
-													>
-													</span>
-												{/if}
-												<div class="text-base font-normal leading-tight">
-													{event.headsign}
-													{#if event.trip_short_name}
-														<span class="font-bold ml-1">{event.trip_short_name}</span>
-													{/if}
-												</div>
-											</div>
-											<div
-												class="flex flex-row text-sm text-gray-600 dark:text-gray-400 gap-2 items-center flex-wrap"
-											>
-												{#if data_meta.agencies?.[event.chateau]?.[data_meta.routes?.[event.chateau]?.[event.route_id]?.agency_id]?.agency_name}
-													{@const agency_id =
-														data_meta.routes?.[event.chateau]?.[event.route_id]?.agency_id}
-													{@const agency_name =
-														data_meta.agencies?.[event.chateau]?.[agency_id]?.agency_name}
-													{#if agency_id === 'GWR' || agency_name?.trim().toLowerCase() === 'gwr'}
-														<img
-															src="/agencyicons/GreaterWesternRailway.svg"
-															alt={agency_name}
-															class="h-4 inline-block dark:hidden"
-														/>
-														<img
-															src="/agencyicons/GreaterWesternRailwayBrighter.svg"
-															alt={agency_name}
-															class="h-4 hidden dark:inline-block"
-														/>
-														<span class="ml-1">Great Western Railway</span>
-													{:else if agency_name?.trim().toLowerCase() === 'london overground'}
-														<img
-															src="/agencyicons/uk-london-overground.svg"
-															alt={agency_name}
-															class="h-4 inline-block"
-														/>
-													{:else if agency_id === 'CC' || agency_name
-															?.trim()
-															.toLowerCase() === 'c2c'}
-														<img
-															src="/agencyicons/c2c_logo.svg"
-															alt={agency_name}
-															class="h-4 inline-block"
-														/>
-														<span class="ml-1">c2c</span>
-													{:else if agency_name?.trim().toLowerCase() === 'elizabeth line'}
-														<img
-															src="/agencyicons/Elizabeth_line_roundel.png"
-															alt={agency_name}
-															class="h-4 inline-block"
-														/>
-													{:else}
-														<span>{agency_name}</span>
-													{/if}
-													<span class="opacity-80">•</span>
-												{/if}
+								{#if available_modes.length > 1 && (active_tab === 'rail' || (available_modes.length === 1 && available_modes[0] === 'rail'))}
+									<!-- Rail Table View Start - NOTE: This will repeat table tags if not careful.
+									     Actually, we need to wrap the whole LOOP in table if it's rail.
+										 But the loop iterates events.
+										 Svelte doesn't allow random start/end tags.
+										 We need to verify if we are in 'rail' mode for this DATE BLOCK.
+										 And if so, render a Table with rows.
+									-->
+								{/if}
+							{/each}
+						
+							<!-- Correct Logic Implementation -->
+							{#if (active_tab === 'rail')}
+								<table class="w-full border-collapse">
+									<tbody>
+										{#each dates_to_events_filtered[date_code].filter((event) => {
+											let cutoff = 60;
+											if (show_previous_departures) cutoff = 1800;
+											const relevant_time = event.last_stop ? event.realtime_arrival || event.scheduled_arrival : event.realtime_departure || event.scheduled_departure;
+											if (relevant_time < current_time / 1000 - cutoff) return false;
+											if (event.last_stop && !show_arrivals_only) return false;
 
-												{#if show_route_name}
-													<span
-														class="font-bold px-1 py-0.5 rounded-xs text-xs"
-														style={`background: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.color}; color: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color};`}
-													>
-														{data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name ||
-															data_meta.routes?.[event.chateau]?.[event.route_id]?.long_name}
-													</span>
-												{/if}
-
-												{#if event.platform_string_realtime}
-													<span class="opacity-90">•</span>
-													<span
-														class="bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs font-bold text-gray-800 dark:text-gray-200"
-													>
-														{$_('platform')}
-														{event.platform_string_realtime.replace('Track', '').trim()}
-													</span>
-												{/if}
-											</div>
-										</div>
-										<div class="flex-none flex flex-col items-end justify-center min-w-[80px]">
-											<StopScreenRow
+											const routeDef = data_meta.routes?.[event.chateau]?.[event.route_id];
+											const rType = routeDef?.route_type ?? event.route_type ?? 3;
+											if (available_modes.length > 1) {
+												return get_mode_for_route_type(rType) === 'rail';
+											}
+											// If implicit single mode, we check if it is rail (already checked by active_tab header mainly, 
+											// but we must ensure we only render rail stuff here, though the filter loop effectively does that if active_tab is rail)
+											return true;
+										}) as event}
+											<StationScreenTrainRow 
 												{event}
 												data_from_server={data_meta}
 												{current_time}
 												{show_seconds}
-												show_arrivals={event.last_stop}
-												vertical={true}
+												use_symbol_sign={true}
 											/>
-										</div>
-									</div>
-								{:else}
+										{/each}
+									</tbody>
+								</table>
+							{:else}
+								<!-- Non-Rail (Div) List -->
+								{#each dates_to_events_filtered[date_code].filter((event) => {
+									let cutoff = 60;
+									if (show_previous_departures) cutoff = 1800;
+									const relevant_time = event.last_stop ? event.realtime_arrival || event.scheduled_arrival : event.realtime_departure || event.scheduled_departure;
+									if (relevant_time < current_time / 1000 - cutoff) return false;
+									if (event.last_stop && !show_arrivals_only) return false;
+
+									const routeDef = data_meta.routes?.[event.chateau]?.[event.route_id];
+									const rType = routeDef?.route_type ?? event.route_type ?? 3;
+									if (available_modes.length > 1) {
+										return get_mode_for_route_type(rType) === active_tab;
+									}
+									return true;
+								}) as event}
 									<div
 										class="mx-1 py-1 border-b-1 border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800"
 										on:click={() => {
@@ -1097,8 +1056,8 @@
 											<p>{$_('vehicle')}: {event.vehicle_number}</p>
 										{/if}
 									</div>
-								{/if}
-							{/each}
+								{/each}
+							{/if}
 						{/each}
 
 						<!-- Loader / pager hint -->

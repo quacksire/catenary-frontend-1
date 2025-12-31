@@ -911,6 +911,7 @@
 				arrow={true}
 				text={fixHeadsignText(
 					trip_data.trip_headsign,
+					trip_selected.chateau_id,
 					trip_data.route_short_name || trip_data.route_long_name
 				)}
 				icon={fixHeadsignIcon(trip_data.trip_headsign)}

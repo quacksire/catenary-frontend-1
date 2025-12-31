@@ -131,10 +131,42 @@ export function fixRunNumber(
 	return tripname;
 }
 
-export function fixHeadsignText(name: string | null, route: string | null) {
+
+function toTitleCaseEnglish(str: string) {
+	const minorWords = ['a', 'an', 'and', 'at', 'but', 'by', 'for', 'in', 'nor', 'of', 'on', 'or', 'so', 'the', 'to', 'up', 'yet'];
+	const preferredSpellings: Record<string, string> = {
+		'uc': 'UC',
+		'uci': 'UCI',
+		'ucla': 'UCLA',
+		'ucsd': 'UCSD',
+		'ii': 'II',
+		'iii': 'III'
+	};
+
+	return str.toLowerCase().replace(/\w+/g, (word, index) => {
+		if (preferredSpellings[word]) {
+			return preferredSpellings[word];
+		}
+		// Always capitalize the first word
+		if (index === 0 || !minorWords.includes(word)) {
+			return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+		} else {
+			return word; // Keep minor words lowercase
+		}
+	});
+}
+
+export function fixHeadsignText(name: string | null, chateau: string | null, route: string | null) {
 	if (name == null) {
 		return '';
 	}
+
+	if (chateau == "orangecountytransportationauthority") {
+
+		return toTitleCaseEnglish(name)
+	}
+
+
 
 	name = name.replace('Counterclockwise', translate('anticlockwise'));
 	name = name.replace('Clockwise', translate('clockwise'));

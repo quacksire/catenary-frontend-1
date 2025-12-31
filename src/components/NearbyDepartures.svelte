@@ -808,7 +808,7 @@
 									class="material-symbols-outlined text-md align-middle -translate-y-0.5 select-none"
 									>chevron_right</span
 								>
-								{titleCase(fixHeadsignText(direction_group.headsign, route_group.route_id))}
+								{titleCase(fixHeadsignText(direction_group.headsign, route_group.chateau_id, route_group.route_id))}
 								<span
 									on:click={() => {
 										data_stack_store.update((stack) => {

@@ -11,6 +11,8 @@
 
 	let textclass: string = 'text-[0px]';
 
+	export let use_symbol_sign = false;
+
 	let h: number = 0;
 	let m: number = 0;
 	let s: number = 0;
@@ -117,9 +119,9 @@
 
 <span class={`${textclass} font-semibold text-[0px]`}>
 	<span class="font-medium">
-		{#if diff < 0}<span class="text-xs">{$_('early')}</span>
-		{/if}{#if diff > 0}<span class="text-xs">{$_('late')}</span>
-		{/if}{#if diff == 0}<span class="text-xs font-semibold text-[#58A738]">{$_('ontime')}</span
+		{#if diff < 0}<span class="text-xs">{use_symbol_sign ? '-' : $_('early')}</span>
+		{/if}{#if diff > 0}<span class="text-xs">{use_symbol_sign ? '+' : $_('late')}</span>
+		{/if}{#if diff == 0 && !use_symbol_sign}<span class="text-xs font-semibold text-[#58A738]">{$_('ontime')}</span
 			>{/if}
 		<span class="text-xs">&nbsp;</span>
 	</span>

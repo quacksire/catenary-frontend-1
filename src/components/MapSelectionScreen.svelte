@@ -203,6 +203,7 @@
 								>
 								{fixHeadsignText(
 									option.data.headsign,
+									option.data.chateau_id,
 									option.data.route_short_name || option.data.route_long_name
 								)}
 								{#if fixHeadsignIcon(option.data.headsign)}
