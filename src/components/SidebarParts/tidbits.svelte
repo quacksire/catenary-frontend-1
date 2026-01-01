@@ -1,4 +1,9 @@
 <script lang="ts">
+	import { locale } from 'svelte-i18n';
+
+	let this_locale: string | null | undefined = null;
+	locale.subscribe((x) => (this_locale = x));
+
 	/**
 	 * A tidbit is a small card that displays information about Catenary. It is displayed in the sidebar.
 	 * @property {string} title - The title of the tidbit.
@@ -32,7 +37,7 @@
 	type Tidbit = {
 		title: string;
 		description: string;
-		link: string;
+		link?: string;
 		image?: string;
 		svg?: string;
 		underline?: boolean;
@@ -40,15 +45,117 @@
 		ctaText?: string;
 	};
 
+	interface Dictionary<T> {
+    [key: string]: T;
+	}
+
+	let tidbits_en: Tidbit[] = [
+		{
+			title: "Extra service for New Year's Eve",
+			description:
+`The following operators are running extra service on New Year's Eve, and the extra service can be viewed in the Catenary app:<br>
+MTA Long Island Rail Road<br>
+MTA Metro-North Railroad<br>
+New Jersey Transit Rail Operations<br>
+Metra (Chicago)<br>
+GO Transit (Toronto)<br>
+Caltrain<br>
+<br>
+The following operators are running extra service on New Year's Eve, and the extra service is not shown in the app:<br>
+Valley Transportation Agency (San José, CA)<br>
+Société de transport de Montréal<br>
+Réseau express métropolitain (Montréal, QC)<br>
+Toronto Transit Commission<br>
+Maryland Transit Administration<br>
+Massachusetts Bay Transportation Authority<br>
+Washington Metropolitan Area Transit Authority<br>
+<br>
+If your operator was not listed above, it is unknown whether their extra service is shown in the app. Please check their website to determine if there is extra or cancelled service for New Year's Eve.<br>
+<br>
+If you encounter any issues with the New Year's Eve data, or noticed anything interesting about the New Year's Eve data, please contact us on Discord or at contact@catenarymaps.org.
+`,
+			link: 'https://discord.gg/bBeDhrzSgz',
+			ctaText: 'Report issues on Discord'
+		}
+	];
+
+	let tidbits_fr: Tidbit[] = [
+		{
+			title: "Service supplémentaire pour le réveillon du Nouvel An",
+			description:
+`Les opérateurs suivants proposent des services supplémentaires pour le réveillon du Nouvel An, et ces services supplémentaires sont visibles dans l'application Catenary :<br>
+MTA Long Island Rail Road<br>
+MTA Metro-North Railroad<br>
+New Jersey Transit Rail Operations<br>
+Metra (Chicago)<br>
+GO Transit (Toronto)<br>
+Caltrain<br>
+<br>
+Les opérateurs suivants proposent également des services supplémentaires pour le réveillon du Nouvel An, mais ces services supplémentaires ne sont pas affichés dans l'application :<br>
+Valley Transportation Agency (San José, CA)<br>
+Société de transport de Montréal<br>
+Réseau express métropolitain (Montréal, QC)<br>
+Toronto Transit Commission<br>
+Maryland Transit Administration<br>
+Massachusetts Bay Transportation Authority<br>
+Washington Metropolitan Area Transit Authority<br>
+<br>
+Si votre opérateur ne figure pas dans la liste ci-dessus, nous ne savons pas si ses services supplémentaires sont affichés dans l'application. Veuillez consulter son site web pour vérifier s'il y a des services supplémentaires ou des annulations pour le réveillon du Nouvel An.<br>
+<br>
+Si vous rencontrez des problèmes avec les données relatives au réveillon du Nouvel An, ou si vous remarquez des informations intéressantes, veuillez nous contacter sur Discord ou à l'adresse contact@catenarymaps.org.
+`,
+			link: 'https://discord.gg/bBeDhrzSgz',
+			ctaText: 'Signalez les problèmes sur Discord'
+		}
+	];
+
+	let tidbits_es: Tidbit[] = [
+		{
+			title: "Servicio adicional para la Nochevieja",
+			description:
+`Los siguientes operadores ofrecerán servicio adicional en Nochevieja, y este servicio adicional se puede consultar en la aplicación Catenary:<br>
+MTA Long Island Rail Road<br>
+MTA Metro-North Railroad<br>
+New Jersey Transit Rail Operations<br>
+Metra (Chicago)<br>
+GO Transit (Toronto)<br>
+Caltrain<br>
+<br>
+Los siguientes operadores ofrecerán servicio adicional en Nochevieja, pero este servicio adicional no se muestra en la aplicación:<br>
+Valley Transportation Agency (San José, CA)<br>
+Société de transport de Montréal<br>
+Réseau express métropolitain (Montréal, QC)<br>
+Toronto Transit Commission<br>
+Maryland Transit Administration<br>
+Massachusetts Bay Transportation Authority<br>
+Washington Metropolitan Area Transit Authority<br>
+<br>
+Si su operador no aparece en la lista anterior, se desconoce si su servicio adicional se muestra en la aplicación. Consulte su sitio web para determinar si hay servicio adicional o cancelaciones para Nochevieja.<br>
+<br>
+Si encuentra algún problema con los datos de Nochevieja o detecta algo interesante en ellos, contáctenos en Discord o en contact@catenarymaps.org.
+`,
+			link: 'https://discord.gg/bBeDhrzSgz',
+			ctaText: 'Reporta los problemas en Discord'
+		}
+	];
+
 	/**
-	 * An array of tidbits to display in the sidebar.
-	 *
-	 *
-	 *
-	 * @type {Tidbit[]}
+	 * An array of tidbitsForLocale[this_locale] to display in the sidebar.
 	 *
 	 * */
-	let tidbits: Tidbit[] = [
+	let tidbitsForLocale: Dictionary<Tidbit[]> = {
+		"en-US": tidbits_en,
+		"en-CA": tidbits_en,
+		"en-UK": tidbits_en,
+		"en": tidbits_en,
+		"fr-FR": tidbits_fr,
+		"fr-CA": tidbits_fr,
+		"fr": tidbits_fr,
+		"es-ES": tidbits_es,
+		"es-US": tidbits_es,
+		"es-MX": tidbits_es,
+		"es": tidbits_es,
+	};
 		//{
 		//	title: 'Research that pushes mobility forwards.',
 		//	description:
@@ -58,29 +165,29 @@
 		//	underline: true,
 		//	underlineColor: 'green-500'
 		//},
-		{
-			title: 'Consider helping out.',
-			description:
-				"Catenary is a free and open-source project, but our servers aren't. If you use Catenary on your commute, please consider donating to help keep transit data accessible and open to all!\n\nCatenary is a 501(c)(3) nonprofit organization, so your donations are tax-deductible in the United States.",
-			ctaText: 'Donate',
-			link: 'https://opencollective.com/catenarymaps/',
-			svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hand-heart"><path d="M11 14h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 16"/><path d="m7 20 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9"/><path d="m2 15 6 6"/><path d="M19.5 8.5c.7-.7 1.5-1.6 1.5-2.7A2.73 2.73 0 0 0 16 4a2.78 2.78 0 0 0-5 1.8c0 1.2.8 2 1.5 2.8L16 12Z"/></svg>`
-		},
-		{
-			title: 'Committed to open-source.',
-			description:
-				"Catenary projects are entirely open-source, mostly under the strong copyleft AGPL-3.0 license. Take a look at the projects we've been working on recently!",
-			link: 'https://github.com/catenarytransit',
-			svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cpu"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>`
-		},
-		{
-			title: 'Built by people who care.',
-			description:
-				'Catenary is supported by passionate developers and riders, with an active Discord and a team that keeps conversations and support moving around the clock.',
-			ctaText: 'Join us',
-			link: 'https://discord.gg/yVV6dguwtq',
-			svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart-handshake"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.79 0l2.96 2.66"/><path d="m18 15-2-2"/><path d="m15 18-2-2"/></svg>`
-		},
+		// {
+		// 	title: 'Consider helping out.',
+		// 	description:
+		// 		"Catenary is a free and open-source project, but our servers aren't. If you use Catenary on your commute, please consider donating to help keep transit data accessible and open to all!\n\nCatenary is a 501(c)(3) nonprofit organization, so your donations are tax-deductible in the United States.",
+		// 	ctaText: 'Donate',
+		// 	link: 'https://opencollective.com/catenarymaps/',
+		// 	svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hand-heart"><path d="M11 14h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 16"/><path d="m7 20 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9"/><path d="m2 15 6 6"/><path d="M19.5 8.5c.7-.7 1.5-1.6 1.5-2.7A2.73 2.73 0 0 0 16 4a2.78 2.78 0 0 0-5 1.8c0 1.2.8 2 1.5 2.8L16 12Z"/></svg>`
+		// },
+		// {
+		// 	title: 'Committed to open-source.',
+		// 	description:
+		// 		"Catenary projects are entirely open-source, mostly under the strong copyleft AGPL-3.0 license. Take a look at the projects we've been working on recently!",
+		// 	link: 'https://github.com/catenarytransit',
+		// 	svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cpu"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>`
+		// },
+		// {
+		// 	title: 'Built by people who care.',
+		// 	description:
+		// 		'Catenary is supported by passionate developers and riders, with an active Discord and a team that keeps conversations and support moving around the clock.',
+		// 	ctaText: 'Join us',
+		// 	link: 'https://discord.gg/yVV6dguwtq',
+		// 	svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart-handshake"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.79 0l2.96 2.66"/><path d="m18 15-2-2"/><path d="m15 18-2-2"/></svg>`
+		// },
 
 		//{
 		//	title: 'ya like swag?',
@@ -99,31 +206,37 @@
 
 		// add a More Catenary. More places.
 		//The new Catenary Android app is now available, with iOS coming soon. Explore Catenary on the go, with native performance and features.
-		{
-			title: 'Explore Catenary on mobile.',
-			description:
-				'The new Catenary Android app is now available, with iOS coming soon. Explore Catenary on the go, with native performance and features.',
-			link: 'https://play.google.com/store/apps/details?id=com.catenarymaps.catenary',
-			svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-smartphone"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>`,
-			ctaText: 'Download'
-		},
+		// {
+		// 	title: 'Explore Catenary on mobile.',
+		// 	description:
+		// 		'The new Catenary Android app is now available, with iOS coming soon. Explore Catenary on the go, with native performance and features.',
+		// 	link: 'https://play.google.com/store/apps/details?id=com.catenarymaps.catenary',
+		// 	svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-smartphone"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>`,
+		// 	ctaText: 'Download'
+		// },
 
 		// explore catenary on your desktop. (raycast link)
-		{
-			title: 'Explore Catenary on your desktop.',
-			description:
-				'Access Catenary directly from your desktop with our Raycast extension. Get quick transit info without opening your browser.',
-			link: 'https://www.raycast.com/quacksire/catenary-raycast',
-			svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-desktop"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/></svg>`,
-			ctaText: 'Install Raycast extension'
-		}
+		// {
+		// 	title: 'Explore Catenary on your desktop.',
+		// 	description:
+		// 		'Access Catenary directly from your desktop with our Raycast extension. Get quick transit info without opening your browser.',
+		// 	link: 'https://www.raycast.com/quacksire/catenary-raycast',
+		// 	svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-desktop"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/></svg>`,
+		// 	ctaText: 'Install Raycast extension'
+		// }
 
-	];
+	// ];
 
-	// we want to randomly select a tidbit to display
-	let tidbitIndex = Math.floor(Math.random() * tidbits.length);
+	let tidbitIndex = 0;
+	let dismissed = true;
 
-	let dismissed = false;
+	if(tidbitsForLocale[this_locale]) {
+		dismissed = false;
+
+		// we want to randomly select a tidbit to display
+		// tidbitIndex = Math.floor(Math.random() * tidbitsForLocale[this_locale].length);
+	}
+
 </script>
 
 {#if !dismissed}
@@ -133,29 +246,29 @@
 		<!-- Header with icon and title -->
 		<div class="p-2.5 flex items-center gap-2 justify-between">
 			<div class="flex items-center gap-2 flex-1 min-w-0">
-				{#if tidbits[tidbitIndex].image}
-					<img src={tidbits[tidbitIndex].image} class="w-5 h-5 flex-shrink-0" alt="" />
-				{:else if tidbits[tidbitIndex].svg}
+				{#if tidbitsForLocale[this_locale][tidbitIndex].image}
+					<img src={tidbitsForLocale[this_locale][tidbitIndex].image} class="w-5 h-5 flex-shrink-0" alt="" />
+				{:else if tidbitsForLocale[this_locale][tidbitIndex].svg}
 					<div class="w-5 h-5 flex-shrink-0 text-seashore">
-						{@html tidbits[tidbitIndex].svg}
+						{@html tidbitsForLocale[this_locale][tidbitIndex].svg}
 					</div>
 				{/if}
-				{#if tidbits[tidbitIndex].underline}
-					<h3 class="font-bold text-sm text-white leading-tight">
-						<span class="border-b border-{tidbits[tidbitIndex].underlineColor}"
-							>{tidbits[tidbitIndex].title.split(' ')[0]}</span
+				{#if tidbitsForLocale[this_locale][tidbitIndex].underline}
+					<h3 class="font-bold text-sm leading-tight">
+						<span class="border-b border-{tidbitsForLocale[this_locale][tidbitIndex].underlineColor}"
+							>{tidbitsForLocale[this_locale][tidbitIndex].title.split(' ')[0]}</span
 						>
-						{tidbits[tidbitIndex].title.split(' ').slice(1).join(' ')}
+						{tidbitsForLocale[this_locale][tidbitIndex].title.split(' ').slice(1).join(' ')}
 					</h3>
 				{:else}
-					<h3 class="font-bold text-sm text-white leading-tight">{tidbits[tidbitIndex].title}</h3>
+					<h3 class="font-bold text-sm leading-tight">{tidbitsForLocale[this_locale][tidbitIndex].title}</h3>
 				{/if}
 			</div>
 
 			<!-- Close button -->
 			<button
 				on:click={() => (dismissed = true)}
-				class="text-gray-400 hover:text-seashore transition-colors p-0.5 flex-shrink-0"
+				class="hover:text-seashore transition-colors p-0.5 flex-shrink-0"
 				aria-label="Dismiss"
 			>
 				<svg
@@ -178,20 +291,22 @@
 		<!-- Content -->
 		<div class="border-t border-gray-700 px-2.5 py-3">
 			<!-- Description -->
-			<p class="text-xs text-gray-300 mb-2 leading-snug">{tidbits[tidbitIndex].description}</p>
+			<p class="text-xs mb-2 leading-snug">{@html tidbitsForLocale[this_locale][tidbitIndex].description}</p>
 
+			{#if tidbitsForLocale[this_locale][tidbitIndex].link}
 			<!-- CTA Link -->
 			<a
 				target="_blank"
 				rel="noopener noreferrer"
-				href={tidbits[tidbitIndex].link}
+				href={tidbitsForLocale[this_locale][tidbitIndex].link}
 				class={"inline-flex items-center gap-1 text-seashore hover:underline text-sm font-extrabold transition-colors cursor-pointer contrast-[50]"}
 			>
-				<span>{tidbits[tidbitIndex].ctaText || 'Learn more'}</span>
+				<span>{tidbitsForLocale[this_locale][tidbitIndex].ctaText || 'Learn more'}</span>
 				<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
 				</svg>
 			</a>
+			{/if}
 		</div>
 	</div>
 {/if}
