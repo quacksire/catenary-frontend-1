@@ -237,6 +237,8 @@ Si encuentra algún problema con los datos de Nochevieja o detecta algo interesa
 		tidbitIndex = Math.floor(Math.random() * tidbitsForLocale[this_locale].length);
 	}
 
+	let expanded = true;
+
 </script>
 
 {#if !dismissed}
@@ -265,7 +267,7 @@ Si encuentra algún problema con los datos de Nochevieja o detecta algo interesa
 				{/if}
 			</div>
 
-			<!-- Close button -->
+			<!-- Close button
 			<button
 				on:click={() => (dismissed = true)}
 				class="hover:text-seashore transition-colors p-0.5 flex-shrink-0"
@@ -285,9 +287,22 @@ Si encuentra algún problema con los datos de Nochevieja o detecta algo interesa
 						d="M6 18L18 6M6 6l12 12"
 					/>
 				</svg>
+			</button> -->
+			<button
+				class="ml-auto w-6 h-6 rounded-full flex flex-col align-center"
+				on:click={(e) => {
+					expanded = !expanded;
+				}}
+			>
+				{#if expanded}
+					<span class="material-symbols-outlined select-none"> collapse_content </span>
+				{:else}
+					<span class="material-symbols-outlined select-none"> expand_content </span>
+				{/if}
 			</button>
 		</div>
 
+		{#if expanded}
 		<!-- Content -->
 		<div class="border-t border-gray-700 px-2.5 py-3">
 			<!-- Description -->
@@ -308,5 +323,6 @@ Si encuentra algún problema con los datos de Nochevieja o detecta algo interesa
 			</a>
 			{/if}
 		</div>
+		{/if}
 	</div>
 {/if}
