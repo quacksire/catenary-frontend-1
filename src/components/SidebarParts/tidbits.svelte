@@ -247,7 +247,9 @@ Si encuentra algún problema con los datos de Nochevieja o detecta algo interesa
 	>
 		<!-- Header with icon and title -->
 		<div class="p-2.5 flex items-center gap-2 justify-between">
-			<div class="flex items-center gap-2 flex-1 min-w-0">
+			<div class="flex items-center gap-2 flex-1 min-w-0" on:click={(e) => {
+					expanded = !expanded;
+				}}>
 				{#if tidbitsForLocale[this_locale][tidbitIndex].image}
 					<img src={tidbitsForLocale[this_locale][tidbitIndex].image} class="w-5 h-5 flex-shrink-0" alt="" />
 				{:else if tidbitsForLocale[this_locale][tidbitIndex].svg}
