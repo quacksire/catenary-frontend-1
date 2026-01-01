@@ -234,7 +234,7 @@ Si encuentra algún problema con los datos de Nochevieja o detecta algo interesa
 		dismissed = false;
 
 		// we want to randomly select a tidbit to display
-		// tidbitIndex = Math.floor(Math.random() * tidbitsForLocale[this_locale].length);
+		tidbitIndex = Math.floor(Math.random() * tidbitsForLocale[this_locale].length);
 	}
 
 </script>
