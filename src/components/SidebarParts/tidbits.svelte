@@ -230,7 +230,7 @@ Si encuentra algún problema con los datos de Nochevieja o detecta algo interesa
 	let tidbitIndex = 0;
 	let dismissed = true;
 
-	if(tidbitsForLocale[this_locale]) {
+	if(tidbitsForLocale[this_locale] && tidbitsForLocale[this_locale].length) {
 		dismissed = false;
 
 		// we want to randomly select a tidbit to display
