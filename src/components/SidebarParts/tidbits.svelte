@@ -50,93 +50,12 @@
 	}
 
 	let tidbits_en: Tidbit[] = [
-		{
-			title: "Extra service for New Year's Eve",
-			description:
-`The following operators are running extra service on New Year's Eve, and the extra service can be viewed in the Catenary app:<br>
-MTA Long Island Rail Road<br>
-MTA Metro-North Railroad<br>
-New Jersey Transit Rail Operations<br>
-Metra (Chicago)<br>
-GO Transit (Toronto)<br>
-Caltrain<br>
-<br>
-The following operators are running extra service on New Year's Eve, and the extra service is not shown in the app:<br>
-Valley Transportation Agency (San José, CA)<br>
-Société de transport de Montréal<br>
-Réseau express métropolitain (Montréal, QC)<br>
-Toronto Transit Commission<br>
-Maryland Transit Administration<br>
-Massachusetts Bay Transportation Authority<br>
-Washington Metropolitan Area Transit Authority<br>
-<br>
-If your operator was not listed above, it is unknown whether their extra service is shown in the app. Please check their website to determine if there is extra or cancelled service for New Year's Eve.<br>
-<br>
-If you encounter any issues with the New Year's Eve data, or noticed anything interesting about the New Year's Eve data, please contact us on Discord or at contact@catenarymaps.org.
-`,
-			link: 'https://discord.gg/bBeDhrzSgz',
-			ctaText: 'Report issues on Discord'
-		}
 	];
 
 	let tidbits_fr: Tidbit[] = [
-		{
-			title: "Service supplémentaire pour le réveillon du Nouvel An",
-			description:
-`Les opérateurs suivants proposent des services supplémentaires pour le réveillon du Nouvel An, et ces services supplémentaires sont visibles dans l'application Catenary :<br>
-MTA Long Island Rail Road<br>
-MTA Metro-North Railroad<br>
-New Jersey Transit Rail Operations<br>
-Metra (Chicago)<br>
-GO Transit (Toronto)<br>
-Caltrain<br>
-<br>
-Les opérateurs suivants proposent également des services supplémentaires pour le réveillon du Nouvel An, mais ces services supplémentaires ne sont pas affichés dans l'application :<br>
-Valley Transportation Agency (San José, CA)<br>
-Société de transport de Montréal<br>
-Réseau express métropolitain (Montréal, QC)<br>
-Toronto Transit Commission<br>
-Maryland Transit Administration<br>
-Massachusetts Bay Transportation Authority<br>
-Washington Metropolitan Area Transit Authority<br>
-<br>
-Si votre opérateur ne figure pas dans la liste ci-dessus, nous ne savons pas si ses services supplémentaires sont affichés dans l'application. Veuillez consulter son site web pour vérifier s'il y a des services supplémentaires ou des annulations pour le réveillon du Nouvel An.<br>
-<br>
-Si vous rencontrez des problèmes avec les données relatives au réveillon du Nouvel An, ou si vous remarquez des informations intéressantes, veuillez nous contacter sur Discord ou à l'adresse contact@catenarymaps.org.
-`,
-			link: 'https://discord.gg/bBeDhrzSgz',
-			ctaText: 'Signalez les problèmes sur Discord'
-		}
 	];
-
+	
 	let tidbits_es: Tidbit[] = [
-		{
-			title: "Servicio adicional para la Nochevieja",
-			description:
-`Los siguientes operadores ofrecerán servicio adicional en Nochevieja, y este servicio adicional se puede consultar en la aplicación Catenary:<br>
-MTA Long Island Rail Road<br>
-MTA Metro-North Railroad<br>
-New Jersey Transit Rail Operations<br>
-Metra (Chicago)<br>
-GO Transit (Toronto)<br>
-Caltrain<br>
-<br>
-Los siguientes operadores ofrecerán servicio adicional en Nochevieja, pero este servicio adicional no se muestra en la aplicación:<br>
-Valley Transportation Agency (San José, CA)<br>
-Société de transport de Montréal<br>
-Réseau express métropolitain (Montréal, QC)<br>
-Toronto Transit Commission<br>
-Maryland Transit Administration<br>
-Massachusetts Bay Transportation Authority<br>
-Washington Metropolitan Area Transit Authority<br>
-<br>
-Si su operador no aparece en la lista anterior, se desconoce si su servicio adicional se muestra en la aplicación. Consulte su sitio web para determinar si hay servicio adicional o cancelaciones para Nochevieja.<br>
-<br>
-Si encuentra algún problema con los datos de Nochevieja o detecta algo interesante en ellos, contáctenos en Discord o en contact@catenarymaps.org.
-`,
-			link: 'https://discord.gg/bBeDhrzSgz',
-			ctaText: 'Reporta los problemas en Discord'
-		}
 	];
 
 	/**
