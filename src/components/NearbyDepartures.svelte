@@ -12,6 +12,7 @@
 	import TimeDiff from './TimeDiff.svelte';
 	import type { Writable } from 'svelte/store';
 	import * as maplibregl from 'maplibre-gl';
+	import TidbitSidebarCard from './SidebarParts/tidbits.svelte';
 
 	const onbutton = 'bg-blue-300 dark:bg-blue-500 bg-opacity-80';
 
@@ -711,6 +712,7 @@
 
 	<div class=" catenary-scroll overflow-y-auto pb-64 h-full">
 		<div class="flex flex-col">
+			<TidbitSidebarCard />
 			{#each departure_list_filtered as route_group}
 				<div
 					class={`${window_height_known < 600 ? 'mt-0 mb-1' : 'mt-1 mb-1 mb:mb-2'} px-1 mx-1 py-1 md:py-2 bg-gray-100 dark:bg-background rounded-md dark:bg-opacity-50`}
