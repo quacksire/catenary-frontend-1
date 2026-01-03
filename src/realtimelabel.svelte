@@ -31,7 +31,7 @@
 				</div>
 			</div>
 			<div class=" align-center items-center">
-				<p class="text-sm text-center">{name}</p>
+				<p class="text-xs text-center">{name}</p>
 			</div>
 		</div>
 	{/if}{/if}
