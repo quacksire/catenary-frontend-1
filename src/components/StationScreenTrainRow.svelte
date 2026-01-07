@@ -212,7 +212,7 @@
 				class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded text-sm font-bold text-gray-800 dark:text-gray-200 inline-block"
 			>
 				{$_('platform')}
-				{event.platform_string_realtime.replace('Track', '').trim()}
+				{event.platform_string_realtime.replace('Track', '').replace("platform", "").replace("Platform", "").trim()}
 			</span>
 		{/if}
 	</td>
