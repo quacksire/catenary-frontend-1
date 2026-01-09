@@ -456,11 +456,11 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 		layout: {
 			'text-field': ['get', 'local_ref'],
 			'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
-			'text-size': ['interpolate', ['linear'], ['zoom'], 14, 5, 15, 8, 16, 11, 17, 14, 18, 18],
+			'text-size': ['interpolate', ['linear'], ['zoom'], 14, 4, 15, 6, 16, 11, 17, 14, 18, 18],
 			'text-radial-offset': 0,
-			//'text-ignore-placement': true,
+			"text-allow-overlap": true,
+			'text-ignore-placement': true,
 			//'icon-ignore-placement': false,
-			//'text-allow-overlap': true,
 			//'symbol-avoid-edges': false,
 			'text-font': [
 				'step',
