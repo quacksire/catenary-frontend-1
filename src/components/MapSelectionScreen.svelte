@@ -453,7 +453,13 @@
 						data_stack_store.update((data_stack) => {
 							data_stack.push(
 								new StackInterface(
-									new OsmStationStack(option.data.osm_id, option.data.name, option.data.mode_type)
+									new OsmStationStack(
+										option.data.osm_id,
+										option.data.name,
+										option.data.mode_type,
+										option.data.lat,
+										option.data.lon
+									)
 								)
 							);
 							return data_stack;

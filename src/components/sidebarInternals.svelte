@@ -96,7 +96,12 @@
 	{#if latest_item_on_stack.data instanceof OsmStationStack}
 		{#await import('./OsmStationScreen.svelte') then { default: OsmStationScreen }}
 			{#key latest_item_on_stack.data.osm_id}
-				<OsmStationScreen osm_id={latest_item_on_stack.data.osm_id} />
+				<OsmStationScreen
+					osm_id={latest_item_on_stack.data.osm_id}
+					stationName={latest_item_on_stack.data.name}
+					stationLat={latest_item_on_stack.data.lat}
+					stationLon={latest_item_on_stack.data.lon}
+				/>
 			{/key}
 		{/await}
 	{/if}

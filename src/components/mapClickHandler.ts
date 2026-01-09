@@ -245,11 +245,18 @@ export function setup_click_handler(
 					}
 					selected_osm_stations_key_unique.add(key);
 
+					// Extract lat/lon from point geometry
+					const coords = x.geometry?.coordinates;
+					const lon = coords?.[0] ?? null;
+					const lat = coords?.[1] ?? null;
+
 					return new MapSelectionOption(
 						new OsmStationMapSelector(
 							x.properties.osm_id,
 							x.properties.name,
-							x.properties.mode_type
+							x.properties.mode_type,
+							lat,
+							lon
 						)
 					);
 				})
