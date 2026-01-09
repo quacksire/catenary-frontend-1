@@ -17,7 +17,9 @@ export const layerspercategory = {
 		stops: 'intercityrailstopscircle',
 		labelstops: 'intercityrailstopslabel',
 		shapes: 'intercityrailshapes',
-		labelshapes: 'intercityraillabelshapes'
+		labelshapes: 'intercityraillabelshapes',
+		osmstops: 'intercityrailosmstopscircle',
+		osmlabelstops: 'intercityrailosmstopslabel'
 	},
 	metro: {
 		livedots: 'metro',
@@ -27,7 +29,9 @@ export const layerspercategory = {
 		stops: 'metrostopscircle',
 		labelstops: 'metrostopslabel',
 		shapes: 'metroshapes',
-		labelshapes: 'metrolabelshapes'
+		labelshapes: 'metrolabelshapes',
+		osmstops: 'metroosmstopscircle',
+		osmlabelstops: 'metroosmstopslabel'
 	},
 	tram: {
 		livedots: 'tram',
@@ -37,7 +41,9 @@ export const layerspercategory = {
 		stops: 'tramstopscircle',
 		labelstops: 'tramstopslabel',
 		shapes: 'tramshapes',
-		labelshapes: 'tramlabelshapes'
+		labelshapes: 'tramlabelshapes',
+		osmstops: 'tramosmstopscircle',
+		osmlabelstops: 'tramosmstopslabel'
 	},
 	other: {
 		livedots: 'other',

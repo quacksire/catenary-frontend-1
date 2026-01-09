@@ -16,7 +16,17 @@
 
 {#if layersettings}
 	{#if layersettings[selectedSettingsTab]}
-		<div on:click={toggle} on:keydown={toggle}>
+		<div
+			role="button"
+			tabindex="0"
+			on:click={toggle}
+			on:keydown={(e) => {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					toggle();
+				}
+			}}
+		>
 			<!--Toggle Routes-->
 			<div
 				class:border-blue-500={layersettings[selectedSettingsTab].label[change] == true}
