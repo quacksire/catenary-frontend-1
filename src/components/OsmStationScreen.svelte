@@ -1,13 +1,11 @@
 <script lang="ts">
 	import GenericStopScreen from './GenericStopScreen.svelte';
-	export let chateau: string;
-	export let stop_id: string;
+	export let osm_id: string;
 
 	$: buildUrl = (startSec: number, endSec: number) => {
-		const base = 'https://birchdeparturesfromstop.catenarymaps.org/departures_at_stop';
+		const base = 'https://birch.catenarymaps.org/departures_at_osm_station';
 		const params = new URLSearchParams({
-			stop_id,
-			chateau_id: chateau,
+			osm_station_id: osm_id,
 			greater_than_time: String(startSec),
 			less_than_time: String(endSec),
 			include_shapes: String(false)
@@ -16,4 +14,4 @@
 	};
 </script>
 
-<GenericStopScreen {buildUrl} key={stop_id} />
+<GenericStopScreen {buildUrl} key={osm_id} />

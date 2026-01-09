@@ -8,7 +8,8 @@ export class StackInterface {
 		| MapSelectionScreen
 		| SettingsStack
 		| BlockStack
-		| OsmItemStack;
+		| OsmItemStack
+		| OsmStationStack;
 
 	constructor(
 		data:
@@ -21,6 +22,7 @@ export class StackInterface {
 			| SettingsStack
 			| BlockStack
 			| OsmItemStack
+			| OsmStationStack
 	) {
 		this.data = data;
 	}
@@ -35,9 +37,9 @@ export class MapSelectionScreen {
 }
 
 export class MapSelectionOption {
-	public data: StopMapSelector | RouteMapSelector | VehicleMapSelector;
+	public data: StopMapSelector | RouteMapSelector | VehicleMapSelector | OsmStationMapSelector;
 
-	constructor(data: StopMapSelector | RouteMapSelector | VehicleMapSelector) {
+	constructor(data: StopMapSelector | RouteMapSelector | VehicleMapSelector | OsmStationMapSelector) {
 		this.data = data;
 	}
 }
@@ -217,5 +219,29 @@ export class VehicleSelectedStack {
 }
 
 export class SettingsStack {
-	constructor() {}
+	constructor() { }
+}
+
+export class OsmStationStack {
+	public osm_id: string;
+	public name: string | null;
+	public mode_type: string | null;
+
+	constructor(osm_id: string, name: string | null, mode_type: string | null) {
+		this.osm_id = osm_id;
+		this.name = name;
+		this.mode_type = mode_type;
+	}
+}
+
+export class OsmStationMapSelector {
+	public osm_id: string;
+	public name: string | null;
+	public mode_type: string | null;
+
+	constructor(osm_id: string, name: string | null, mode_type: string | null) {
+		this.osm_id = osm_id;
+		this.name = name;
+		this.mode_type = mode_type;
+	}
 }
