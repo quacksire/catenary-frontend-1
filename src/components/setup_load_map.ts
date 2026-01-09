@@ -44,7 +44,10 @@ const STOP_SOURCES = [
 	{ id: 'busstops', url: 'https://birch6.catenarymaps.org/busstops' },
 	{ id: 'stationfeatures', url: 'https://birch7.catenarymaps.org/station_features' },
 	{ id: 'railstops', url: 'https://birch5.catenarymaps.org/railstops' },
-	{ id: 'otherstops', url: 'https://birch8.catenarymaps.org/otherstops' }
+	{ id: 'otherstops', url: 'https://birch8.catenarymaps.org/otherstops' },
+	{
+		"id": "osmstations", url: "https://birch.catenarymaps.org/osm_stations"
+	}
 ];
 
 export async function setup_load_map(
@@ -261,7 +264,7 @@ function addStationLayers(
 					'text-size': ['interpolate', ['linear'], ['zoom'], 15, 5, 17, 8, 19, 9.5],
 					'text-radial-offset': 1,
 					'text-allow-overlap': true,
-					'text-font': ['NimbusSans-Bold']
+					'text-font': ['NotoSans-Bold']
 				},
 				paint: {
 					'text-color': darkMode ? '#bae6fd' : '#1d4ed8',

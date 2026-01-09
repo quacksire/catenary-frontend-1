@@ -11,7 +11,8 @@ import {
 	RouteStack,
 	StopStack,
 	RouteMapSelector,
-	StopMapSelector
+	StopMapSelector,
+	OsmStationMapSelector
 } from './stackenum';
 
 export function setup_click_handler(
@@ -228,11 +229,38 @@ export function setup_click_handler(
 					.filter((x: MapSelectionOption | null) => x != null)
 			);
 
+			// OSM Stations (excluding platforms - only station_type === 'station')
+			const selected_osm_stations_raw = selectedFeatures.filter(
+				(x: any) => x.source === 'osmstations' && x.properties.station_type === 'station'
+			);
+
+			const selected_osm_stations_key_unique = new Set();
+
+			const selected_osm_stations = selected_osm_stations_raw
+				.map((x: any) => {
+					const key = x.properties.osm_id;
+
+					if (selected_osm_stations_key_unique.has(key)) {
+						return null;
+					}
+					selected_osm_stations_key_unique.add(key);
+
+					return new MapSelectionOption(
+						new OsmStationMapSelector(
+							x.properties.osm_id,
+							x.properties.name,
+							x.properties.mode_type
+						)
+					);
+				})
+				.filter((x: MapSelectionOption | null) => x != null);
+
 			let MapSelectionOptions = new Array<MapSelectionOption>();
 
 			MapSelectionOptions = MapSelectionOptions.concat(selected_vehicles);
 			MapSelectionOptions = MapSelectionOptions.concat(selected_routes);
 			MapSelectionOptions = MapSelectionOptions.concat(selected_stops);
+			MapSelectionOptions = MapSelectionOptions.concat(selected_osm_stations);
 
 			if (MapSelectionOptions.length > 0) {
 				const data_stack = get(data_stack_store);

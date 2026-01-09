@@ -14,7 +14,8 @@
 		VehicleSelectedStack,
 		StopMapSelector,
 		BlockStack,
-		OsmItemStack
+		OsmItemStack,
+		OsmStationStack
 	} from '../components/stackenum';
 	import HomeButton from './SidebarParts/home_button.svelte';
 	import BackButton from './SidebarParts/back_button.svelte';
@@ -89,6 +90,13 @@
 					chateau={latest_item_on_stack.data.chateau_id}
 					stop_id={latest_item_on_stack.data.stop_id}
 				/>
+			{/key}
+		{/await}
+	{/if}
+	{#if latest_item_on_stack.data instanceof OsmStationStack}
+		{#await import('./OsmStationScreen.svelte') then { default: OsmStationScreen }}
+			{#key latest_item_on_stack.data.osm_id}
+				<OsmStationScreen osm_id={latest_item_on_stack.data.osm_id} />
 			{/key}
 		{/await}
 	{/if}

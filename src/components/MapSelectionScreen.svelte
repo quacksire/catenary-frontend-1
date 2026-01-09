@@ -10,7 +10,9 @@
 		StopStack,
 		RouteMapSelector,
 		VehicleSelectedStack,
-		StopMapSelector
+		StopMapSelector,
+		OsmStationMapSelector,
+		OsmStationStack
 	} from '../components/stackenum';
 	import HomeButton from './SidebarParts/home_button.svelte';
 	import { get } from 'svelte/store';
@@ -30,6 +32,7 @@
 	export let darkMode: boolean;
 
 	let stops_preview_data = null;
+	let osm_stations_preview_data = {};
 
 	let show_gtfs_ids = get(show_gtfs_ids_store);
 
@@ -39,6 +42,7 @@
 
 	$: if (map_selection_screen) {
 		queryStopsPreview();
+		queryOsmStationsPreview();
 	}
 
 	function queryStopsPreview() {
@@ -78,6 +82,32 @@
 			.then((data) => {
 				stops_preview_data = data;
 			});
+	}
+
+	function queryOsmStationsPreview() {
+		map_selection_screen.arrayofoptions.forEach((option) => {
+			if (option.data instanceof OsmStationMapSelector) {
+				const osm_id = option.data.osm_id;
+				if (osm_stations_preview_data[osm_id]) {
+					return;
+				}
+
+				fetch(`https://birch.catenarymaps.org/osm_station_preview?osm_station_id=${osm_id}`)
+					.then((response) => {
+						if (response.ok) {
+							return response.json();
+						} else {
+							throw new Error('Network response was not ok');
+						}
+					})
+					.then((data) => {
+						osm_stations_preview_data[osm_id] = data;
+					})
+					.catch((e) => {
+						console.error(e);
+					});
+			}
+		});
 	}
 </script>
 
@@ -407,6 +437,71 @@
 								{/if}
 							</div>
 						{/if}
+					{/if}
+				</div>
+			{/each}
+		</div>
+	{/if}
+
+	{#if map_selection_screen.arrayofoptions.filter((x) => x.data instanceof OsmStationMapSelector).length > 0}
+		<h3 class="text-xl my-2">{$_('stations')}</h3>
+		<div class="flex flex-col gap-y-1 md:gap-y-2">
+			{#each map_selection_screen.arrayofoptions.filter((x) => x.data instanceof OsmStationMapSelector) as option}
+				<div
+					class="px-1 py-0.5 md:px-2 md:py-2 bg-gray-100 hover:bg-blue-100 dark:bg-darksky hover:dark:bg-hover text-sm md:text-base leading-snug rounded-lg bg-opacity-80"
+					on:click={() => {
+						data_stack_store.update((data_stack) => {
+							data_stack.push(
+								new StackInterface(
+									new OsmStationStack(option.data.osm_id, option.data.name, option.data.mode_type)
+								)
+							);
+							return data_stack;
+						});
+					}}
+					role="menuitem"
+					tabindex="0"
+				>
+					<p class="font-semibold">{option.data.name}</p>
+					<p class="text-xs text-gray-500 dark:text-gray-400">
+						{option.data.mode_type === 'subway'
+							? 'Metro'
+							: option.data.mode_type === 'rail'
+								? 'Rail'
+								: option.data.mode_type === 'tram' || option.data.mode_type === 'light_rail'
+									? 'Tram'
+									: option.data.mode_type}
+					</p>
+
+					{#if osm_stations_preview_data[option.data.osm_id] && osm_stations_preview_data[option.data.osm_id].stops}
+						<div class="flex flex-wrap gap-1 mt-1">
+							{#each [...new Set(Object.values(osm_stations_preview_data[option.data.osm_id].stops)
+										.flatMap((layer) => Object.values(layer))
+										.flatMap((s) => s.routes || [])
+										.sort())] as routeId}
+								{@const networks = osm_stations_preview_data[option.data.osm_id].routes}
+								{@const routeInfo = Object.values(networks)
+									.flatMap((n) => Object.values(n))
+									.find((r) => r.route_id === routeId)}
+
+								{#if routeInfo}
+									{#if isSubwayRouteId(routeId) && routeInfo.agency_id === 'Metropolitan Transportation Authority'}
+										<MtaBullet route_short_name={routeInfo.short_name} matchTextHeight={true} />
+									{:else}
+										<div
+											class="px-1 py-0.5 text-xs rounded-sm"
+											style={`background-color: ${routeInfo.color}; color: ${routeInfo.text_color};`}
+										>
+											{#if routeInfo.short_name}
+												<span class="font-medium">{routeInfo.short_name}</span>
+											{:else if routeInfo.long_name}
+												{routeInfo.long_name.replace(' Line', '')}
+											{/if}
+										</div>
+									{/if}
+								{/if}
+							{/each}
+						</div>
 					{/if}
 				</div>
 			{/each}

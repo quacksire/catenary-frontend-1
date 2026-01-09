@@ -184,7 +184,7 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 			'symbol-placement': 'line',
 			'text-field': ['coalesce', ['get', 'route_label']],
 			//'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
-			'text-font': ['NotoSans-Regular'],
+			'text-font': ['NotoSans-Medium'],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 3, 7, 9, 9, 13, 11],
 			'text-ignore-placement': false,
 

@@ -1745,7 +1745,6 @@
 		property="og:description"
 		content="Realtime bus and train location tracking, stop times prediction, analysis, and routing algorithm calculations."
 	/>
-	<meta property="og:image" content="https://catenarymaps.org/screenshot1.png" />
 
 	<!-- Twitter -->
 	<meta property="twitter:card" content="summary_large_image" />
@@ -1754,8 +1753,6 @@
 		property="twitter:description"
 		content="Realtime bus and train location tracking, stop times prediction, analysis, and routing algorithm calculations."
 	/>
-	<meta property="twitter:image" content="https://transitmap.kylerchin.com/screenshot1.png" />
-
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin={true} />
 	<link
