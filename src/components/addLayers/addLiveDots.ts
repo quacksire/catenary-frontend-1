@@ -356,7 +356,7 @@ export async function makeCircleLayers(map: Map, darkMode: boolean, layerspercat
 			'text-font': {
 				stops: [
 					[6, ['NotoSans-Medium']],
-					[11, ['Noto-SemiBold']]
+					[11, ['NotoSans-SemiBold']]
 				]
 			},
 			'text-size': bus_label_text_size,
@@ -455,7 +455,7 @@ export async function makeCircleLayers(map: Map, darkMode: boolean, layerspercat
 				['zoom'],
 				['literal', ['NotoSans-Regular']],
 				9,
-				['literal', ['NimbusSans-Bold']]
+				['literal', ['NotoSans-Bold']]
 			],
 			'text-size': other_label_text_size,
 			'text-ignore-placement': ['step', ['zoom'], false, 9.5, true]

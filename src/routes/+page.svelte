@@ -608,13 +608,13 @@
 						mapglobal.setLayoutProperty(categoryvalues.labeldots, 'text-font', {
 							stops: [
 								[6, ['NotoSans-Medium']],
-								[12, ['Noto-SemiBold']]
+								[12, ['NotoSans-SemiBold']]
 							]
 						});
 					} else {
 						mapglobal.setLayoutProperty(categoryvalues.labeldots, 'text-font', {
 							stops: [
-								[6, ['NimbusSans-Regular']],
+								[6, ['NotoSans-Regular']],
 								[14.5, ['NotoSans-Medium']]
 							]
 						});
@@ -623,7 +623,7 @@
 					mapglobal.setLayoutProperty(categoryvalues.labeldots, 'text-font', {
 						stops: [
 							[6, ['NotoSans-Medium']],
-							[11, ['Noto-SemiBold']]
+							[11, ['NotoSans-SemiBold']]
 						]
 					});
 
@@ -1570,7 +1570,7 @@
 						'symbol-placement': 'line',
 						'text-size': 10,
 						'text-field': ['concat', ['number-format', ['get', 'ele'], {}], 'm'],
-						'text-font': ['NimbusSans-Bold'],
+						'text-font': ['NotoSans-Bold'],
 						'text-pitch-alignment': 'viewport'
 					},
 					paint: {
@@ -1990,7 +1990,7 @@
 
 	<style>
 		body {
-			font-family: 'Nimbus', 'Noto Sans', sans-serif;
+			font-family: 'Noto Sans', sans-serif;
 		}
 
 		.material-symbols-outlined {
