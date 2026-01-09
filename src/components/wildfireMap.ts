@@ -536,7 +536,7 @@ export function makeFireMap(map: maplibregl.Map, chateaus_in_frame: Writable<str
 		layout: {
 			'text-field': ['concat', ['get', 'STATUS'], ''],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 7, 8, 9, 13],
-			'text-font': ['NimbusSans-Bold']
+			'text-font': ['NotoSans-Bold']
 		},
 		minzoom: 6
 	});
@@ -558,7 +558,7 @@ export function makeFireMap(map: maplibregl.Map, chateaus_in_frame: Writable<str
 				' '
 			],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 7, 8, 9, 12.5],
-			'text-font': ['NimbusSans-Bold']
+			'text-font': ['NotoSans-Bold']
 		},
 		minzoom: 6
 	});
@@ -579,7 +579,7 @@ export function makeFireMap(map: maplibregl.Map, chateaus_in_frame: Writable<str
 				12,
 				10
 			  ],
-			'text-font': ['NimbusSans-Bold']
+			'text-font': ['NotoSans-Bold']
 		},
 		paint: {
 			'text-color': darkMode ? '#ccaaaa' : '#cc0000'
@@ -603,7 +603,7 @@ export function makeFireMap(map: maplibregl.Map, chateaus_in_frame: Writable<str
 				12,
 				13
 			  ],
-			'text-font': ['NimbusSans-Bold']
+			'text-font': ['NotoSans-Bold']
 		},
 		paint: {
 			'text-color': darkMode ? '#ccaaaa' : '#cc0000'
@@ -628,7 +628,7 @@ export function makeFireMap(map: maplibregl.Map, chateaus_in_frame: Writable<str
 				' '
 			],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 7, 9, 9, 13],
-			'text-font': ['NimbusSans-Bold']
+			'text-font': ['NotoSans-Bold']
 		},
 		minzoom: 6
 	});

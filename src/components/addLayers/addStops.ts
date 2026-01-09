@@ -4,7 +4,8 @@ import {
 	default_interrail_filter,
 	default_bus_filter,
 	default_metro_filter,
-	default_tram_filter
+	default_tram_filter,
+	default_osm_interrail_filter
 } from '../makeFiltersForStop';
 
 const internationalIntercityLabelSize = ['interpolate', ['linear'], ['zoom'], 6, 6, 13, 12];
@@ -104,6 +105,28 @@ export function changeStopsTheme(map: Map, darkMode: boolean) {
 	);
 	map.setPaintProperty(
 		layerspercategory.intercityrail.labelstops,
+		'text-halo-color',
+		darkMode ? '#0f172a' : '#ffffff'
+	);
+
+	// Intercity rail osm stops
+	map.setPaintProperty(
+		layerspercategory.intercityrailosm.stops,
+		'circle-color',
+		getCircleInside(darkMode)
+	);
+	map.setPaintProperty(
+		layerspercategory.intercityrailosm.stops,
+		'circle-stroke-color',
+		getCircleOutside(darkMode)
+	);
+	map.setPaintProperty(
+		layerspercategory.intercityrailosm.labelstops,
+		'text-color',
+		darkMode ? '#ffffff' : '#2a2a2a'
+	);
+	map.setPaintProperty(
+		layerspercategory.intercityrailosm.labelstops,
 		'text-halo-color',
 		darkMode ? '#0f172a' : '#ffffff'
 	);
@@ -360,6 +383,106 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 		minzoom: 8
 	});
 
+	//INTERCITY RAIL OSM
+
+	map.addLayer({
+		id: layerspercategory.intercityrailosm.stops,
+		type: 'circle',
+		source: 'osmstations',
+		'source-layer': 'data',
+		layout: {},
+		paint: {
+			'circle-color': getCircleInside(darkMode),
+			'circle-radius': internationalIntercityCircleSize,
+			'circle-stroke-color': getCircleOutside(darkMode),
+			'circle-stroke-width': ['step', ['zoom'], 1.2, 13.2, 1.5],
+			'circle-stroke-opacity': ['step', ['zoom'], 0.5, 15, 0.6],
+			'circle-opacity': ['step', ['zoom'], 0.6, 13, 0.8]
+			//'circle-emissive-strength': 1
+		},
+		filter: [
+			"all",
+			["==", ["get", "local_ref"], null],
+			["==", ["get", "station_type"], "station"],
+			["==", ["get", "osm_station_id"], null],
+			["==", ["get", "osm_platform_id"], null],
+		],
+		minzoom: 7.5
+	});
+
+	map.addLayer({
+		id: layerspercategory.intercityrailosm.labelstops,
+		type: 'symbol',
+		source: 'osmstations',
+		'source-layer': 'data',
+		layout: {
+			'text-field': ['get', 'name'],
+			'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
+			'text-size': internationalIntercityLabelSize,
+			'text-radial-offset': 0.2,
+			//'text-ignore-placement': true,
+			//'icon-ignore-placement': false,
+			//'text-allow-overlap': true,
+			//'symbol-avoid-edges': false,
+			'text-font': [
+				'step',
+				['zoom'],
+				['literal', ['NotoSans-Regular']],
+				12.5,
+				['literal', ['NotoSans-Medium']],
+				13.5,
+				['literal', ['NotoSans-Bold']]
+			]
+		},
+		paint: {
+			'text-color': darkMode ? '#ffffff' : '#2a2a2a',
+			'text-halo-color': darkMode ? '#0f172a' : '#ffffff',
+			'text-halo-width': 1
+			//'text-emissive-strength': 1
+		},
+		filter: [
+			"all",
+			["==", ["get", "local_ref"], null],
+			["==", ["get", "station_type"], "station"],
+		],
+		minzoom: 8
+	});
+
+	map.addLayer({
+		id: "platformlabels_osm_intercity",
+		type: 'symbol',
+		source: 'osmstations',
+		'source-layer': 'data',
+		layout: {
+			'text-field': ['get', 'local_ref'],
+			'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
+			'text-size': ['interpolate', ['linear'], ['zoom'], 14, 5, 15, 8, 16, 11, 17, 14, 18, 18],
+			'text-radial-offset': 0,
+			//'text-ignore-placement': true,
+			//'icon-ignore-placement': false,
+			//'text-allow-overlap': true,
+			//'symbol-avoid-edges': false,
+			'text-font': [
+				'step',
+				['zoom'],
+				['literal', ['NotoSans-Medium']],
+				8.5,
+				['literal', ['NotoSans-Bold']],
+			]
+		},
+		paint: {
+			'text-color': "#000000",
+			'text-halo-color': "#ffffcc",
+			'text-halo-width': 10,
+			//'text-emissive-strength': 1
+		},
+		filter: [
+			"all",
+			["==", ["get", "station_type"], "stop_position"],
+		],
+		minzoom: 13
+	});
+
 	//OTHER
 
 	map.addLayer({
@@ -375,12 +498,11 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 			'circle-stroke-width': ['step', ['zoom'], 1.2, 13.2, 1.5],
 			'circle-stroke-opacity': ['step', ['zoom'], 0.5, 15, 0.6],
 			'circle-opacity': ['interpolate', ['linear'], ['zoom'], 10, 0.7, 16, 0.8]
-			//'circle-emissive-strength': 1
-		},
-		filter: ['all', ['any', ['>', ['zoom'], 16], ['==', null, ['get', 'parent_station']]]],
-		minzoom: 9
-	});
-
+			        //'circle-emissive-strength': 1
+			        },
+			        filter: ['all', ['any', ['>', ['zoom'], 16], ['==', null, ['get', 'parent_station']]]],
+			        minzoom: 9
+			    });
 	map.addLayer({
 		id: layerspercategory.other.labelstops,
 		type: 'symbol',

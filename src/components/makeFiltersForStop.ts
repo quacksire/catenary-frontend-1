@@ -43,11 +43,19 @@ export const default_interrail_filter = [
 		['==', null, ['get', 'parent_station']],
 		true // Default case: don't filter
 	],
+		['==', null, ['get', 'osm_station_id']],
 	[
 		'all',
 		['any', ['>', ['zoom'], 15], ['==', null, ['get', 'parent_station']]],
 		['any', ['in', 2, ['get', 'route_types']], ['in', 2, ['get', 'children_route_types']]]
 	]
+];
+
+export const default_osm_interrail_filter = [
+	'all',
+    ['==', ['get', 'railway_tag'], 'station'],
+    ['==', ['get', 'station_type'], 'railway'],
+    ['==', ['get', 'mode_type'], 'intercity']
 ];
 
 export function make_stops_filter_part_for_chateau(chateau: string, stop_array: string[]) {
