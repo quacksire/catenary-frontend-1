@@ -43,7 +43,7 @@ const SHAPES = [
 const STOP_SOURCES = [
 	{ id: 'busstops', url: 'https://birch6.catenarymaps.org/busstops' },
 	{ id: 'stationfeatures', url: 'https://birch7.catenarymaps.org/station_features' },
-	{ id: 'railstops', url: 'https://birch5.catenarymaps.org/railstops' },
+	{ id: 'railstops', url: 'https://birch5.catenarymaps.org/unmatched_railstops' },
 	{ id: 'otherstops', url: 'https://birch8.catenarymaps.org/otherstops' },
 	{
 		"id": "osmstations", url: "https://birch.catenarymaps.org/osm_stations"
