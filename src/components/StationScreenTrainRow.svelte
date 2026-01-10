@@ -13,6 +13,7 @@
 	export let current_time: number;
 	export let show_seconds: boolean;
 	export let use_symbol_sign: boolean = false;
+	export let timezone: string = 'UTC';
 
 	$: shared_rt_time = event.last_stop ? event.realtime_arrival : event.realtime_departure;
 	$: shared_scheduled_time = event.last_stop ? event.scheduled_arrival : event.scheduled_departure;
@@ -54,40 +55,24 @@
 			{#if event.trip_cancelled}
 				<span class="text-red-500 font-semibold text-xs">{$_('cancelled')}</span>
 				<div class="line-through opacity-70 text-xs">
-					<Clock
-						timezone={data_from_server.primary.timezone}
-						time_seconds={shared_scheduled_time}
-						{show_seconds}
-					/>
+					<Clock {timezone} time_seconds={shared_scheduled_time} {show_seconds} />
 				</div>
 			{:else if event.trip_deleted}
 				<span class="text-red-500 font-semibold text-xs">{$_('deleted')}</span>
 				<div class="line-through opacity-70 text-xs">
-					<Clock
-						timezone={data_from_server.primary.timezone}
-						time_seconds={shared_scheduled_time}
-						{show_seconds}
-					/>
+					<Clock {timezone} time_seconds={shared_scheduled_time} {show_seconds} />
 				</div>
 			{:else if event.stop_cancelled}
 				<span class="text-red-500 font-semibold text-xs">{$_('stop_cancelled')}</span>
 				<div class="line-through opacity-70 text-xs">
-					<Clock
-						timezone={data_from_server.primary.timezone}
-						time_seconds={shared_scheduled_time}
-						{show_seconds}
-					/>
+					<Clock {timezone} time_seconds={shared_scheduled_time} {show_seconds} />
 				</div>
 			{:else}
 				{#if shared_rt_time}
 					<!-- Vertical Mode: Scheduled -> Delay -> Realtime -->
 					{#if shared_rt_time != shared_scheduled_time}
 						<span class="text-slate-600 dark:text-gray-400 line-through text-xs">
-							<Clock
-								timezone={data_from_server.primary.timezone}
-								time_seconds={shared_scheduled_time}
-								{show_seconds}
-							/>
+							<Clock {timezone} time_seconds={shared_scheduled_time} {show_seconds} />
 						</span>
 						{#if shared_scheduled_time}
 							<DelayDiff
@@ -99,31 +84,19 @@
 						<span
 							class={`text-seashore dark:text-seashoredark font-medium ${shared_rt_time < current_time / 1000 ? 'opacity-70' : ''}`}
 						>
-							<Clock
-								timezone={data_from_server.primary.timezone}
-								time_seconds={shared_rt_time}
-								{show_seconds}
-							/>
+							<Clock {timezone} time_seconds={shared_rt_time} {show_seconds} />
 						</span>
 					{:else}
 						<!-- On Time (Vertical) - Just show Clock -->
 						<span
 							class={`text-seashore dark:text-seashoredark font-medium ${shared_rt_time < current_time / 1000 ? 'opacity-70' : ''}`}
 						>
-							<Clock
-								timezone={data_from_server.primary.timezone}
-								time_seconds={shared_rt_time}
-								{show_seconds}
-							/>
+							<Clock {timezone} time_seconds={shared_rt_time} {show_seconds} />
 						</span>
 					{/if}
 				{:else}
 					<div class={`${shared_scheduled_time < current_time / 1000 ? 'opacity-70' : ''}`}>
-						<Clock
-							timezone={data_from_server.primary.timezone}
-							time_seconds={shared_scheduled_time}
-							{show_seconds}
-						/>
+						<Clock {timezone} time_seconds={shared_scheduled_time} {show_seconds} />
 					</div>
 				{/if}
 
@@ -193,9 +166,10 @@
 					{:else}
 						<span>{agencyName}</span>
 					{/if}
-					<span class="opacity-80">•</span>
+					
 				{/if}
 				{#if show_route_name && !routeDef?.short_name}
+				<span class="opacity-80">•</span>
 					<span
 						class="font-bold px-1 py-0.5 rounded-xs text-xs"
 						style={`background: ${routeDef?.color}; color: ${routeDef?.text_color};`}

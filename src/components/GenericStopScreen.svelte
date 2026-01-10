@@ -255,6 +255,7 @@
 			if (mergedEvents.length > CHUNK_SIZE) await yieldToMain();
 		}
 		raw_grouped_events = grouped;
+		console.log('Updated raw_grouped_events', Object.keys(grouped).length);
 
 		// Compute previous_count ≤30m ago for header toggle
 		const nowSec = Date.now() / 1000;
@@ -272,9 +273,11 @@
 		if (page) page.loading = true;
 
 		try {
+			console.log(`Fetching ${id} range ${startSec}-${endSec}`);
 			const resp = await fetch(buildUrl(startSec, endSec), { mode: 'cors' });
 			// Optimization: Use native json() parser
 			const data = await resp.json();
+			console.log(`Fetch ${id} returned items:`, data.events?.length);
 
 			let shouldPrimeMap = false;
 
@@ -301,6 +304,9 @@
 					}
 				}
 				if (!data_meta.primary && data.primary) data_meta.primary = data.primary;
+
+				// Force reactivity
+				data_meta = data_meta;
 			}
 
 			// Yield after parsing and meta merge
@@ -313,6 +319,15 @@
 			}
 
 			const events = (data.events || []) as any[];
+
+			// Fix for OSM station data: sometimes it marks everything as last_stop
+			// If we have a departure time, it's definitely not a last stop for the purpose of this screen
+			for (const ev of events) {
+				if (ev.last_stop && (ev.scheduled_departure || ev.realtime_departure)) {
+					ev.last_stop = false;
+				}
+			}
+
 			// mergePageEvents is now async
 			await mergePageEvents(id, events, refreshedAt);
 
@@ -736,6 +751,10 @@
 
 	function checkIfMoreNeeded(isEmpty: boolean) {
 		if (!scrollContainer) return;
+
+		// Safety check to prevent runaway parallel fetches or infinite recursion
+		if (pages.some((p) => p.loading)) return;
+
 		// If empty or bottom is visible (content height <= client height + tiny buffer), load more
 		// We use a small buffer for "visible bottom"
 		const bottomVisible = scrollContainer.scrollHeight <= scrollContainer.clientHeight + 50;
@@ -990,6 +1009,7 @@
 												{current_time}
 												{show_seconds}
 												use_symbol_sign={true}
+												timezone={displayTimezone}
 											/>
 										{/each}
 									</tbody>
@@ -1081,12 +1101,9 @@
 						</div>
 					{:else}
 						<p class="ml-2">Loading…</p>
-
-						<p class="text-xs opacity-60">No items in filtered_dates_to_events</p>
 					{/if}
 				{:else}
 					<p class="ml-2">Loading …</p>
-					<p class="text-xs opacity-60">No data meta primary</p>
 				{/if}
 			</div>
 		</div>
