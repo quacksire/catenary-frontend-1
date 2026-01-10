@@ -66,7 +66,8 @@
 		VehicleMapSelector,
 		RouteStack,
 		StopStack,
-		RouteMapSelector
+		RouteMapSelector,
+		OsmStationStack
 	} from '../components/stackenum';
 	import { switch_orm_layers } from '../components/openrailwaymap';
 	import { setup_click_handler } from '../components/mapClickHandler';
@@ -388,6 +389,14 @@
 				.replace('#pos=', '')
 				.split('/')
 				.map((x) => parseFloat(x));
+		}
+
+		let osm_station_param = urlParams.get('osmstation');
+		if (osm_station_param) {
+			data_stack_store.update((stack) => {
+				stack.push(new StackInterface(new OsmStationStack(osm_station_param, null, null)));
+				return stack;
+			});
 		}
 	}
 

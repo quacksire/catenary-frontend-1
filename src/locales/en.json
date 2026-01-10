@@ -154,5 +154,6 @@
 	"keepusingweb": "Keep using web",
 	"continue": "Continue",
 	"stop_cancelled": "Stop cancelled",
-	"show_arrivals": "Show Arrivals at Last Station"
+	"show_arrivals": "Show Arrivals at Last Station",
+	"stations": "Stations"
 }

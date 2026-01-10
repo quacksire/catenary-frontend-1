@@ -118,5 +118,6 @@
 	"ending_time": "結束時間",
 	"commitdate": "Git 提交日期時間",
 	"search_here": "在此處搜尋",
-	"show_arrivals": "顯示最後一站到達"
+	"show_arrivals": "顯示最後一站到達",
+	"stations": "車站"
 }

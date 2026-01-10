@@ -140,5 +140,6 @@
 	"cookie_consent_analytics": "Kasutame analüütikaküpsiseid teie kogemuse parandamiseks. Kas nõustute?",
 	"accept": "Nõustu",
 	"decline": "Keeldu",
-	"show_arrivals": "Näita saabumisi viimases jaamas"
+	"show_arrivals": "Näita saabumisi viimases jaamas",
+	"stations": "Jaamad"
 }

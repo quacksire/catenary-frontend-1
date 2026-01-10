@@ -132,5 +132,6 @@
 	"replaced_stop": "Oprire înlocuită",
 	"level": "Nivel",
 	"occupancy_percentage": "Procentaj de ocupare",
-	"show_arrivals": "Afișează sosirile la ultima stație"
+	"show_arrivals": "Afișează sosirile la ultima stație",
+	"stations": "Stații"
 }
