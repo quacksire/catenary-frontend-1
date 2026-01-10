@@ -54,9 +54,5 @@ export const layerspercategory = {
 		labelstops: 'otherstopslabel',
 		shapes: 'othershapes',
 		labelshapes: 'otherlabelshapes'
-	},
-	intercityrailosm: {
-		stops: 'intercityrailosmstopscircle',
-		labelstops: 'intercityrailosmstopslabel'
 	}
 };
