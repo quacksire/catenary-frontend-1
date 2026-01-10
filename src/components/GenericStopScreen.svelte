@@ -35,6 +35,12 @@
 	export let buildUrl: (startSec: number, endSec: number) => string;
 	export let key: any; // Unique identifier to trigger reset (e.g. stop_id or osm_id)
 
+	// Optional display props - used as fallbacks when data_meta.primary is not available
+	export let stationName: string | null = null;
+	export let stationLat: number | null = null;
+	export let stationLon: number | null = null;
+	export let stationTimezone: string | null = null;
+
 	// ---------- Paging controls ----------
 	const OVERLAP_SECONDS = 5 * 60; // small overlap to help dedupe across pages
 	const PAGE_REFRESH_MS = 10000; // refresh each page every 10s
@@ -70,10 +76,16 @@
 	show_seconds_store.subscribe((value) => (show_seconds = value));
 
 	// UI state
-	let dates_to_events_filtered: Record<string, any[]> = {};
+	let filtered_dates_to_events: Record<string, any[]> = {};
 	let current_time = 0;
 	let fly_to_already = false;
 	let data_meta: any = null; // primary/routes/shapes merged from any page
+
+	// Derived display info - uses data_meta.primary if available, otherwise falls back to props
+	$: displayName = data_meta?.primary?.stop_name ?? stationName ?? 'Loading...';
+	$: displayLat = data_meta?.primary?.stop_lat ?? stationLat;
+	$: displayLon = data_meta?.primary?.stop_lon ?? stationLon;
+	$: displayTimezone = data_meta?.primary?.timezone ?? stationTimezone ?? 'UTC';
 	let show_previous_departures = false;
 	let previous_count = 0;
 	let fetched_shapes_cache: Record<string, any> = {};
@@ -116,12 +128,46 @@
 		}
 	}
 
+	// Pre-filter events by mode, time cutoff, and arrivals_only — computed once reactively
+	$: filtered_dates_to_events = (() => {
+		const result: Record<string, any[]> = {};
+		const nowSec = current_time / 1000;
+		const cutoff = show_previous_departures ? 1800 : 60;
+
+		for (const [date_code, events] of Object.entries(dates_to_events_filtered)) {
+			const filtered = events.filter((event) => {
+				// Time filter
+				const relevant_time = event.last_stop
+					? event.realtime_arrival || event.scheduled_arrival
+					: event.realtime_departure || event.scheduled_departure;
+				if (relevant_time < nowSec - cutoff) return false;
+
+				// Arrivals filter
+				if (event.last_stop && !show_arrivals_only) return false;
+
+				// Mode filter
+				if (available_modes.length > 1) {
+					const routeDef = data_meta?.routes?.[event.chateau]?.[event.route_id];
+					const rType = routeDef?.route_type ?? event.route_type ?? 3;
+					if (get_mode_for_route_type(rType) !== active_tab) return false;
+				}
+
+				return true;
+			});
+
+			if (filtered.length > 0) {
+				result[date_code] = filtered;
+			}
+		}
+		return result;
+	})();
+
 	function resetState() {
 		// clear paging and data when stop changes
 		pages = [];
 		eventIndex = new Map();
 		mergedEvents = [];
-		dates_to_events_filtered = {};
+		filtered_dates_to_events = {};
 		fetched_shapes_cache = {};
 		data_meta = null;
 		fly_to_already = false;
@@ -193,7 +239,7 @@
 		for (let i = 0; i < mergedEvents.length; i += CHUNK_SIZE) {
 			const chunk = mergedEvents.slice(i, i + CHUNK_SIZE);
 			for (const ev of chunk) {
-				const tz = data_meta?.primary?.timezone;
+				const tz = data_meta?.primary?.timezone ?? data_meta?.stops?.[0]?.timezone;
 				const stamp =
 					(ev.realtime_departure ||
 						ev.realtime_arrival ||
@@ -206,7 +252,7 @@
 			// Only yield if we actually have a significant amount of data to process
 			if (mergedEvents.length > CHUNK_SIZE) await yieldToMain();
 		}
-		dates_to_events_filtered = grouped;
+		filtered_dates_to_events = grouped;
 
 		// Compute previous_count ≤30m ago for header toggle
 		const nowSec = Date.now() / 1000;
@@ -419,9 +465,8 @@
 		// 4. Standard (Simplify 10) - For few items
 		const groupStandard: { chateau: string; shape_id: string }[] = [];
 
-		const center = data_meta?.primary
-			? { lat: data_meta.primary.stop_lat, lon: data_meta.primary.stop_lon }
-			: null;
+		const center =
+			displayLat != null && displayLon != null ? { lat: displayLat, lon: displayLon } : null;
 		const bbox = center ? calculateBoundingBox(center.lat, center.lon, 10) : null;
 
 		for (const item of missing_shapes) {
@@ -581,11 +626,11 @@
 
 	function primeMapContextFromMeta() {
 		const global_map_pointer = get(map_pointer_store);
-		if (!global_map_pointer || !data_meta?.primary) return;
+		if (!global_map_pointer || displayLat == null || displayLon == null) return;
 
 		if (!fly_to_already) {
 			global_map_pointer.flyTo({
-				center: [data_meta.primary.stop_lon, data_meta.primary.stop_lat],
+				center: [displayLon, displayLat],
 				zoom: 14
 			});
 			fly_to_already = true;
@@ -598,7 +643,7 @@
 					type: 'Feature',
 					properties: {},
 					geometry: {
-						coordinates: [data_meta.primary.stop_lon, data_meta.primary.stop_lat],
+						coordinates: [displayLon, displayLat],
 						type: 'Point'
 					}
 				}
@@ -844,18 +889,18 @@
 	>
 		<div class="flex flex-col">
 			<div>
-				{#if data_meta && data_meta.primary}
+				{#if data_meta || (stationName && stationLat != null && stationLon != null)}
 					<div class="flex flex-row ml-1">
-						<h2 class="text-lg font-bold">{data_meta.primary.stop_name}</h2>
+						<h2 class="text-lg font-bold">{displayName}</h2>
 						<p class="ml-auto align-middle">
 							<Clock
 								time_seconds={current_time / 1000}
 								show_seconds={true}
-								timezone={data_meta.primary.timezone}
+								timezone={displayTimezone}
 							/>
 						</p>
 					</div>
-					<p class="text-sm ml-1 mb-2">{data_meta.primary.timezone}</p>
+					<p class="text-sm ml-1 mb-2">{displayTimezone}</p>
 
 					{#if available_modes.length > 1}
 						<div
@@ -917,11 +962,11 @@
 						</button>
 					{/if}
 
-					{#if Object.keys(dates_to_events_filtered).length > 0}
-						{#each Object.keys(dates_to_events_filtered) as date_code}
+					{#if Object.keys(filtered_dates_to_events).length > 0}
+						{#each Object.keys(filtered_dates_to_events) as date_code}
 							<p class="text-md font-semibold mt-0 mb-1 mx-3">
 								{new Date(date_code).toLocaleDateString(
-									timezone_to_locale(locale_inside_component, data_meta.primary.timezone),
+									timezone_to_locale(locale_inside_component, displayTimezone),
 									{
 										year: 'numeric',
 										month: 'numeric',
@@ -932,57 +977,12 @@
 								)}
 							</p>
 
-							{#each dates_to_events_filtered[date_code].filter((event) => {
-								let cutoff = 60;
-								if (show_previous_departures) cutoff = 1800;
-								// Filter by mode
-								const routeDef = data_meta.routes?.[event.chateau]?.[event.route_id];
-								const rType = routeDef?.route_type ?? event.route_type ?? 3; // default to bus if unknown
-
-								// Filter by time
-								const relevant_time = event.last_stop ? event.realtime_arrival || event.scheduled_arrival : event.realtime_departure || event.scheduled_departure;
-								if (relevant_time < current_time / 1000 - cutoff) return false;
-
-								if (event.last_stop && !show_arrivals_only) return false;
-
-								// If we have tabs (multiple modes), filter by active tab
-								if (available_modes.length > 1) {
-									return get_mode_for_route_type(rType) === active_tab;
-								}
-								// If we don't have tabs (1 mode), we show everything that matches the single mode (which is everything in this logic)
-								return true;
-							}) as event}
-								{#if available_modes.length > 1 && (active_tab === 'rail' || (available_modes.length === 1 && available_modes[0] === 'rail'))}
-									<!-- Rail Table View Start - NOTE: This will repeat table tags if not careful.
-									     Actually, we need to wrap the whole LOOP in table if it's rail.
-										 But the loop iterates events.
-										 Svelte doesn't allow random start/end tags.
-										 We need to verify if we are in 'rail' mode for this DATE BLOCK.
-										 And if so, render a Table with rows.
-									-->
-								{/if}
-							{/each}
 
 							<!-- Correct Logic Implementation -->
 							{#if active_tab === 'rail'}
 								<table class="w-full border-collapse">
 									<tbody>
-										{#each dates_to_events_filtered[date_code].filter((event) => {
-											let cutoff = 60;
-											if (show_previous_departures) cutoff = 1800;
-											const relevant_time = event.last_stop ? event.realtime_arrival || event.scheduled_arrival : event.realtime_departure || event.scheduled_departure;
-											if (relevant_time < current_time / 1000 - cutoff) return false;
-											if (event.last_stop && !show_arrivals_only) return false;
-
-											const routeDef = data_meta.routes?.[event.chateau]?.[event.route_id];
-											const rType = routeDef?.route_type ?? event.route_type ?? 3;
-											if (available_modes.length > 1) {
-												return get_mode_for_route_type(rType) === 'rail';
-											}
-											// If implicit single mode, we check if it is rail (already checked by active_tab header mainly,
-											// but we must ensure we only render rail stuff here, though the filter loop effectively does that if active_tab is rail)
-											return true;
-										}) as event}
+									{#each filtered_dates_to_events[date_code] as event}
 											<StationScreenTrainRow
 												{event}
 												data_from_server={data_meta}
@@ -995,20 +995,7 @@
 								</table>
 							{:else}
 								<!-- Non-Rail (Div) List -->
-								{#each dates_to_events_filtered[date_code].filter((event) => {
-									let cutoff = 60;
-									if (show_previous_departures) cutoff = 1800;
-									const relevant_time = event.last_stop ? event.realtime_arrival || event.scheduled_arrival : event.realtime_departure || event.scheduled_departure;
-									if (relevant_time < current_time / 1000 - cutoff) return false;
-									if (event.last_stop && !show_arrivals_only) return false;
-
-									const routeDef = data_meta.routes?.[event.chateau]?.[event.route_id];
-									const rType = routeDef?.route_type ?? event.route_type ?? 3;
-									if (available_modes.length > 1) {
-										return get_mode_for_route_type(rType) === active_tab;
-									}
-									return true;
-								}) as event}
+							{#each filtered_dates_to_events[date_code] as event}
 									<div
 										class="mx-1 py-1 border-b-1 border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800"
 										on:click={() => {
@@ -1093,9 +1080,12 @@
 						</div>
 					{:else}
 						<p class="ml-2">Loading…</p>
+
+						<p class="text-xs opacity-60">No items in filtered_dates_to_events</p>
 					{/if}
 				{:else}
-					<p class="ml-2">Loading…</p>
+					<p class="ml-2">Loading …</p>
+					<p class="text-xs opacity-60">No data meta primary</p>
 				{/if}
 			</div>
 		</div>

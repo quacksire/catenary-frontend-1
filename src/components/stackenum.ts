@@ -226,11 +226,15 @@ export class OsmStationStack {
 	public osm_id: string;
 	public name: string | null;
 	public mode_type: string | null;
+	public lat: number | null;
+	public lon: number | null;
 
-	constructor(osm_id: string, name: string | null, mode_type: string | null) {
+	constructor(osm_id: string, name: string | null, mode_type: string | null, lat: number | null = null, lon: number | null = null) {
 		this.osm_id = osm_id;
 		this.name = name;
 		this.mode_type = mode_type;
+		this.lat = lat;
+		this.lon = lon;
 	}
 }
 
@@ -238,10 +242,14 @@ export class OsmStationMapSelector {
 	public osm_id: string;
 	public name: string | null;
 	public mode_type: string | null;
+	public lat: number | null;
+	public lon: number | null;
 
-	constructor(osm_id: string, name: string | null, mode_type: string | null) {
+	constructor(osm_id: string, name: string | null, mode_type: string | null, lat: number | null = null, lon: number | null = null) {
 		this.osm_id = osm_id;
 		this.name = name;
 		this.mode_type = mode_type;
+		this.lat = lat;
+		this.lon = lon;
 	}
 }
