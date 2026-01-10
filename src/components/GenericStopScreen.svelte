@@ -77,6 +77,7 @@
 
 	// UI state
 	let filtered_dates_to_events: Record<string, any[]> = {};
+	let raw_grouped_events: Record<string, any[]> = {};
 	let current_time = 0;
 	let fly_to_already = false;
 	let data_meta: any = null; // primary/routes/shapes merged from any page
@@ -134,7 +135,7 @@
 		const nowSec = current_time / 1000;
 		const cutoff = show_previous_departures ? 1800 : 60;
 
-		for (const [date_code, events] of Object.entries(dates_to_events_filtered)) {
+		for (const [date_code, events] of Object.entries(raw_grouped_events)) {
 			const filtered = events.filter((event) => {
 				// Time filter
 				const relevant_time = event.last_stop
@@ -168,6 +169,7 @@
 		eventIndex = new Map();
 		mergedEvents = [];
 		filtered_dates_to_events = {};
+		raw_grouped_events = {};
 		fetched_shapes_cache = {};
 		data_meta = null;
 		fly_to_already = false;
@@ -252,7 +254,7 @@
 			// Only yield if we actually have a significant amount of data to process
 			if (mergedEvents.length > CHUNK_SIZE) await yieldToMain();
 		}
-		filtered_dates_to_events = grouped;
+		raw_grouped_events = grouped;
 
 		// Compute previous_count ≤30m ago for header toggle
 		const nowSec = Date.now() / 1000;
@@ -977,12 +979,11 @@
 								)}
 							</p>
 
-
 							<!-- Correct Logic Implementation -->
 							{#if active_tab === 'rail'}
 								<table class="w-full border-collapse">
 									<tbody>
-									{#each filtered_dates_to_events[date_code] as event}
+										{#each filtered_dates_to_events[date_code] as event}
 											<StationScreenTrainRow
 												{event}
 												data_from_server={data_meta}
@@ -995,7 +996,7 @@
 								</table>
 							{:else}
 								<!-- Non-Rail (Div) List -->
-							{#each filtered_dates_to_events[date_code] as event}
+								{#each filtered_dates_to_events[date_code] as event}
 									<div
 										class="mx-1 py-1 border-b-1 border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800"
 										on:click={() => {
