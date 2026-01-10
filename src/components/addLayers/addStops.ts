@@ -153,28 +153,6 @@ export function changeStopsTheme(map: Map, darkMode: boolean) {
 		darkMode ? '#0f172a' : '#ffffff'
 	);
 
-	// Intercity rail osm stops
-	map.setPaintProperty(
-		layerspercategory.intercityrailosm.stops,
-		'circle-color',
-		getCircleInside(darkMode)
-	);
-	map.setPaintProperty(
-		layerspercategory.intercityrailosm.stops,
-		'circle-stroke-color',
-		getCircleOutside(darkMode)
-	);
-	map.setPaintProperty(
-		layerspercategory.intercityrailosm.labelstops,
-		'text-color',
-		darkMode ? '#ffffff' : '#2a2a2a'
-	);
-	map.setPaintProperty(
-		layerspercategory.intercityrailosm.labelstops,
-		'text-halo-color',
-		darkMode ? '#0f172a' : '#ffffff'
-	);
-
 	// Other stops
 	map.setPaintProperty(layerspercategory.other.stops, 'circle-color', getCircleInside(darkMode));
 	map.setPaintProperty(
