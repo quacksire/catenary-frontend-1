@@ -649,13 +649,13 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 				'step',
 				['zoom'],
 				['literal', ['NotoSans-Medium']],
-				8.5,
+			     8.5,
 				['literal', ['NotoSans-Bold']],
 			]
 		},
 		paint: {
-			'text-color': "#000000",
-			'text-halo-color': "#ffffcc",
+			'text-color': "#ffffff",
+			'text-halo-color': "#2d327d",
 			'text-halo-width': 10,
 			//'text-emissive-strength': 1
 		},
@@ -663,7 +663,7 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 			"all",
 			["==", ["get", "station_type"], "stop_position"],
 		],
-		minzoom: 13
+		minzoom: 14
 	});
 
 	//OTHER
