@@ -86,7 +86,8 @@
 	$: displayName = data_meta?.primary?.stop_name ?? stationName ?? 'Loading...';
 	$: displayLat = data_meta?.primary?.stop_lat ?? stationLat;
 	$: displayLon = data_meta?.primary?.stop_lon ?? stationLon;
-	$: displayTimezone = data_meta?.primary?.timezone ?? stationTimezone ?? 'UTC';
+	$: displayTimezone =
+		data_meta?.primary?.timezone ?? data_meta?.stops?.[0]?.timezone ?? stationTimezone ?? 'UTC';
 	let show_previous_departures = false;
 	let previous_count = 0;
 	let fetched_shapes_cache: Record<string, any> = {};
@@ -241,7 +242,11 @@
 		for (let i = 0; i < mergedEvents.length; i += CHUNK_SIZE) {
 			const chunk = mergedEvents.slice(i, i + CHUNK_SIZE);
 			for (const ev of chunk) {
-				const tz = data_meta?.primary?.timezone ?? data_meta?.stops?.[0]?.timezone;
+				const tz =
+					data_meta?.primary?.timezone ??
+					data_meta?.stops?.[0]?.timezone ??
+					stationTimezone ??
+					'UTC';
 				const stamp =
 					(ev.realtime_departure ||
 						ev.realtime_arrival ||
