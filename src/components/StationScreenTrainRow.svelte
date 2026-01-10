@@ -20,14 +20,14 @@
 	$: routeDef = data_from_server.routes?.[event.chateau]?.[event.route_id];
 	$: agencyId = routeDef?.agency_id;
 	$: agencyName = data_from_server.agencies?.[event.chateau]?.[agencyId]?.agency_name;
-	
+
 	// Complex condition for showing route name from StopScreen logic
 	// event.chateau !== 'nationalrailuk' || ['TW', 'ME', 'LO', 'XR', 'HX'].includes(agency_id_local)
-	$: show_route_name = event.chateau !== 'nationalrailuk' || ['TW', 'ME', 'LO', 'XR', 'HX'].includes(agencyId);
-
+	$: show_route_name =
+		event.chateau !== 'nationalrailuk' || ['TW', 'ME', 'LO', 'XR', 'HX'].includes(agencyId);
 </script>
 
-<tr 
+<tr
 	class="border-b border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
 	on:click={() => {
 		data_stack_store.update((x) => {
@@ -90,7 +90,11 @@
 							/>
 						</span>
 						{#if shared_scheduled_time}
-							<DelayDiff diff={shared_rt_time - shared_scheduled_time} {show_seconds} {use_symbol_sign} />
+							<DelayDiff
+								diff={shared_rt_time - shared_scheduled_time}
+								{show_seconds}
+								{use_symbol_sign}
+							/>
 						{/if}
 						<span
 							class={`text-seashore dark:text-seashoredark font-medium ${shared_rt_time < current_time / 1000 ? 'opacity-70' : ''}`}
@@ -146,7 +150,9 @@
 					{/if}
 				</div>
 			</div>
-			<div class="flex flex-row text-sm text-gray-600 dark:text-gray-400 gap-2 items-center flex-wrap">
+			<div
+				class="flex flex-row text-sm text-gray-600 dark:text-gray-400 gap-2 items-center flex-wrap"
+			>
 				{#if show_route_name && routeDef?.short_name}
 					<span
 						class="rounded-xs font-bold px-1 py-0.5 text-sm"
@@ -176,11 +182,7 @@
 							class="h-4 inline-block"
 						/>
 					{:else if agencyId === 'CC' || agencyName?.trim().toLowerCase() === 'c2c'}
-						<img
-							src="/agencyicons/c2c_logo.svg"
-							alt={agencyName}
-							class="h-4 inline-block"
-						/>
+						<img src="/agencyicons/c2c_logo.svg" alt={agencyName} class="h-4 inline-block" />
 						<span class="ml-1">c2c</span>
 					{:else if agencyName?.trim().toLowerCase() === 'elizabeth line'}
 						<img
@@ -211,8 +213,11 @@
 			<span
 				class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded text-sm font-bold text-gray-800 dark:text-gray-200 inline-block"
 			>
-				{$_('platform')}
-				{event.platform_string_realtime.replace('Track', '').replace("platform", "").replace("Platform", "").trim()}
+				{event.platform_string_realtime
+					.replace('Track', '')
+					.replace('platform', '')
+					.replace('Platform', '')
+					.trim()}
 			</span>
 		{/if}
 	</td>
