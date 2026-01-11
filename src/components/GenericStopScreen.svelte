@@ -1,10 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy, tick } from 'svelte';
 	import HomeButton from './SidebarParts/home_button.svelte';
-	import polyline from '@mapbox/polyline';
-	import * as turf from '@turf/turf';
 	import { writable, get } from 'svelte/store';
-	import { batchFetchShapes } from '../utils/shape_api';
 	import { timezone_to_locale } from './timezone_to_locale';
 	import {
 		data_stack_store,
@@ -90,8 +87,6 @@
 		data_meta?.primary?.timezone ?? data_meta?.stops?.[0]?.timezone ?? stationTimezone ?? 'UTC';
 	let show_previous_departures = false;
 	let previous_count = 0;
-	let fetched_shapes_cache: Record<string, any> = {};
-	let route_shapes_meta: Record<string, any> = {};
 	let show_arrivals_only = false; // Add missing state variable
 
 	// Filters
@@ -171,7 +166,6 @@
 		mergedEvents = [];
 		filtered_dates_to_events = {};
 		raw_grouped_events = {};
-		fetched_shapes_cache = {};
 		data_meta = null;
 		fly_to_already = false;
 		currentPageHours = 1;
@@ -401,251 +395,6 @@
 		await Promise.all(merged.map((m) => doFetch(m.start, m.end)));
 	}
 
-	function calculateBoundingBox(lat: number, lon: number, km: number) {
-		// rough approximation: 1 deg lat = 111km, 1 deg lon = 111km * cos(lat)
-		const latDelta = km / 111;
-		const lonDelta = km / (111 * Math.cos(lat * (Math.PI / 180)));
-		return {
-			min_x: lon - lonDelta,
-			min_y: lat - latDelta,
-			max_x: lon + lonDelta,
-			max_y: lat + latDelta
-		};
-	}
-
-	function spliceLines(inner: any, outer: any) {
-		try {
-			// inner and outer are GeoJSON features or geometries. Ensure Features.
-			const innerF = turf.feature(inner.type === 'Feature' ? inner.geometry : inner);
-			const outerF = turf.feature(outer.type === 'Feature' ? outer.geometry : outer);
-
-			// Find start/end of inner on outer
-			const innerCoords = (innerF.geometry as any).coordinates;
-			if (innerCoords.length < 2) return outer; // inner too small?
-
-			const startPt = turf.point(innerCoords[0]);
-			const endPt = turf.point(innerCoords[innerCoords.length - 1]);
-
-			// Snap to outer
-			const startOnOuter = turf.nearestPointOnLine(outerF as any, startPt);
-			const endOnOuter = turf.nearestPointOnLine(outerF as any, endPt);
-
-			// indices
-			const idx1 = startOnOuter.properties?.index ?? 0;
-			const idx2 = endOnOuter.properties?.index ?? 0;
-
-			// If inner is basically the whole thing or invalid mapping, just return inner (high res)
-			// But here we want to KEEP the outer parts that are NOT covered by inner.
-
-			// We construct: StartOfOuter -> startOnOuter ... (inner) ... endOnOuter -> EndOfOuter
-			// But wait, turf.lineSlice returns the segment.
-			// We need lineSlice from Start->StartOnOuter and EndOnOuter->End.
-
-			const outerCoords = (outerF.geometry as any).coordinates;
-			const startOuterPt = turf.point(outerCoords[0]);
-			const endOuterPt = turf.point(outerCoords[outerCoords.length - 1]);
-
-			// ordering: assume outer goes start->end.
-			// If idx1 > idx2, inner is reversed relative to outer?? Or we just measured wrong?
-			// Let's assume consistent direction for now.
-
-			const head = turf.lineSlice(startOuterPt, startOnOuter, outerF as any);
-			const tail = turf.lineSlice(endOnOuter, endOuterPt, outerF as any);
-
-			// Concatenate coordinates
-			const headCoords = (head.geometry as any).coordinates;
-			const tailCoords = (tail.geometry as any).coordinates;
-
-			// If idx1 > idx2, swap head/tail connection? Or inner is backwards?
-			// Simplest: just concat head + inner + tail.
-			// However, if inner is reversed, we might make a U-turn.
-			// Check distance: dist(headLast, innerFirst) vs dist(headLast, innerLast)
-
-			// Check if we need to reverse inner?
-			// usually local shape logic matches global shape logic in GTFS.
-
-			let finalCoords = [...headCoords, ...innerCoords, ...tailCoords];
-			return turf.lineString(finalCoords).geometry;
-		} catch (e) {
-			console.warn('Splice failed', e);
-			return inner.geometry || inner; // fallback to high-res inner
-		}
-	}
-
-	async function fetchMissingShapes(
-		missing_shapes: Array<{ chateau: string; shape_id: string; route_type: number }>
-	) {
-		const isLots = missing_shapes.length > 7;
-
-		// Groups for batching
-		// 1. Inner (High Detail, BBox) - For Rail/Lots
-		const groupInner: { chateau: string; shape_id: string }[] = [];
-		// 2. Outer Rail (Low Detail 1000)
-		const groupOuterRail: { chateau: string; shape_id: string }[] = [];
-		// 3. Outer Other (Low Detail 100)
-		const groupOuterOther: { chateau: string; shape_id: string }[] = [];
-		// 4. Standard (Simplify 10) - For few items
-		const groupStandard: { chateau: string; shape_id: string }[] = [];
-
-		const center =
-			displayLat != null && displayLon != null ? { lat: displayLat, lon: displayLon } : null;
-		const bbox = center ? calculateBoundingBox(center.lat, center.lon, 10) : null;
-
-		for (const item of missing_shapes) {
-			// Optimization logic:
-			// If Rail (2) OR Lots (>7) -> Use Inner/Outer Strategy
-			// Else -> Standard Strategy
-			const isRail = item.route_type === 2;
-
-			if (fetched_shapes_cache[item.shape_id]) continue;
-			fetched_shapes_cache[item.shape_id] = { type: 'Pending' };
-
-			if (isRail || isLots) {
-				if (center && bbox) {
-					groupInner.push(item);
-				}
-				if (isRail) {
-					groupOuterRail.push(item);
-				} else {
-					groupOuterOther.push(item);
-				}
-			} else {
-				groupStandard.push(item);
-			}
-		}
-
-		// Execute Batches
-		const promises: Promise<void>[] = [];
-
-		// Batch 1: Inner
-		if (groupInner.length > 0 && bbox) {
-			promises.push(
-				batchFetchShapes(groupInner, {
-					simplify: 0.5,
-					...bbox,
-					format: 'geojson'
-				}).then((results) => {
-					for (const [id, geom] of Object.entries(results)) {
-						// Store temporarily to splice later?
-						// Or just update cache with 'Inner' part?
-						// We need to wait for Outer to splice.
-						// Let's store in a temp map or attach to cache?
-						// We can attach to `fetched_shapes_cache` as a partial object if we want,
-						// but simpler: we just wait for all promises to resolve then splice.
-						// Actually, we can't easily wait across different batch calls unless we coordinate.
-						// So we'll update the cache with what we get, and splice if both exist?
-
-						// Strategy: Store partials in a side-cache?
-						// `fetched_shapes_cache` can hold { inner?: Geometry, outer?: Geometry } temporarily?
-						// But the renderer expects Geometry.
-
-						// Let's overwrite safely.
-						const current = fetched_shapes_cache[id];
-						if (current && current.type === 'Pending') {
-							fetched_shapes_cache[id] = { inner: geom, type: 'Partial' };
-						} else if (current && current.type === 'Partial') {
-							// We have outer?
-							if (current.outer) {
-								fetched_shapes_cache[id] = spliceLines(geom, current.outer);
-								route_shapes_meta[id] = {
-									spliced: true,
-									outerSimplify: 1000 /* unknown really but low res */
-								};
-							} else {
-								// just inner
-								fetched_shapes_cache[id] = { ...current, inner: geom };
-							}
-						}
-					}
-				})
-			);
-		}
-
-		// Batch 2: Outer Rail
-		if (groupOuterRail.length > 0) {
-			promises.push(
-				batchFetchShapes(groupOuterRail, {
-					simplify: 1000,
-					format: 'geojson'
-				}).then((results) => {
-					for (const [id, geom] of Object.entries(results)) {
-						const current = fetched_shapes_cache[id];
-						if (current && current.type === 'Pending') {
-							// Just outer so far (unlikely if inner fired, but maybe inner failed or handled differently)
-							fetched_shapes_cache[id] = { outer: geom, type: 'Partial' };
-						} else if (current && current.type === 'Partial') {
-							if (current.inner) {
-								fetched_shapes_cache[id] = spliceLines(
-									current.inner,
-									geom
-								);
-								route_shapes_meta[id] = { spliced: true, outerSimplify: 1000 };
-							} else {
-								fetched_shapes_cache[id] = { ...current, outer: geom };
-							}
-						}
-					}
-				})
-			);
-		}
-
-		// Batch 3: Outer Other
-		if (groupOuterOther.length > 0) {
-			promises.push(
-				batchFetchShapes(groupOuterOther, {
-					simplify: 100,
-					format: 'geojson'
-				}).then((results) => {
-					for (const [id, geom] of Object.entries(results)) {
-						const current = fetched_shapes_cache[id];
-						if (current && current.type === 'Pending') {
-							fetched_shapes_cache[id] = { outer: geom, type: 'Partial' };
-						} else if (current && current.type === 'Partial') {
-							if (current.inner) {
-								fetched_shapes_cache[id] = spliceLines(
-									current.inner,
-									geom
-								);
-								route_shapes_meta[id] = { spliced: true, outerSimplify: 100 };
-							} else {
-								fetched_shapes_cache[id] = { ...current, outer: geom };
-							}
-						}
-					}
-				})
-			);
-		}
-
-		// Batch 4: Standard
-		if (groupStandard.length > 0) {
-			promises.push(
-				batchFetchShapes(groupStandard, {
-					simplify: 10,
-					format: 'geojson'
-				}).then((results) => {
-					for (const [id, geom] of Object.entries(results)) {
-						fetched_shapes_cache[id] = geom;
-					}
-				})
-			);
-		}
-
-		await Promise.all(promises);
-
-		// Cleanup: If any remain 'Partial' or 'Pending', finalize them
-		// Pending -> Failed
-		// Partial -> Use what we have (Inner or Outer)
-		for (const item of missing_shapes) {
-			const c = fetched_shapes_cache[item.shape_id];
-			if (c && c.type === 'Partial') {
-				// If we have just inner or just outer
-				fetched_shapes_cache[item.shape_id] = c.inner || c.outer || { type: 'Pending' }; // Fallback
-			}
-		}
-
-		primeMapContextFromMeta(); // re-render
-	}
-
 	function primeMapContextFromMeta() {
 		const global_map_pointer = get(map_pointer_store);
 		if (!global_map_pointer || displayLat == null || displayLon == null) return;
@@ -672,52 +421,9 @@
 			]
 		});
 
-		const geojson_shapes_list: any[] = [];
-		const missing_shapes: Array<{ chateau: string; shape_id: string; route_type: number }> = [];
-
-		for (const [chateau_id, routes] of Object.entries<any>(data_meta.routes || {})) {
-			for (const [route_id, route] of Object.entries<any>(routes)) {
-				for (const shape_id of route.shapes_list || []) {
-					// Check cache first (Geometry Object or Feature)
-					const cached = fetched_shapes_cache[shape_id];
-					if (cached && cached.type !== 'Pending') {
-						const color = cached.properties?.color || route.color;
-						geojson_shapes_list.push({
-							geometry: cached.geometry || cached, // handle Feature vs Geometry
-							properties: { color: color }
-						});
-						continue;
-					} else if (cached && cached.type === 'Pending') {
-						continue; // wait for it
-					}
-
-					// Fallback to initial meta (Encoded Polyline)
-					const enc = data_meta.shapes?.[chateau_id]?.[shape_id];
-					if (enc) {
-						geojson_shapes_list.push({
-							geometry: polyline.toGeoJSON(enc),
-							properties: { color: route.color }
-						});
-						// We have it, no need to fetch.
-					} else {
-						// We need it.
-						missing_shapes.push({
-							chateau: chateau_id,
-							shape_id,
-							route_type: route.route_type
-						});
-					}
-				}
-			}
-		}
-
-		if (missing_shapes.length > 0) {
-			fetchMissingShapes(missing_shapes);
-		}
-
 		global_map_pointer.getSource('transit_shape_context_for_stop')?.setData({
 			type: 'FeatureCollection',
-			features: geojson_shapes_list
+			features: []
 		});
 		global_map_pointer
 			.getSource('transit_shape_context')
@@ -793,93 +499,11 @@
 		loadInitialPages();
 	}
 
-	let moveTimeout: any;
-	function updateShapesOnMove() {
-		const map = get(map_pointer_store);
-		if (!map || map.getZoom() <= 11) return;
-
-		clearTimeout(moveTimeout);
-		moveTimeout = setTimeout(async () => {
-			const bounds = map.getBounds();
-			const zoom = map.getZoom();
-
-			// Iterate over shapes that we know have a low-res outer part
-			const itemsToUpdate: { chateau: string; shape_id: string }[] = [];
-
-			for (const [shape_id, meta] of Object.entries(route_shapes_meta)) {
-				// checks
-				if (!meta.outerSimplify || meta.outerSimplify <= 10) continue; // already high res or not optimized
-
-				// Find chateau for this shape_id
-				// I'll scan data_meta to find chateau for shape_id (inefficient loop but safe)
-				let chateau = '';
-				let found = false;
-				// Reverse lookup
-				loop1: for (const [c_id, routes] of Object.entries<any>(data_meta?.routes || {})) {
-					for (const [r_id, route] of Object.entries<any>(routes)) {
-						if ((route.shapes_list || []).includes(shape_id)) {
-							chateau = c_id;
-							found = true;
-							break loop1;
-						}
-					}
-				}
-				if (!found) continue;
-				itemsToUpdate.push({ chateau, shape_id });
-			}
-
-			if (itemsToUpdate.length > 0) {
-				const { _sw, _ne } = bounds;
-				// Dynamic simplification based on zoom logic (User Request)
-				// e.g. Zoom 14+ -> simplify 2m, else 10m?
-				const dynamicSimplify = zoom > 14 ? 2 : 10;
-
-				try {
-					const results = await batchFetchShapes(itemsToUpdate, {
-						simplify: dynamicSimplify,
-						min_x: _sw.lng,
-						min_y: _sw.lat,
-						max_x: _ne.lng,
-						max_y: _ne.lat,
-						format: 'geojson'
-					});
-
-					for (const [shape_id, json_geom] of Object.entries(results)) {
-						if (!json_geom) continue;
-
-						// If empty coordinates, ignore
-						const coords = json_geom.coordinates;
-						if (!coords || coords.length === 0) continue;
-
-						// Splice
-						const current = fetched_shapes_cache[shape_id];
-						// We expect current to be the "Outer" or previously spliced.
-						// The "Splice" function expects features/geometries.
-
-						// Current must be valid
-						if (current && current.type !== 'Pending' && current.type !== 'Partial') {
-							// If current is Geometry
-							const spliced = spliceLines(json_geom, current);
-							fetched_shapes_cache[shape_id] = spliced;
-						}
-					}
-
-					primeMapContextFromMeta();
-				} catch (e) {
-					console.error('Failed to batch update shapes on move', e);
-				}
-			}
-		}, 500); // 500ms debounce
-	}
-
 	onMount(() => {
 		current_time = Date.now();
 		const tick = setInterval(() => (current_time = Date.now()), 500);
 
 		const map = get(map_pointer_store);
-		if (map) {
-			map.on('moveend', updateShapesOnMove);
-		}
 
 		// Start global refresher
 		refreshTimer = setInterval(refreshAllPages, PAGE_REFRESH_MS);
@@ -891,7 +515,6 @@
 			global_map_pointer?.getSource('redpin')?.setData({ type: 'FeatureCollection', features: [] });
 
 			if (global_map_pointer) {
-				global_map_pointer.off('moveend', updateShapesOnMove);
 				global_map_pointer
 					.getSource('transit_shape_context_for_stop')
 					?.setData({ type: 'FeatureCollection', features: [] });
