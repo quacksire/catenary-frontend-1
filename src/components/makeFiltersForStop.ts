@@ -19,6 +19,7 @@ export const default_metro_filter = [
 		true // Default case: don't filter
 	],
 	['==', null, ['get', 'osm_station_id']],
+	['==', null, ['get', 'osm_platform_id']],
 	['any', ['in', 1, ['get', 'route_types']], ['in', 1, ['get', 'children_route_types']]],
 	['!', ['in', 2, ['get', 'children_route_types']]]
 ];
@@ -32,6 +33,7 @@ export const default_tram_filter = [
 		true // Default case: don't filter
 	],
 	['==', null, ['get', 'osm_station_id']],
+	['==', null, ['get', 'osm_platform_id']],
 	['!', ['any', ['in', 1, ['get', 'route_types']], ['in', 1, ['get', 'children_route_types']]]],
 	['any', ['in', 0, ['get', 'route_types']], ['in', 0, ['get', 'children_route_types']]],
 	['!', ['in', 2, ['get', 'children_route_types']]]
