@@ -592,6 +592,64 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 		minzoom: 8
 	});
 
+	let urlParams = new URLSearchParams(window.location.search);
+		let debugmode = !!urlParams.get('debug');
+
+		if (debugmode) {
+			
+	map.addLayer({
+		id: 'debugosmpoint',
+		type: 'circle',
+		source: 'osmstations',
+		'source-layer': 'data',
+		layout: {},
+		paint: {
+			'circle-color': "#ffffff",
+			'circle-radius': ['interpolate', ['linear'], ['zoom'], 8, 0.8, 12, 3.5, 15, 5],
+			'circle-stroke-color': "#41ffca",
+			'circle-stroke-width': ['step', ['zoom'], 0.4, 10.5, 0.8, 11, 1.2, 13.2, 1.5],
+			'circle-stroke-opacity': ['step', ['zoom'], 0.5, 15, 0.6],
+			'circle-opacity': ['interpolate', ['linear'], ['zoom'], 10, 0.7, 16, 0.8]
+			//'circle-emissive-strength': 1
+		},
+		minzoom: 9,
+	});
+
+	map.addLayer({
+		id: 'debugosmlabel',
+		type: 'symbol',
+		source: 'osmstations',
+		'source-layer': 'data',
+		layout: {
+			'text-field': [
+				'concat',
+				['get', 'station_type'],
+				" - ",
+				['get', 'mode_type'],
+				" - ",
+				['get', 'local_ref'],
+				" - ",
+				['get', "parent_osm_id"]
+			],
+			'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
+			'text-size': internationalIntercityLabelSize,
+			'text-radial-offset': 0.2,
+			//'text-ignore-placement': true,
+			//'icon-ignore-placement': false,
+			//'text-allow-overlap': true,
+			//'symbol-avoid-edges': false,
+			'text-font': ['literal', ['NotoSans-Medium']]
+		},
+		paint: {
+			'text-color': darkMode ? '#ffffff' : '#2a2a2a',
+			'text-halo-color': darkMode ? '#0f172a' : '#ffffff',
+			'text-halo-width': 1
+			//'text-emissive-strength': 1
+		},
+		minzoom: 8
+	});
+}
+
 	/*map.addLayer({
 		id: "MODEDEBUG",
 		type: 'symbol',
@@ -637,7 +695,12 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 		source: 'osmstations',
 		'source-layer': 'data',
 		layout: {
-			'text-field': ['get', 'local_ref'],
+			'text-field': [
+				'case',
+				['has', 'local_ref'],
+				['get', 'local_ref'],
+				['get', 'ref']
+			],
 			'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 14, 4, 15, 6, 16, 11, 17, 14, 18, 18],
 			'text-radial-offset': 0,
@@ -662,6 +725,12 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 		filter: [
 			"all",
 			["==", ["get", "station_type"], "stop_position"],
+			[
+				'any',
+				['has', 'local_ref'],
+				['has', 'ref']
+			],
+			['==', ['get', 'mode_type'], 'rail'],
 		],
 		minzoom: 14
 	});
