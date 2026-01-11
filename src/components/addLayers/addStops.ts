@@ -293,7 +293,7 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 		layout: {},
 		paint: {
 			'circle-color': getCircleInside(darkMode),
-			'circle-radius': ['interpolate', ['linear'], ['zoom'], 8, 0.8, 12, 3.5, 15, 5],
+			'circle-radius': ['interpolate', ['linear'], ['zoom'], 8, 0.8, 12, 3.5, 15, 5, 16, 6],
 			'circle-stroke-color': getCircleOutside(darkMode),
 			'circle-stroke-width': ['step', ['zoom'], 0.4, 10.5, 0.8, 11, 1.2, 13.2, 1.5],
 			'circle-stroke-opacity': ['step', ['zoom'], 0.5, 15, 0.6],
@@ -317,7 +317,7 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 		layout: {
 			'text-field': ['get', 'name'],
 			'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
-			'text-size': ['interpolate', ['linear'], ['zoom'], 11, 8, 12, 10, 14, 12],
+			'text-size': ['interpolate', ['linear'], ['zoom'], 11, 8, 12, 10, 14, 12, 16, 14],
 			'text-radial-offset': ['interpolate', ['linear'], ['zoom'], 7, 0.1, 10, 0.3, 12, 0.6],
 			//'text-ignore-placement': true,
 			//'icon-ignore-placement': false,
@@ -328,7 +328,9 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 				['zoom'],
 				['literal', ['NotoSans-Regular']],
 				12,
-				['literal', ['NotoSans-Medium']]
+				['literal', ['NotoSans-Medium']],
+				15,
+				['literal', ['NotoSans-SemiBold']]
 			]
 		},
 		paint: {
@@ -414,7 +416,7 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 		layout: {},
 		paint: {
 			'circle-color': getCircleInside(darkMode),
-			'circle-radius': ['interpolate', ['linear'], ['zoom'], 9, 0.9, 10, 1, 12, 3, 15, 4],
+			'circle-radius': ['interpolate', ['linear'], ['zoom'], 9, 0.9, 10, 1, 12, 3, 15, 4, 16, 5],
 			'circle-stroke-color': getCircleOutside(darkMode),
 			'circle-stroke-width': ['step', ['zoom'], 1.2, 13.2, 1.5],
 			'circle-stroke-opacity': ['step', ['zoom'], 0.4, 11, 0.5, 15, 0.6],
@@ -440,14 +442,16 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 		layout: {
 			'text-field': ['get', 'name'],
 			'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
-			'text-size': ['interpolate', ['linear'], ['zoom'], 9, 7, 11, 7, 12, 9, 14, 10],
+			'text-size': ['interpolate', ['linear'], ['zoom'], 9, 7, 11, 7, 12, 9, 14, 10, 16, 12, 18, 14],
 			'text-radial-offset': ['interpolate', ['linear'], ['zoom'], 7, 0.2, 10, 0.3, 12, 0.5],
 			'text-font': [
 				'step',
 				['zoom'],
 				['literal', ['NotoSans-Regular']],
 				12,
-				['literal', ['NotoSans-Medium']]
+				['literal', ['NotoSans-Medium']],
+				16,
+				['literal', ['NotoSans-SemiBold']]
 			]
 		},
 		paint: {
