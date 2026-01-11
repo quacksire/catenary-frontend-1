@@ -103,7 +103,7 @@ export async function batchFetchShapes(
 						// We map by shape_id.
 						// Ideally we return the Geometry or the Feature?
 						// StopScreen expects `fetched_shapes_cache[shape_id] = json.geometry || json` (Feature or Geometry)
-						resultMap[shapeIds] = feature.geometry;
+						resultMap[shapeIds] = feature;
 					}
 				}
 			}

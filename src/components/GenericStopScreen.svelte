@@ -546,7 +546,7 @@
 						} else if (current && current.type === 'Partial') {
 							// We have outer?
 							if (current.outer) {
-								fetched_shapes_cache[id] = spliceLines(geom, { geometry: current.outer });
+								fetched_shapes_cache[id] = spliceLines(geom, current.outer);
 								route_shapes_meta[id] = {
 									spliced: true,
 									outerSimplify: 1000 /* unknown really but low res */
@@ -576,8 +576,8 @@
 						} else if (current && current.type === 'Partial') {
 							if (current.inner) {
 								fetched_shapes_cache[id] = spliceLines(
-									{ geometry: current.inner },
-									{ geometry: geom }
+									current.inner,
+									geom
 								);
 								route_shapes_meta[id] = { spliced: true, outerSimplify: 1000 };
 							} else {
@@ -603,8 +603,8 @@
 						} else if (current && current.type === 'Partial') {
 							if (current.inner) {
 								fetched_shapes_cache[id] = spliceLines(
-									{ geometry: current.inner },
-									{ geometry: geom }
+									current.inner,
+									geom
 								);
 								route_shapes_meta[id] = { spliced: true, outerSimplify: 100 };
 							} else {
@@ -681,9 +681,10 @@
 					// Check cache first (Geometry Object or Feature)
 					const cached = fetched_shapes_cache[shape_id];
 					if (cached && cached.type !== 'Pending') {
+						const color = cached.properties?.color || route.color;
 						geojson_shapes_list.push({
 							geometry: cached.geometry || cached, // handle Feature vs Geometry
-							properties: { color: route.color }
+							properties: { color: color }
 						});
 						continue;
 					} else if (cached && cached.type === 'Pending') {
@@ -858,7 +859,7 @@
 						// Current must be valid
 						if (current && current.type !== 'Pending' && current.type !== 'Partial') {
 							// If current is Geometry
-							const spliced = spliceLines({ geometry: json_geom }, { geometry: current });
+							const spliced = spliceLines(json_geom, current);
 							fetched_shapes_cache[shape_id] = spliced;
 						}
 					}
