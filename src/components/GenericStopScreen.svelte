@@ -1079,7 +1079,7 @@
 
 										<StopScreenRow
 											{event}
-											data_from_server={data_meta}
+											timezone={displayTimezone}
 											{current_time}
 											{show_seconds}
 											show_arrivals={event.last_stop}

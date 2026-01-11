@@ -7,7 +7,7 @@
 	import Clock from './Clock.svelte';
 
 	export let event: any;
-	export let data_from_server: any;
+	export let timezone: string;
 	export let current_time: number;
 	export let show_seconds: boolean;
 	export let show_arrivals: boolean = false;
@@ -25,7 +25,7 @@
 			<span class="text-red-500 font-semibold">{$_('cancelled')}</span>
 			<div class="ml-auto line-through opacity-70">
 				<Clock
-					timezone={data_from_server.primary.timezone}
+					{timezone}
 					time_seconds={shared_scheduled_time}
 					{show_seconds}
 				/>
@@ -36,7 +36,7 @@
 			<span class="text-red-500 font-semibold">{$_('deleted')}</span>
 			<div class="ml-auto line-through opacity-70">
 				<Clock
-					timezone={data_from_server.primary.timezone}
+					{timezone}
 					time_seconds={shared_scheduled_time}
 					{show_seconds}
 				/>
@@ -47,7 +47,7 @@
 			<span class="text-red-500 font-semibold">{$_('stop_cancelled')}</span>
 			<div class="ml-auto line-through opacity-70">
 				<Clock
-					timezone={data_from_server.primary.timezone}
+					{timezone}
 					time_seconds={shared_scheduled_time}
 					{show_seconds}
 				/>
@@ -81,7 +81,7 @@
 					{#if shared_rt_time != shared_scheduled_time}
 						<span class="text-slate-600 dark:text-gray-400 line-through text-xs">
 							<Clock
-								timezone={data_from_server.primary.timezone}
+								{timezone}
 								time_seconds={shared_scheduled_time}
 								{show_seconds}
 							/>
@@ -94,7 +94,7 @@
 							class={`text-seashore dark:text-seashoredark font-medium ${shared_rt_time < current_time / 1000 ? 'opacity-70' : ''}`}
 						>
 							<Clock
-								timezone={data_from_server.primary.timezone}
+								{timezone}
 								time_seconds={shared_rt_time}
 								{show_seconds}
 							/>
@@ -105,7 +105,7 @@
 							class={`text-seashore dark:text-seashoredark font-medium ${shared_rt_time < current_time / 1000 ? 'opacity-70' : ''}`}
 						>
 							<Clock
-								timezone={data_from_server.primary.timezone}
+								{timezone}
 								time_seconds={shared_rt_time}
 								{show_seconds}
 							/>
@@ -120,7 +120,7 @@
 						{#if shared_rt_time != shared_scheduled_time}
 							<span class="text-slate-600 dark:text-gray-400 line-through mr-1">
 								<Clock
-									timezone={data_from_server.primary.timezone}
+									{timezone}
 									time_seconds={shared_scheduled_time}
 									{show_seconds}
 								/>
@@ -130,7 +130,7 @@
 							class={`text-seashore dark:text-seashoredark font-medium ${shared_rt_time < current_time / 1000 ? 'opacity-70' : ''}`}
 						>
 							<Clock
-								timezone={data_from_server.primary.timezone}
+								{timezone}
 								time_seconds={shared_rt_time}
 								{show_seconds}
 							/>
@@ -141,7 +141,7 @@
 		{:else}
 			<div class={`ml-auto ${shared_scheduled_time < current_time / 1000 ? 'opacity-70' : ''}`}>
 				<Clock
-					timezone={data_from_server.primary.timezone}
+					{timezone}
 					time_seconds={shared_scheduled_time}
 					{show_seconds}
 				/>
