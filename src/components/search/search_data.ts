@@ -154,7 +154,12 @@ export function show_back_button_recalc() {
 //on desktop, either the input is still selected
 export const autocomplete_focus_state: Writable<boolean> = writable(false);
 
+let abortController = new AbortController();
+
 export function new_query(text: string) {
+	abortController.abort();
+	abortController = new AbortController();
+
 	let map = get(map_pointer_store);
 
 	text_input_matches_current_result.set(false);
@@ -190,15 +195,20 @@ export function new_query(text: string) {
 		focus_weight = 2.0;
 	}
 
+	const cypressSubdomains = ['cypress', 'cypress1', 'cypress2'];
+	const randomCypressSubdomain =
+		cypressSubdomains[Math.floor(Math.random() * cypressSubdomains.length)];
+
 	// Cypress Autocomplete
-	const cypressUrl = new URL('https://cypress.catenarymaps.org/v1/autocomplete');
+	const cypressUrl = new URL(`https://${randomCypressSubdomain}.catenarymaps.org/v1/autocomplete`);
 	cypressUrl.searchParams.append('text', text);
 	cypressUrl.searchParams.append('focus.point.lat', centerCoordinates.lat.toString());
 	cypressUrl.searchParams.append('focus.point.lon', centerCoordinates.lng.toString());
 	cypressUrl.searchParams.append('focus.point.weight', focus_weight.toString());
 
 	fetch(cypressUrl.toString(), {
-		mode: 'cors'
+		mode: 'cors',
+		signal: abortController.signal
 	})
 		.then((response) => response.json())
 		.then((data: CypressFeatureCollection) => {
@@ -220,7 +230,7 @@ export function new_query(text: string) {
 		})
 		.catch((e) => console.error('Cypress fetch error', e));
 
-	fetch(url)
+	fetch(url, { signal: abortController.signal })
 		.then((response) => response.json())
 		.then((data) => {
 			data_store_text_queries.update((existing_map) => {
@@ -241,10 +251,17 @@ export function new_query(text: string) {
 }
 
 export function perform_full_search(text: string) {
+	abortController.abort();
+	abortController = new AbortController();
+
+	const cypressSubdomains = ['cypress', 'cypress1', 'cypress2'];
+	const randomCypressSubdomain =
+		cypressSubdomains[Math.floor(Math.random() * cypressSubdomains.length)];
 	// Optional: Call this when user hits enter if explicit search behavior is different
 	// For now new_query handles the main interaction via autocomplete
-	fetch(`https://cypress.catenarymaps.org/v1/search?text=${text}`, {
-		mode: 'cors'
+	fetch(`https://${randomCypressSubdomain}.catenarymaps.org/v1/search?text=${text}`, {
+		mode: 'cors',
+		signal: abortController.signal
 	})
 		.then((response) => response.json())
 		.then((data: CypressFeatureCollection) => {

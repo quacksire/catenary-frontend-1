@@ -29,6 +29,7 @@
 	import { IDFM_CHATEAU_ID, isRatpRoute } from '../utils/ratp_utils';
 	import MtaBullet from './mtabullet.svelte';
 	import RatpBullet from './ratpbullet.svelte';
+	import RouteSymbols from './RouteSymbols.svelte';
 
 	export let map_selection_screen: MapSelectionScreen;
 	export let darkMode: boolean;
@@ -257,6 +258,66 @@
 		</div>
 	{/if}
 
+	{#if map_selection_screen.arrayofoptions.filter((x) => x.data instanceof OsmStationMapSelector).length > 0}
+		<h3 class="text-xl my-2">{$_('stations')}</h3>
+		<div class="flex flex-col gap-y-1 md:gap-y-2">
+			{#each map_selection_screen.arrayofoptions.filter((x) => x.data instanceof OsmStationMapSelector) as option}
+				<div
+					class="px-1 py-0.5 md:px-2 md:py-2 bg-gray-100 hover:bg-blue-100 dark:bg-darksky hover:dark:bg-hover text-sm md:text-base leading-snug rounded-lg bg-opacity-80"
+					on:click={() => {
+						data_stack_store.update((data_stack) => {
+							data_stack.push(
+								new StackInterface(
+									new OsmStationStack(
+										option.data.osm_id,
+										option.data.name,
+										option.data.mode_type,
+										option.data.lat,
+										option.data.lon
+									)
+								)
+							);
+							return data_stack;
+						});
+					}}
+					role="menuitem"
+					tabindex="0"
+				>
+					<p class="font-semibold">{option.data.name}</p>
+					<p class="text-xs text-gray-500 dark:text-gray-400">
+						{option.data.mode_type === 'subway'
+							? 'Metro'
+							: option.data.mode_type === 'rail'
+								? 'Rail'
+								: option.data.mode_type === 'tram' || option.data.mode_type === 'light_rail'
+									? 'Tram'
+									: option.data.mode_type}
+					</p>
+
+					{#if osm_stations_preview_data[option.data.osm_id] && osm_stations_preview_data[option.data.osm_id].stops}
+						{@const allRouteIds = [
+							...new Set(
+								Object.values(osm_stations_preview_data[option.data.osm_id].stops)
+									.flatMap((layer) => Object.values(layer))
+									.flatMap((s) => s.routes || [])
+									.sort()
+							)
+						]}
+						{@const networks = osm_stations_preview_data[option.data.osm_id].routes}
+						<RouteSymbols
+							routeIds={allRouteIds}
+							getRouteInfo={(routeId) =>
+								Object.values(networks)
+									.flatMap((n) => Object.values(n))
+									.find((r) => r.route_id === routeId)}
+							chateau_id={null}
+						/>
+					{/if}
+				</div>
+			{/each}
+		</div>
+	{/if}
+
 	{#if map_selection_screen.arrayofoptions.filter((x) => x.data instanceof StopMapSelector).length > 0}
 		<h3 class="text-xl my-2">{$_('stops')}</h3>
 		<div class="flex flex-col gap-y-1 md:gap-y-2">
@@ -308,215 +369,14 @@
 								{/if}
 							</div>
 
-							<div class="flex flex-row gap-x-0.5 w-full flex-wrap gap-y-1">
-								{#if true}
-									{@const current_routes =
-										stops_preview_data.stops[option.data.chateau_id][option.data.stop_id].routes}
-									{@const is_national_rail = option.data.chateau_id === 'nationalrailuk'}
-									{@const gwr_routes = is_national_rail
-										? current_routes.filter(
-												(r) =>
-													stops_preview_data.routes[option.data.chateau_id][r]?.agency_id === 'GW'
-											)
-										: []}
-									{@const sw_routes = is_national_rail
-										? current_routes.filter(
-												(r) =>
-													stops_preview_data.routes[option.data.chateau_id][r]?.agency_id === 'SW'
-											)
-										: []}
-
-									{@const sn_routes = is_national_rail
-										? current_routes.filter(
-												(r) =>
-													stops_preview_data.routes[option.data.chateau_id][r]?.agency_id === 'SN'
-											)
-										: []}
-
-									{@const cc_routes = is_national_rail
-										? current_routes.filter(
-												(r) =>
-													stops_preview_data.routes[option.data.chateau_id][r]?.agency_id === 'CC'
-											)
-										: []}
-
-									{@const le_routes = is_national_rail
-										? current_routes.filter(
-												(r) =>
-													stops_preview_data.routes[option.data.chateau_id][r]?.agency_id === 'LE'
-											)
-										: []}
-
-									{#if gwr_routes.length > 0}
-										<div
-											class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded"
-										>
-											<img
-												src="https://maps.catenarymaps.org/agencyicons/GreaterWesternRailway.svg"
-												alt="Great Western Railway"
-												class="h-3 inline-block dark:hidden mr-1"
-											/>
-											<img
-												src="https://maps.catenarymaps.org/agencyicons/GreaterWesternRailway.svg"
-												alt="Great Western Railway"
-												class="h-3 hidden dark:inline-block mr-1"
-											/>
-											<span class="text-xs font-semibold">Great Western Railway</span>
-										</div>
-									{/if}
-
-									{#if sw_routes.length > 0}
-										<div
-											class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded"
-										>
-											<img
-												src="https://maps.catenarymaps.org/agencyicons/SouthWesternRailway.svg"
-												alt="South Western Railway"
-												class="h-3 inline-block mr-1"
-											/>
-											<span class="text-xs font-semibold">South Western Railway</span>
-										</div>
-									{/if}
-
-									{#if sn_routes.length > 0}
-										<div
-											class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded"
-										>
-											<img
-												src="https://maps.catenarymaps.org/agencyicons/SouthernIcon.svg"
-												alt="Southern"
-												class="h-3 inline-block mr-1"
-											/>
-											<span class="text-xs font-semibold">Southern</span>
-										</div>
-									{/if}
-
-									{#if cc_routes.length > 0}
-										<div
-											class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded"
-										>
-											<img
-												src="https://maps.catenarymaps.org/agencyicons/c2c_logo.svg"
-												alt="c2c"
-												class="h-3 inline-block mr-1"
-											/>
-											<span class="text-xs font-semibold">c2c</span>
-										</div>
-									{/if}
-
-									{#if le_routes.length > 0}
-										<div
-											class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded"
-										>
-											<span class="text-xs font-semibold">Greater Anglia</span>
-										</div>
-									{/if}
-
-									{#each current_routes as route_id}
-										{@const routeInfo = stops_preview_data.routes[option.data.chateau_id][route_id]}
-										{#if !gwr_routes.includes(route_id) && !sw_routes.includes(route_id) && !sn_routes.includes(route_id) && !cc_routes.includes(route_id) && !le_routes.includes(route_id)}
-											{#if routeInfo}
-												{#if isSubwayRouteId(route_id) && option.data.chateau_id === MTA_CHATEAU_ID}
-													<MtaBullet
-														route_short_name={routeInfo.short_name}
-														matchTextHeight={false}
-													/>
-												{:else if option.data.chateau_id === IDFM_CHATEAU_ID && isRatpRoute(routeInfo.short_name)}
-													<RatpBullet
-														route_short_name={routeInfo.short_name}
-														matchTextHeight={false}
-													/>
-												{:else}
-													<div
-														class="px-1 py-0.5 md:py-1 text-xs rounded-sm"
-														style={`background-color: ${routeInfo.color}; color: ${routeInfo.text_color};`}
-													>
-														{#if routeInfo.short_name}
-															<span class="font-medium">{routeInfo.short_name} </span>
-														{:else if routeInfo.long_name}
-															{routeInfo.long_name.replace(' Line', '')}
-														{/if}
-													</div>
-												{/if}
-											{/if}
-										{/if}
-									{/each}
-								{/if}
-							</div>
+							<RouteSymbols
+								routeIds={stops_preview_data.stops[option.data.chateau_id][option.data.stop_id]
+									.routes}
+								getRouteInfo={(routeId) =>
+									stops_preview_data.routes[option.data.chateau_id][routeId]}
+								chateau_id={option.data.chateau_id}
+							/>
 						{/if}
-					{/if}
-				</div>
-			{/each}
-		</div>
-	{/if}
-
-	{#if map_selection_screen.arrayofoptions.filter((x) => x.data instanceof OsmStationMapSelector).length > 0}
-		<h3 class="text-xl my-2">{$_('stations')}</h3>
-		<div class="flex flex-col gap-y-1 md:gap-y-2">
-			{#each map_selection_screen.arrayofoptions.filter((x) => x.data instanceof OsmStationMapSelector) as option}
-				<div
-					class="px-1 py-0.5 md:px-2 md:py-2 bg-gray-100 hover:bg-blue-100 dark:bg-darksky hover:dark:bg-hover text-sm md:text-base leading-snug rounded-lg bg-opacity-80"
-					on:click={() => {
-						data_stack_store.update((data_stack) => {
-							data_stack.push(
-								new StackInterface(
-									new OsmStationStack(
-										option.data.osm_id,
-										option.data.name,
-										option.data.mode_type,
-										option.data.lat,
-										option.data.lon
-									)
-								)
-							);
-							return data_stack;
-						});
-					}}
-					role="menuitem"
-					tabindex="0"
-				>
-					<p class="font-semibold">{option.data.name}</p>
-					<p class="text-xs text-gray-500 dark:text-gray-400">
-						{option.data.mode_type === 'subway'
-							? 'Metro'
-							: option.data.mode_type === 'rail'
-								? 'Rail'
-								: option.data.mode_type === 'tram' || option.data.mode_type === 'light_rail'
-									? 'Tram'
-									: option.data.mode_type}
-					</p>
-
-					{#if osm_stations_preview_data[option.data.osm_id] && osm_stations_preview_data[option.data.osm_id].stops}
-						<div class="flex flex-wrap gap-1 mt-1">
-							{#each [...new Set(Object.values(osm_stations_preview_data[option.data.osm_id].stops)
-										.flatMap((layer) => Object.values(layer))
-										.flatMap((s) => s.routes || [])
-										.sort())] as routeId}
-								{@const networks = osm_stations_preview_data[option.data.osm_id].routes}
-								{@const routeInfo = Object.values(networks)
-									.flatMap((n) => Object.values(n))
-									.find((r) => r.route_id === routeId)}
-
-								{#if routeInfo}
-									{#if isSubwayRouteId(routeId) && routeInfo.agency_id === 'Metropolitan Transportation Authority'}
-										<MtaBullet route_short_name={routeInfo.short_name} matchTextHeight={false} />
-									{:else if routeInfo.agency_id?.includes('Île-de-France') && isRatpRoute(routeInfo.short_name)}
-										<RatpBullet route_short_name={routeInfo.short_name} matchTextHeight={false} />
-									{:else}
-										<div
-											class="px-1 py-0.5 text-xs rounded-sm"
-											style={`background-color: ${routeInfo.color}; color: ${routeInfo.text_color};`}
-										>
-											{#if routeInfo.short_name}
-												<span class="font-medium">{routeInfo.short_name}</span>
-											{:else if routeInfo.long_name}
-												{routeInfo.long_name.replace(' Line', '')}
-											{/if}
-										</div>
-									{/if}
-								{/if}
-							{/each}
-						</div>
 					{/if}
 				</div>
 			{/each}
