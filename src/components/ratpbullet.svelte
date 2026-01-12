@@ -1,33 +1,26 @@
 <script lang="ts">
+	import { getRatpIconPath } from '../utils/ratp_utils';
+
 	export let route_short_name: string;
 	export let matchTextHeight: boolean = false;
 
-	let src: string | undefined;
-
-	$: {
-		let imageName = route_short_name.toLowerCase();
-		if (imageName.endsWith('x')) {
-			imageName = imageName.slice(0, -1) + 'd';
-		}
-		src = `/mtaicons/${imageName}.svg`;
-	}
+	$: iconPath = getRatpIconPath(route_short_name);
 </script>
 
-{#if src}
+{#if iconPath}
 	<img
 		class="inline-block"
 		class:match-text-height={matchTextHeight}
-		{src}
-		alt={`MTA bullet for ${route_short_name}`}
+		src={iconPath}
+		alt={`RATP icon for ${route_short_name}`}
 	/>
 {:else}
-	<!-- Optionally, show the text as a fallback -->
-	<span>{route_short_name}</span>
+	<!-- Fallback to text -->
+	<span class="fallback">{route_short_name}</span>
 {/if}
 
 <style>
-	span {
-		/* Style for fallback text if needed */
+	.fallback {
 		font-weight: bold;
 		padding: 0 0.2em;
 	}

@@ -149,6 +149,10 @@
 	} from './agencyspecific';
 	import { titleCase } from '../utils/titleCase';
 	import { lightenColour } from './lightenDarkColour';
+	import { MTA_CHATEAU_ID, isSubwayRouteId } from '../utils/mta_subway_utils';
+	import { IDFM_CHATEAU_ID, isRatpRoute } from '../utils/ratp_utils';
+	import MtaBullet from './mtabullet.svelte';
+	import RatpBullet from './ratpbullet.svelte';
 
 	let nearby_departures_filter_local = { rail: true, bus: true, metro: true, other: true };
 
@@ -714,6 +718,10 @@
 		<div class="flex flex-col">
 			<TidbitSidebarCard />
 			{#each departure_list_filtered as route_group}
+				{@const isSubway =
+					route_group.chateau_id === MTA_CHATEAU_ID && isSubwayRouteId(route_group.route_id)}
+				{@const isRatp =
+					route_group.chateau_id === IDFM_CHATEAU_ID && isRatpRoute(route_group.short_name)}
 				<div
 					class={`${window_height_known < 600 ? 'mt-0 mb-1' : 'mt-1 mb-1 mb:mb-2'} px-1 mx-1 py-1 md:py-2 bg-gray-100 dark:bg-background rounded-md dark:bg-opacity-50`}
 				>
@@ -731,7 +739,11 @@
 								});
 							}}
 						>
-							{#if route_group.short_name}
+							{#if isSubway && route_group.short_name}
+								<MtaBullet route_short_name={route_group.short_name} matchTextHeight={true} />
+							{:else if isRatp && route_group.short_name}
+								<RatpBullet route_short_name={route_group.short_name} matchTextHeight={true} />
+							{:else if route_group.short_name}
 								<span class="font-bold mr-1">
 									{fixRouteName(
 										route_group.chateau_id,
@@ -741,7 +753,7 @@
 								</span>
 							{/if}
 
-							{#if route_group.long_name}
+							{#if route_group.long_name && !isSubway && !isRatp}
 								{#if route_group.long_name != route_group.short_name}
 									<span class="font-medium">
 										{fixRouteNameLong(
@@ -810,7 +822,13 @@
 									class="material-symbols-outlined text-md align-middle -translate-y-0.5 select-none"
 									>chevron_right</span
 								>
-								{titleCase(fixHeadsignText(direction_group.headsign, route_group.chateau_id, route_group.route_id))}
+								{titleCase(
+									fixHeadsignText(
+										direction_group.headsign,
+										route_group.chateau_id,
+										route_group.route_id
+									)
+								)}
 								<span
 									on:click={() => {
 										data_stack_store.update((stack) => {

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { MTA_CHATEAU_ID, isSubwayRouteId } from '../utils/mta_subway_utils';
+	import { IDFM_CHATEAU_ID, isRatpRoute } from '../utils/ratp_utils';
 	import MtaBullet from './mtabullet.svelte';
+	import RatpBullet from './ratpbullet.svelte';
 
 	export let connections: { chateau_id: string; route_id: string; route: any }[] = [];
 	export let darkMode: boolean = false;
@@ -72,7 +74,9 @@
 {#each connections as conn}
 	{#if !grouped_route_ids.has(conn.route_id) || conn.chateau_id !== 'nationalrailuk'}
 		{#if isSubwayRouteId(conn.route_id) && conn.chateau_id === MTA_CHATEAU_ID}
-			<MtaBullet route_short_name={conn.route.short_name} matchTextHeight={true} />
+			<MtaBullet route_short_name={conn.route.short_name} matchTextHeight={false} />
+		{:else if conn.chateau_id === IDFM_CHATEAU_ID && isRatpRoute(conn.route.short_name)}
+			<RatpBullet route_short_name={conn.route.short_name} matchTextHeight={false} />
 		{:else}
 			<div
 				class="px-0.75 py-0.25 text-xs rounded-sm"

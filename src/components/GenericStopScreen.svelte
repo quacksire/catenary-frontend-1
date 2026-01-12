@@ -28,6 +28,10 @@
 	import StopScreenRow from './StopScreenRow.svelte';
 	import StationScreenTrainRow from './StationScreenTrainRow.svelte';
 	import { SingleTrip, StackInterface } from './stackenum';
+	import { MTA_CHATEAU_ID, isSubwayRouteId } from '../utils/mta_subway_utils';
+	import { IDFM_CHATEAU_ID, isRatpRoute } from '../utils/ratp_utils';
+	import MtaBullet from './mtabullet.svelte';
+	import RatpBullet from './ratpbullet.svelte';
 
 	export let buildUrl: (startSec: number, endSec: number) => string;
 	export let key: any; // Unique identifier to trigger reset (e.g. stop_id or osm_id)
@@ -646,6 +650,15 @@
 							{:else}
 								<!-- Non-Rail (Div) List -->
 								{#each filtered_dates_to_events[date_code] as event}
+									{@const shortName =
+										data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
+									{@const longName = data_meta.routes?.[event.chateau]?.[event.route_id]?.long_name}
+									{@const routeColor = data_meta.routes?.[event.chateau]?.[event.route_id]?.color}
+									{@const textColor =
+										data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color}
+									{@const isSubway =
+										event.chateau === MTA_CHATEAU_ID && isSubwayRouteId(event.route_id)}
+									{@const isRatp = event.chateau === IDFM_CHATEAU_ID && isRatpRoute(shortName)}
 									<div
 										class="mx-1 py-1 border-b-1 border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800"
 										on:click={() => {
@@ -671,19 +684,23 @@
 											class={`${(event.realtime_departure || event.scheduled_departure) < current_time / 1000 && event.scheduled_departure < current_time / 1000 ? 'opacity-80' : ''} ${event.trip_cancelled ? 'opacity-60' : ''}`}
 										>
 											<p>
-												{#if data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
+												{#if isSubway && shortName}
+													<MtaBullet route_short_name={shortName} matchTextHeight={true} />
+												{:else if isRatp && shortName}
+													<RatpBullet route_short_name={shortName} matchTextHeight={true} />
+												{:else if shortName}
 													<span
 														class="rounded-xs font-bold px-0.5 mx-1 py-0.5"
-														style={`background: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.color}; color: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color};`}
+														style={`background: ${routeColor}; color: ${textColor};`}
 													>
-														{data_meta.routes?.[event.chateau]?.[event.route_id]?.short_name}
+														{shortName}
 													</span>
-												{:else if data_meta.routes?.[event.chateau]?.[event.route_id]?.long_name}
+												{:else if longName}
 													<span
 														class="rounded-xs font-semibold px-0.5 mx-1 py-0.5"
-														style={`background: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.color}; color: ${data_meta.routes?.[event.chateau]?.[event.route_id]?.text_color};`}
+														style={`background: ${routeColor}; color: ${textColor};`}
 													>
-														{data_meta.routes?.[event.chateau]?.[event.route_id]?.long_name}
+														{longName}
 													</span>
 												{/if}
 												{#if event.trip_short_name}

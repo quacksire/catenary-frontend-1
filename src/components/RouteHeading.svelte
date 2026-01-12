@@ -22,7 +22,9 @@
 	} from '../globalstores';
 	import { RouteStack, SingleTrip, StackInterface, StopStack } from './stackenum';
 	import { MTA_CHATEAU_ID, isSubwayRouteId } from '../utils/mta_subway_utils';
+	import { IDFM_CHATEAU_ID, isRatpRoute } from '../utils/ratp_utils';
 	import MtaBullet from './mtabullet.svelte';
+	import RatpBullet from './ratpbullet.svelte';
 
 	export let color: string;
 	export let text_color: string;
@@ -130,6 +132,7 @@
 	$: (chateau_id, route_id, refreshPinnedState());
 
 	$: isSubway = isSubwayRouteId(route_id) && chateau_id == MTA_CHATEAU_ID;
+	$: isRatp = chateau_id === IDFM_CHATEAU_ID && isRatpRoute(short_name);
 </script>
 
 {#if !compact}
@@ -168,6 +171,8 @@
 			>
 				{#if isSubway && short_name}
 					<MtaBullet route_short_name={short_name} matchTextHeight={true} />
+				{:else if isRatp && short_name}
+					<RatpBullet route_short_name={short_name} matchTextHeight={true} />
 				{:else if short_name}
 					<span class="font-bold">{fixRouteName(chateau_id, short_name, route_id)}</span>
 				{/if}

@@ -26,7 +26,9 @@
 		fixHeadsignText
 	} from './agencyspecific';
 	import { MTA_CHATEAU_ID, isSubwayRouteId } from '../utils/mta_subway_utils';
+	import { IDFM_CHATEAU_ID, isRatpRoute } from '../utils/ratp_utils';
 	import MtaBullet from './mtabullet.svelte';
+	import RatpBullet from './ratpbullet.svelte';
 
 	export let map_selection_screen: MapSelectionScreen;
 	export let darkMode: boolean;
@@ -417,7 +419,12 @@
 												{#if isSubwayRouteId(route_id) && option.data.chateau_id === MTA_CHATEAU_ID}
 													<MtaBullet
 														route_short_name={routeInfo.short_name}
-														matchTextHeight={true}
+														matchTextHeight={false}
+													/>
+												{:else if option.data.chateau_id === IDFM_CHATEAU_ID && isRatpRoute(routeInfo.short_name)}
+													<RatpBullet
+														route_short_name={routeInfo.short_name}
+														matchTextHeight={false}
 													/>
 												{:else}
 													<div
@@ -492,7 +499,9 @@
 
 								{#if routeInfo}
 									{#if isSubwayRouteId(routeId) && routeInfo.agency_id === 'Metropolitan Transportation Authority'}
-										<MtaBullet route_short_name={routeInfo.short_name} matchTextHeight={true} />
+										<MtaBullet route_short_name={routeInfo.short_name} matchTextHeight={false} />
+									{:else if routeInfo.agency_id?.includes('Île-de-France') && isRatpRoute(routeInfo.short_name)}
+										<RatpBullet route_short_name={routeInfo.short_name} matchTextHeight={false} />
 									{:else}
 										<div
 											class="px-1 py-0.5 text-xs rounded-sm"
@@ -543,7 +552,10 @@
 						</p>
 					{/if}
 					{#if isSubwayRouteId(option.data.route_id) && option.data.chateau_id === MTA_CHATEAU_ID}
-						<MtaBullet route_short_name={option.data.name} matchTextHeight={true} />
+						<MtaBullet route_short_name={option.data.name} matchTextHeight={false} />
+						<span class="ml-1">{option.data.name}</span>
+					{:else if option.data.chateau_id === IDFM_CHATEAU_ID && isRatpRoute(option.data.name)}
+						<RatpBullet route_short_name={option.data.name} matchTextHeight={false} />
 						<span class="ml-1">{option.data.name}</span>
 					{:else if option.data.name}
 						<span
