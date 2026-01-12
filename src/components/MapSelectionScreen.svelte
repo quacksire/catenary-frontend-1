@@ -413,10 +413,10 @@
 					{/if}
 					{#if isSubwayRouteId(option.data.route_id) && option.data.chateau_id === MTA_CHATEAU_ID}
 						<MtaBullet route_short_name={option.data.name} matchTextHeight={false} />
-						<span class="ml-1">{option.data.name}</span>
+					
 					{:else if option.data.chateau_id === IDFM_CHATEAU_ID && isRatpRoute(option.data.name)}
 						<RatpBullet route_short_name={option.data.name} matchTextHeight={false} />
-						<span class="ml-1">{option.data.name}</span>
+						
 					{:else if option.data.name}
 						<span
 							style={`color: ${darkMode ? lightenColour(option.data.colour) : option.data.colour}`}
