@@ -34,9 +34,7 @@ export default defineConfig({
 	define: {
 		_COMMIT_ID: JSON.stringify(execSync('git rev-parse HEAD').toString().trim()),
 		_COMMIT_DATE: JSON.stringify(
-			execSync('git log -1 --format="%at" | xargs -I{} date -ud @{} \"+%Y-%m-%dT%H:%M:%SZ\"')
-				.toString()
-				.trim()
+			new Date(parseInt(execSync('git log -1 --format=%at').toString().trim()) * 1000).toISOString()
 		)
 	},
 	build: {
