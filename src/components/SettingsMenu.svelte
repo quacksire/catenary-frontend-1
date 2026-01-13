@@ -6,7 +6,8 @@
 		usunits_store,
 		show_gtfs_ids_store,
 		ui_theme_store,
-		show_seconds_store
+		show_seconds_store,
+		show_stop_codes_store
 	} from '../globalstores';
 
 	import { livedotscaling_store } from '../fontscalingstores';
@@ -180,6 +181,25 @@
 			}}
 		/>
 		<p>{$_('show_gtfs_ids')}</p>
+	</div>
+
+	<div class="flex flex-row gap-x-2">
+		<input
+			type="checkbox"
+			checked={get(show_stop_codes_store)}
+			class="accent-seashore"
+			on:click={() => {
+				show_stop_codes_store.update((x) => !x);
+				window.localStorage.show_stop_codes = get(show_stop_codes_store);
+			}}
+			on:keydown={(e) => {
+				if (e.key === 'Enter') {
+					show_stop_codes_store.update((x) => !x);
+					window.localStorage.show_stop_codes = get(show_stop_codes_store);
+				}
+			}}
+		/>
+		<p>{$_('show_stop_codes')}</p>
 	</div>
 
 	<div class="flex flex-row gap-x-2">

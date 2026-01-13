@@ -74,6 +74,7 @@
 	"shownpreviousstops": "Weis {n} virdrun {n, plural, =1 {arrêt} other{Arrêten}}",
 	"Platform": "Quai",
 	"show_gtfs_ids": "Weis GTFS IDs",
+	"show_stop_codes": "Arrêtscoden uweisen",
 	"alert_cause_unknown_cause": "Onbekannt Ursaach",
 	"alert_cause_other_cause": "Aner Ursaach",
 	"alert_cause_technical_problem": "Technesche Problem",

@@ -74,6 +74,7 @@
 	"shownpreviousstops": "Näytä {n} edellistä {n, plural, =1 {pysäkki} other{pysäkkiä}}",
 	"Platform": "Laituri",
 	"show_gtfs_ids": "Näytä GTFS-tunnisteet",
+	"show_stop_codes": "Näytä pysäkkikoodit",
 	"alert_cause_unknown_cause": "Tuntematon syy",
 	"alert_cause_other_cause": "Muu syy",
 	"alert_cause_technical_problem": "Tekninen vika",

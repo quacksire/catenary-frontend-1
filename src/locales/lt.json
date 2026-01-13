@@ -74,6 +74,7 @@
 	"shownpreviousstops": "Rodyti {n} ankstesnę {n, plural, =1 {stotelę} other{stoteles}}",
 	"Platform": "Platforma",
 	"show_gtfs_ids": "Rodyti GTFS ID",
+	"show_stop_codes": "Rodyti stotelių kodus",
 	"alert_cause_unknown_cause": "Nežinoma priežastis",
 	"alert_cause_other_cause": "Kita priežastis",
 	"alert_cause_technical_problem": "Techninė problema",

@@ -74,6 +74,7 @@
 	"shownpreviousstops": "Mostra {n} fermate precedenti",
 	"Platform": "Piattaforma",
 	"show_gtfs_ids": "Mostra ID GTFS",
+	"show_stop_codes": "Mostra codici fermata",
 	"alert_cause_unknown_cause": "Causa sconosciuta",
 	"alert_cause_other_cause": "Altra causa",
 	"alert_cause_technical_problem": "Problema tecnico",

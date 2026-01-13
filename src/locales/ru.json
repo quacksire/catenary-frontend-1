@@ -74,6 +74,7 @@
 	"shownpreviousstops": "Показать {n} предыдущих {n, plural, =1 {остановка} other{остановки}}",
 	"Platform": "Платформа",
 	"show_gtfs_ids": "Показать GTFS идентификаторы",
+	"show_stop_codes": "Показать коды остановок",
 	"alert_cause_unknown_cause": "Неизвестная причина",
 	"alert_cause_other_cause": "Другая причина",
 	"alert_cause_technical_problem": "Техническая проблема",

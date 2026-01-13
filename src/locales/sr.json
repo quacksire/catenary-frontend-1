@@ -74,6 +74,7 @@
 	"shownpreviousstops": "Prikaži {n} {n, plural, one{prethodno stajalište} few{prethodna stajališta} other{prethodnih stajališta}}",
 	"Platform": "Peron",
 	"show_gtfs_ids": "Prikaži GTFS ID-ove",
+	"show_stop_codes": "Прикажи кодове стајалишта",
 	"alert_cause_unknown_cause": "Nepoznat uzrok",
 	"alert_cause_other_cause": "Drugi uzrok",
 	"alert_cause_technical_problem": "Tehnički problem",

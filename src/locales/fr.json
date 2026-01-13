@@ -73,6 +73,7 @@
 	"hidepreviousstops": "Masquer les arrêts précédents",
 	"shownpreviousstops": "Afficher les {n} {n, plural, =1 {arrêt précédent} other{arrêts précédents}}",
 	"show_gtfs_ids": "Afficher les identifiants GTFS",
+	"show_stop_codes": "Afficher les codes d'arrêt",
 	"alert_cause_unknown_cause": "Cause inconnue",
 	"alert_cause_other_cause": "Autre cause",
 	"alert_cause_technical_problem": "Problème technique",

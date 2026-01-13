@@ -70,6 +70,7 @@
 	"shownpreviousstops": "Mostrar {n} {n, plural, =1 {parada} other{paradas}} anteriores",
 	"platform": "Plataforma",
 	"show_gtfs_ids": "Mostrar IDs GTFS",
+	"show_stop_codes": "Mostrar códigos de parada",
 	"alert_cause_unknown_cause": "Causa desconocida",
 	"alert_cause_other_cause": "Otra causa",
 	"alert_cause_technical_problem": "Problema técnico",

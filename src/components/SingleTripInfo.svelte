@@ -73,7 +73,8 @@
 		map_pointer_store,
 		show_gtfs_ids_store,
 		ui_theme_store,
-		stops_to_hide_store
+		stops_to_hide_store,
+		show_stop_codes_store
 	} from '../globalstores';
 	//import RouteHeading from './RouteHeading.svelte';
 	import { hexToRgb } from '../utils/colour';
@@ -106,6 +107,11 @@
 
 	show_gtfs_ids_store.subscribe((value) => {
 		show_gtfs_ids = value;
+	});
+
+	let show_stop_codes = get(show_stop_codes_store);
+	show_stop_codes_store.subscribe((value) => {
+		show_stop_codes = value;
 	});
 
 	let current_at_stop_idx_store = -1;
@@ -445,6 +451,33 @@
 		} catch (e) {
 			console.error(e);
 		}
+	}
+
+	let stops_to_hide = get(stops_to_hide_store);
+	stops_to_hide_store.subscribe((value) => {
+		stops_to_hide = value;
+	});
+
+	function shouldShowDoubleTime(stoptime: any): boolean {
+		if (
+			stoptime.scheduled_departure_time_unix_seconds &&
+			stoptime.scheduled_arrival_time_unix_seconds
+		) {
+			if (
+				stoptime.scheduled_departure_time_unix_seconds !=
+				stoptime.scheduled_arrival_time_unix_seconds
+			) {
+				return true;
+			}
+		}
+
+		if (stoptime.rt_departure_time && stoptime.rt_arrival_time) {
+			if (stoptime.rt_departure_time != stoptime.rt_arrival_time) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	async function fetch_trip_selected() {
@@ -1121,118 +1154,272 @@
 
 		{#each stoptimes_cleaned_dataset as stoptime, i}
 			{@const connectionKey = stop_connections[stoptime.stop_id] ? stoptime.stop_id : null}
+			{@const isDoubleTime = shouldShowDoubleTime(stoptime)}
 			{#if show_previous_stops || i > last_inactive_stop_idx}
-				<div class="flex flex-row">
-					<!--The left side coloured bars to indicate trip progress-->
-
-					<!--current_at_stop_idx-->
-					<div class="flex flex-col w-2 relative justify-center" style={``}>
-						<div
-							style={`background: ${i - 1 == last_inactive_stop_idx && i != 0 ? `linear-gradient(${show_previous_stops ? `rgba(${Object.values(hexToRgb(trip_data.color)).join(',')}, 0.4)` : 'transparent'}, ${trip_data.color})` : i != 0 ? trip_data.color : 'transparent'};  opacity: ${last_inactive_stop_idx >= i ? 0.4 : 1};`}
-							class={`h-1/2 w-2 ${i == trip_data.stoptimes.length - 1 ? 'rounded-b-full' : ''}`}
-						></div>
-
-						<div
-							style={`background-color: ${i != trip_data.stoptimes.length - 1 ? trip_data.color : 'transparent'}; opacity: ${last_inactive_stop_idx >= i ? 0.4 : 1};`}
-							class={`h-1/2 w-2 ${i == 0 ? 'rounded-t-full' : ''}`}
-						></div>
-
-						{#if stoptime.schedule_relationship == 1}
-							<div
-								class="flex flex-row absolute align-middle top-1/2 bottom-1/2 left-[-8px] h-6 w-6 rounded-full bg-red-500 border-red-900 border-2"
-							>
-								<div class="my-auto mx-auto">
-									<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24"
-										><title>cancel</title><path
-											fill="currentColor"
-											d="M12 2C17.5 2 22 6.5 22 12S17.5 22 12 22 2 17.5 2 12 6.5 2 12 2M12 4C10.1 4 8.4 4.6 7.1 5.7L18.3 16.9C19.3 15.5 20 13.8 20 12C20 7.6 16.4 4 12 4M16.9 18.3L5.7 7.1C4.6 8.4 4 10.1 4 12C4 16.4 7.6 20 12 20C13.9 20 15.6 19.4 16.9 18.3Z"
-										/></svg
-									>
-								</div>
-							</div>
-						{:else}
-							<div
-								class={`absolute top-1/2 bottom-1/2 left-0 w-2 h-2 rounded-full ${i > last_inactive_stop_idx ? 'bg-white' : ' bg-gray-400'}`}
-							></div>
-						{/if}
-					</div>
-
-					<div class="mr-3 md:mr-4"></div>
-
-					<div
-						class={`w-full py-1 sm:py-2 pr-1 lg:pr-2  ${i <= last_inactive_stop_idx ? ' opacity-70' : ''}`}
-					>
-						<div class="text-sm sm:text-base">
-							{#if stoptime.name}
-								<span
-									on:click={() => {
-										//add the stop to the data stack
-
-										data_stack_store.update((x) => {
-											x.push(
-												new StackInterface(
-													new StopStack(trip_selected.chateau_id, stoptime.stop_id)
-												)
-											);
-											return x;
-										});
-									}}
-									class={`underline decoration-sky-500/80 hover:decoration-sky-500 cursor-pointer ${stoptime.schedule_relationship == 1 ? 'text-[#EF3841]' : stop_id_to_alert_ids[stoptime.stop_id] ? 'text-[#F99C24]' : ''}`}
-									>{fixStationName(stoptime.name)}</span
-								>
-							{/if}
-
-							{#if stop_id_to_alert_ids[stoptime.stop_id]}
-								<img src="/icons/service_alert.svg" alt="(i)" class="w-4 h-4 inline mr-1" />
-							{/if}
-
-							{#if stoptime.schedule_relationship == 1}
-								<img src="/icons/cancellation.svg" alt="(i)" class="w-4 h-4 inline mr-1" />
-							{/if}
-
-							{#if stoptime.code}
-								<span class="text-gray-800 dark:text-gray-200 font-extralight">{stoptime.code}</span
-								>
-							{/if}
-
-							{#if all_exact_stoptimes == false}
-								{#if stoptime.timepoint == true}
-									<div class="text-xs inline-block align-middle">
-										<TimelineClockOutline cssclass="h-4 w-4 text-gray-800 dark:text-gray-300" />
-									</div>
-								{/if}
-							{/if}
+				{#if isDoubleTime}
+					<!-- ROW 1: ARRIVAL -->
+					<div class="flex flex-row -mb-2">
+						<!-- Time Column: Arrival -->
+						<div class="w-14 min-w-[3.5rem] mr-2 text-right text-sm leading-none -mb-1">
+							<StopTimeNumber
+								{show_seconds}
+								{stoptime}
+								{trip_data}
+								{current_time}
+								variant="sidebar"
+								display_type="arrival"
+							/>
 						</div>
 
-						<StopTimeNumber {show_seconds} {stoptime} {trip_data} {current_time} />
+						<!-- Middle Column: Line Pass-through -->
+						<div class="flex flex-col w-2 relative" style={``}>
+							<!-- Full height line based on previous segment logic -->
+							<div
+								style={`background: ${i - 1 == last_inactive_stop_idx && i != 0 ? `linear-gradient(${show_previous_stops ? `rgba(${Object.values(hexToRgb(trip_data.color)).join(',')}, 0.4)` : 'transparent'}, ${trip_data.color})` : i != 0 ? trip_data.color : 'transparent'}; opacity: ${last_inactive_stop_idx >= i ? 0.4 : 1};`}
+								class={`w-2 h-full`}
+							></div>
+						</div>
 
-						{#if stoptime.replaced_stop}
-							<p>{$_('replaced_stop')}</p>
-						{/if}
-
-						{#if timezones.filter((x) => x != null).length > 1}
-							<p class="text-xs text-gray-900 dark:text-gray-400">
-								{$_('timezone')}: {stoptime.timezone || trip_data.tz}
-							</p>
-						{/if}
-
-						{#if stoptime.rt_platform_string}
-							<p class="text-xs text-gray-900 dark:text-gray-400">
-								{$_('platform')}: {stoptime.rt_platform_string}
-							</p>
-						{/if}
-
-						{#if connectionKey}
-							<div class="flex flex-row flex-wrap gap-x-1 gap-y-1 mt-1">
-								<ConsolidatedRouteList connections={stop_connections[connectionKey]} {darkMode} />
-							</div>
-						{/if}
-
-						<!--<p class="text-sm">
-									index of stop seq: {stoptime.gtfs_stop_sequence}
-								</p>-->
+						<div class="mr-3 md:mr-4"></div>
+						<div class="w-full pr-1 lg:pr-2"></div>
 					</div>
-				</div>
+
+					<!-- ROW 2: DEPARTURE (Main Content) -->
+					<div class="flex flex-row">
+						<!-- Time Column: Departure -->
+						<div class="w-14 min-w-[3.5rem] mr-2 text-right text-sm pt-2 sm:pt-3">
+							<StopTimeNumber
+								{show_seconds}
+								{stoptime}
+								{trip_data}
+								{current_time}
+								variant="sidebar"
+								display_type="departure"
+							/>
+						</div>
+
+						<!-- Middle Column: Line + Dot -->
+						<div class="flex flex-col w-2 relative" style={``}>
+							<!-- Top Line (Connection from row above) -->
+							<div
+								style={`background: ${trip_data.color}; opacity: ${last_inactive_stop_idx >= i ? 0.4 : 1};`}
+								class={`h-3.5 sm:h-5 w-2 shrink-0 ${i == trip_data.stoptimes.length - 1 ? 'rounded-b-full' : ''}`}
+							></div>
+
+							<!-- Bottom Line (Connection to next) -->
+							<div
+								style={`background-color: ${i != trip_data.stoptimes.length - 1 ? trip_data.color : 'transparent'}; opacity: ${last_inactive_stop_idx >= i ? 0.4 : 1};`}
+								class={`w-2 grow ${i == 0 ? 'rounded-t-full' : ''}`}
+							></div>
+
+							<div
+								class={`absolute top-2.5 sm:top-4 left-0 w-2 h-2 rounded-full ${i > last_inactive_stop_idx ? 'bg-white' : ' bg-gray-400'}`}
+							></div>
+						</div>
+
+						<div class="mr-3 md:mr-4"></div>
+
+						<div
+							class={`w-full pt-1 sm:pt-2 pb-1 sm:pb-2 pr-1 lg:pr-2 flex flex-row justify-between items-center ${i <= last_inactive_stop_idx ? ' opacity-70' : ''}`}
+						>
+							<div class="flex flex-col">
+								<div class="text-sm sm:text-base">
+									{#if stoptime.name}
+										<span
+											on:click={() => {
+												//add the stop to the data stack
+
+												data_stack_store.update((x) => {
+													x.push(
+														new StackInterface(
+															new StopStack(trip_selected.chateau_id, stoptime.stop_id)
+														)
+													);
+													return x;
+												});
+											}}
+											class={`underline decoration-slate-500/80 hover:decoration-slate-500 cursor-pointer ${stoptime.schedule_relationship == 1 ? 'text-[#EF3841]' : stop_id_to_alert_ids[stoptime.stop_id] ? 'text-[#F99C24]' : ''}`}
+											>{fixStationName(stoptime.name)}</span
+										>
+									{/if}
+
+									{#if stop_id_to_alert_ids[stoptime.stop_id]}
+										<img src="/icons/service_alert.svg" alt="(i)" class="w-4 h-4 inline mr-1" />
+									{/if}
+
+									{#if stoptime.schedule_relationship == 1}
+										<img src="/icons/cancellation.svg" alt="(i)" class="w-4 h-4 inline mr-1" />
+									{/if}
+
+									{#if stoptime.code && show_stop_codes}
+										<span class="text-gray-800 dark:text-gray-200 font-extralight"
+											>{stoptime.code}</span
+										>
+									{/if}
+
+									{#if all_exact_stoptimes == false}
+										{#if stoptime.timepoint == true}
+											<div class="text-xs inline-block align-middle">
+												<TimelineClockOutline cssclass="h-4 w-4 text-gray-800 dark:text-gray-300" />
+											</div>
+										{/if}
+									{/if}
+								</div>
+
+								<!-- StopTimeNumber moved to left column -->
+
+								{#if stoptime.replaced_stop}
+									<p>{$_('replaced_stop')}</p>
+								{/if}
+
+								{#if timezones.filter((x) => x != null).length > 1}
+									<p class="text-xs text-gray-900 dark:text-gray-400">
+										{$_('timezone')}: {stoptime.timezone || trip_data.tz}
+									</p>
+								{/if}
+
+								{#if connectionKey}
+									<div class="flex flex-row flex-wrap gap-x-1 gap-y-1 mt-1">
+										<ConsolidatedRouteList
+											connections={stop_connections[connectionKey]}
+											{darkMode}
+										/>
+									</div>
+								{/if}
+							</div>
+
+							{#if stoptime.rt_platform_string}
+								<div class="pl-2">
+									<span
+										class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded text-sm font-bold text-gray-800 dark:text-gray-200 inline-block whitespace-nowrap"
+									>
+										{stoptime.rt_platform_string
+											.replace('Track', '')
+											.replace('platform', '')
+											.replace('Platform', '')
+											.trim()}
+									</span>
+								</div>
+							{/if}
+						</div>
+					</div>
+				{:else}
+					<!-- SINGLE ROW -->
+					<div class="flex flex-row">
+						<!-- Time Column -->
+						<div class="w-14 min-w-[3.5rem] mr-2 text-right text-sm pt-1 sm:pt-2.5">
+							<StopTimeNumber
+								{show_seconds}
+								{stoptime}
+								{trip_data}
+								{current_time}
+								variant="sidebar"
+							/>
+						</div>
+
+						<!-- Middle Column -->
+						<div class="flex flex-col w-2 relative" style={``}>
+							<!-- Standard top/bottom lines for single row -->
+							<div
+								style={`background: ${i - 1 == last_inactive_stop_idx && i != 0 ? `linear-gradient(${show_previous_stops ? `rgba(${Object.values(hexToRgb(trip_data.color)).join(',')}, 0.4)` : 'transparent'}, ${trip_data.color})` : i != 0 ? trip_data.color : 'transparent'};  opacity: ${last_inactive_stop_idx >= i ? 0.4 : 1};`}
+								class={`h-3.5 sm:h-5 w-2 shrink-0 ${i == trip_data.stoptimes.length - 1 ? 'rounded-b-full' : ''}`}
+							></div>
+
+							<div
+								style={`background-color: ${i != trip_data.stoptimes.length - 1 ? trip_data.color : 'transparent'}; opacity: ${last_inactive_stop_idx >= i ? 0.4 : 1};`}
+								class={`w-2 grow ${i == 0 ? 'rounded-t-full' : ''}`}
+							></div>
+
+							<div
+								class={`absolute top-2.5 sm:top-4 left-0 w-2 h-2 rounded-full ${i > last_inactive_stop_idx ? 'bg-white' : ' bg-gray-400'}`}
+							></div>
+						</div>
+
+						<div class="mr-3 md:mr-4"></div>
+
+						<div
+							class={`w-full pt-1 sm:pt-2 pb-1 sm:pb-2 pr-1 lg:pr-2 flex flex-row justify-between items-center ${i <= last_inactive_stop_idx ? ' opacity-70' : ''}`}
+						>
+							<div class="flex flex-col">
+								<div class="text-sm sm:text-base">
+									{#if stoptime.name}
+										<span
+											on:click={() => {
+												//add the stop to the data stack
+
+												data_stack_store.update((x) => {
+													x.push(
+														new StackInterface(
+															new StopStack(trip_selected.chateau_id, stoptime.stop_id)
+														)
+													);
+													return x;
+												});
+											}}
+											class={`underline decoration-slate-500/80 hover:decoration-slate-500 cursor-pointer ${stoptime.schedule_relationship == 1 ? 'text-[#EF3841]' : stop_id_to_alert_ids[stoptime.stop_id] ? 'text-[#F99C24]' : ''}`}
+											>{fixStationName(stoptime.name)}</span
+										>
+									{/if}
+
+									{#if stop_id_to_alert_ids[stoptime.stop_id]}
+										<img src="/icons/service_alert.svg" alt="(i)" class="w-4 h-4 inline mr-1" />
+									{/if}
+
+									{#if stoptime.schedule_relationship == 1}
+										<img src="/icons/cancellation.svg" alt="(i)" class="w-4 h-4 inline mr-1" />
+									{/if}
+
+									{#if stoptime.code && show_stop_codes}
+										<span class="text-gray-800 dark:text-gray-200 font-extralight"
+											>{stoptime.code}</span
+										>
+									{/if}
+
+									{#if all_exact_stoptimes == false}
+										{#if stoptime.timepoint == true}
+											<div class="text-xs inline-block align-middle">
+												<TimelineClockOutline cssclass="h-4 w-4 text-gray-800 dark:text-gray-300" />
+											</div>
+										{/if}
+									{/if}
+								</div>
+
+								{#if stoptime.replaced_stop}
+									<p>{$_('replaced_stop')}</p>
+								{/if}
+
+								{#if timezones.filter((x) => x != null).length > 1}
+									<p class="text-xs text-gray-900 dark:text-gray-400">
+										{$_('timezone')}: {stoptime.timezone || trip_data.tz}
+									</p>
+								{/if}
+
+								{#if connectionKey}
+									<div class="flex flex-row flex-wrap gap-x-1 gap-y-1 mt-1">
+										<ConsolidatedRouteList
+											connections={stop_connections[connectionKey]}
+											{darkMode}
+										/>
+									</div>
+								{/if}
+							</div>
+
+							{#if stoptime.rt_platform_string}
+								<div class="pl-2">
+									<span
+										class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded text-sm font-bold text-gray-800 dark:text-gray-200 inline-block whitespace-nowrap"
+									>
+										{stoptime.rt_platform_string
+											.replace('Track', '')
+											.replace('platform', '')
+											.replace('Platform', '')
+											.trim()}
+									</span>
+								</div>
+							{/if}
+						</div>
+					</div>
+				{/if}
 			{/if}
 		{/each}
 

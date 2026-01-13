@@ -74,6 +74,7 @@
 	"shownpreviousstops": "Mostrar {n} {n, plural, =1 {paragem} other{paragens}} anteriores",
 	"Platform": "Plataforma",
 	"show_gtfs_ids": "Mostrar IDs GTFS",
+	"show_stop_codes": "Mostrar códigos de paragem",
 	"alert_cause_unknown_cause": "Causa desconhecida",
 	"alert_cause_other_cause": "Outra causa",
 	"alert_cause_technical_problem": "Problema técnico",

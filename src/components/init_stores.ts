@@ -16,7 +16,8 @@ import {
 	show_gtfs_ids_store,
 	ui_theme_store,
 	show_seconds_store,
-	show_topo_global_store
+	show_topo_global_store,
+	show_stop_codes_store
 } from '../globalstores';
 
 export function init_stores() {
@@ -35,10 +36,17 @@ export function init_stores() {
 			window.localStorage.setItem('topography', value.toString());
 		});
 
+
 		if (window.localStorage.getItem('show_gtfs_ids') == 'true') {
 			show_gtfs_ids_store.set(true);
 		} else {
 			show_gtfs_ids_store.set(false);
+		}
+
+		if (window.localStorage.getItem('show_stop_codes') == 'true') {
+			show_stop_codes_store.set(true);
+		} else {
+			show_stop_codes_store.set(false);
 		}
 
 		if (window.localStorage.getItem('show_seconds') == 'true') {

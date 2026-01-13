@@ -74,6 +74,7 @@
 	"shownpreviousstops": "Rādīt {n} {n, plural, =1 {iepriekšējo pieturu} other {iepriekšējās pieturas}}",
 	"Platform": "Platforma",
 	"show_gtfs_ids": "Rādīt GTFS ID",
+	"show_stop_codes": "Rādīt pieturu kodus",
 	"alert_cause_unknown_cause": "Nezināms iemesls",
 	"alert_cause_other_cause": "Cits iemesls",
 	"alert_cause_technical_problem": "Tehniska problēma",

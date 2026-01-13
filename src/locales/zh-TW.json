@@ -73,6 +73,7 @@
 	"platform": "站台",
 	"Platform": "站台",
 	"show_gtfs_ids": "顯示 GTFS ID",
+	"show_stop_codes": "顯示站點代碼",
 	"alert_cause_unknown_cause": "未知原因",
 	"alert_cause_other_cause": "其他原因",
 	"alert_cause_technical_problem": "技術問題",

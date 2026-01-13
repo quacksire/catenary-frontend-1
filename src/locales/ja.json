@@ -74,6 +74,7 @@
 	"shownpreviousstops": "{n} 以前の {n, plural, =1 {停留所} other{停留所}} を表示",
 	"Platform": "プラットフォーム",
 	"show_gtfs_ids": "GTFS IDを表示",
+	"show_stop_codes": "停留所コードを表示",
 	"alert_cause_unknown_cause": "原因不明",
 	"alert_cause_other_cause": "その他の原因",
 	"alert_cause_technical_problem": "技術的な問題",

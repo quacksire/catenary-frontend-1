@@ -74,6 +74,7 @@
 	"shownpreviousstops": "Taispeáin {n} stopanna roimhe seo",
 	"Platform": "Ardán",
 	"show_gtfs_ids": "Taispeáin Aitheantas GTFS",
+	"show_stop_codes": "Taispeáin cóid stad",
 	"alert_cause_unknown_cause": "Cúis neamhaitheanta",
 	"alert_cause_other_cause": "Cúis eile",
 	"alert_cause_technical_problem": "Fadhb theicniúil",

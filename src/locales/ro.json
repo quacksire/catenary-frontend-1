@@ -74,6 +74,7 @@
 	"shownpreviousstops": "Arată {n} stații anterioare",
 	"Platform": "Platformă",
 	"show_gtfs_ids": "Arată ID-urile GTFS",
+	"show_stop_codes": "Arată codurile stațiilor",
 	"alert_cause_unknown_cause": "Cauză necunoscută",
 	"alert_cause_other_cause": "Altă cauză",
 	"alert_cause_technical_problem": "Problemă tehnică",

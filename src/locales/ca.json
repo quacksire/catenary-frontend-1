@@ -74,6 +74,7 @@
 	"shownpreviousstops": "Mostra {n} parades anteriors",
 	"Platform": "Andana",
 	"show_gtfs_ids": "Mostra els ID de GTFS",
+	"show_stop_codes": "Mostra els codis de parada",
 	"alert_cause_unknown_cause": "Causa desconeguda",
 	"alert_cause_other_cause": "Altres causes",
 	"alert_cause_technical_problem": "Problema tècnic",

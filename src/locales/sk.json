@@ -74,6 +74,7 @@
 	"shownpreviousstops": "Zobraziť {n} predchádzajúcich {n, plural, =1 {zastávka} other{zastávok}}",
 	"Platform": "Nástupište",
 	"show_gtfs_ids": "Zobraziť GTFS ID",
+	"show_stop_codes": "Zobraziť kódy zastávok",
 	"alert_cause_unknown_cause": "Neznáma príčina",
 	"alert_cause_other_cause": "Iná príčina",
 	"alert_cause_technical_problem": "Technický problém",

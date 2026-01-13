@@ -73,6 +73,7 @@
 	"shownpreviousstops": "{n, number}개의 이전 정류장 표시",
 	"platform": "승강장",
 	"show_gtfs_ids": "GTFS ID 표시",
+	"show_stop_codes": "정류장 코드 표시",
 	"alert_cause_unknown_cause": "알 수 없는 원인",
 	"alert_cause_other_cause": "기타 원인",
 	"alert_cause_technical_problem": "기술적 문제",

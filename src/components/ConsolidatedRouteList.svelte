@@ -79,7 +79,7 @@
 			<RatpBullet route_short_name={conn.route.short_name} matchTextHeight={false} />
 		{:else}
 			<div
-				class="px-0.75 py-0.25 text-xs rounded-sm"
+				class="px-0.5 py-0.5 text-[10px] leading-none rounded-sm"
 				style={`background-color: ${conn.route.color}; color: ${conn.route.text_color};`}
 			>
 				{#if conn.route.short_name}

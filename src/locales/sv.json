@@ -74,6 +74,7 @@
 	"shownpreviousstops": "Visa {n} tidigare {n, plural, =1 {hållplats} other{hållplatser}}",
 	"Platform": "Plattform",
 	"show_gtfs_ids": "Visa GTFS-ID:n",
+	"show_stop_codes": "Visa hållplatskoder",
 	"alert_cause_unknown_cause": "Okänd orsak",
 	"alert_cause_other_cause": "Annan orsak",
 	"alert_cause_technical_problem": "Tekniskt problem",

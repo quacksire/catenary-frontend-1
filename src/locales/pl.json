@@ -74,6 +74,7 @@
 	"shownpreviousstops": "Pokaż {n} poprzednich {n, plural, =1 {przystanek} other{przystanków}}",
 	"Platform": "Peron",
 	"show_gtfs_ids": "Pokaż identyfikatory GTFS",
+	"show_stop_codes": "Pokaż kody przystanków",
 	"alert_cause_unknown_cause": "Nieznana przyczyna",
 	"alert_cause_other_cause": "Inna przyczyna",
 	"alert_cause_technical_problem": "Problem techniczny",

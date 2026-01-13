@@ -74,6 +74,7 @@
 	"shownpreviousstops": "Előző {n} megálló megjelenítése",
 	"Platform": "Vágány",
 	"show_gtfs_ids": "GTFS azonosítók megjelenítése",
+	"show_stop_codes": "Megállókódok megjelenítése",
 	"alert_cause_unknown_cause": "Ismeretlen ok",
 	"alert_cause_other_cause": "Egyéb ok",
 	"alert_cause_technical_problem": "Műszaki probléma",

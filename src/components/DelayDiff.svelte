@@ -9,9 +9,13 @@
 
 	export let show_seconds = false;
 
-	let textclass: string = 'text-[0px]';
+	export let textclass: string = 'text-[0px]';
 
 	export let use_symbol_sign = false;
+
+	export let use_ticks = true;
+
+	export let alltextclass: string = '';
 
 	let h: number = 0;
 	let m: number = 0;
@@ -57,9 +61,14 @@
 			}
 		}
 
+		if (use_ticks) {
+			return "'";
+		}
+
 		if (show_seconds) {
 			return 'm';
 		}
+
 		return 'min';
 	}
 
@@ -78,6 +87,10 @@
 			if (l.startsWith('ja')) {
 				return '秒';
 			}
+		}
+
+		if (use_ticks) {
+			return '"';
 		}
 
 		return 's';
@@ -118,25 +131,28 @@
 </script>
 
 <span class={`${textclass} font-semibold text-[0px]`}>
-	<span class="font-medium">
-		{#if diff < 0}<span class="text-xs">{use_symbol_sign ? '-' : $_('early')}</span>
-		{/if}{#if diff > 0}<span class="text-xs">{use_symbol_sign ? '+' : $_('late')}</span>
-		{/if}{#if diff == 0 && !use_symbol_sign}<span class="text-xs font-semibold text-[#58A738]">{$_('ontime')}</span
+	<span class="font-medium {alltextclass} ">
+		{#if diff < 0}<span class="text-xs {alltextclass}">{use_symbol_sign ? '-' : $_('early')}</span>
+		{/if}{#if diff > 0}<span class="text-xs {alltextclass}"
+				>{use_symbol_sign ? '+' : $_('late')}</span
+			>
+		{/if}{#if diff == 0 && !use_symbol_sign}<span
+				class="text-xs font-semibold text-[#58A738] {alltextclass}">{$_('ontime')}</span
 			>{/if}
-		<span class="text-xs">&nbsp;</span>
+		<span class="text-xs {alltextclass}">&nbsp;</span>
 	</span>
 
 	{#if diff != 0}
 		{#if h > 0}
-			<span class="text-sm">{h}</span>
-			<span class="text-xs">{locale_hour_marking(this_locale)}</span>
+			<span class="text-sm {alltextclass}">{h}</span>
+			<span class="text-xs {alltextclass}">{locale_hour_marking(this_locale)}</span>
 		{/if}{#if h > 0 || m > 0 || (!show_seconds && m >= 0 && diff != 0)}
-			<span class="text-sm">{!show_seconds && Math.abs(diff) < 60 ? '<1' : m}</span>
-			<span class="text-xs">{locale_min_marking(this_locale)}</span>{/if}
+			<span class="text-sm {alltextclass}">{!show_seconds && Math.abs(diff) < 60 ? '<1' : m}</span>
+			<span class="text-xs {alltextclass}">{locale_min_marking(this_locale)}</span>{/if}
 		{#if show_seconds}
 			{#if Math.abs(diff) > 0}
 				<span class="text-sm">{s}</span>
-				<span class="text-xs">{locale_s_marking(this_locale)}</span>
+				<span class="text-xs {alltextclass}">{locale_s_marking(this_locale)}</span>
 			{/if}
 		{/if}
 	{/if}
