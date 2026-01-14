@@ -99,6 +99,7 @@
 	"alert_effect_no_effect": "Nav ietekmes",
 	"alert_effect_accessibility_issue": "Piekļūstamības problēma",
 	"service_alerts": "Pakalpojuma {n, plural, =1 {brīdinājums} other {brīdinājumi}}",
+	"service_alert": "Pakalpojuma brīdinājums",
 	"show_seconds_in_trips": "Rādīt sekundes reisos",
 	"system_theme": "Sistēmas",
 	"dark_theme": "Tumšs",

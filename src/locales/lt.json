@@ -99,6 +99,7 @@
 	"alert_effect_no_effect": "Be poveikio",
 	"alert_effect_accessibility_issue": "Prieinamumo problema",
 	"service_alerts": "Paslaugos {n, plural, =1 {įspėjimas} other{įspėjimai}}",
+	"service_alert": "Paslaugos įspėjimas",
 	"show_seconds_in_trips": "Rodyti sekundes kelionėse",
 	"system_theme": "Sistema",
 	"dark_theme": "Tamsi",

@@ -99,6 +99,7 @@
 	"alert_effect_no_effect": "Mõju puudub",
 	"alert_effect_accessibility_issue": "Ligipääsetavuse probleem",
 	"service_alerts": "Teenuse {n, plural, =1 {häälet} other{häireid}}",
+	"service_alert": "Teenuse häälet",
 	"show_seconds_in_trips": "Näita sekundeid sõitudes",
 	"system_theme": "Süsteemne",
 	"dark_theme": "Tume",

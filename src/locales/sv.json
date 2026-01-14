@@ -99,6 +99,7 @@
 	"alert_effect_no_effect": "Ingen effekt",
 	"alert_effect_accessibility_issue": "Tillgänglighetsproblem",
 	"service_alerts": "Service {n, plural, =1 {Varning} other{Varningar}}",
+	"service_alert": "Service Varning",
 	"show_seconds_in_trips": "Visa sekunder i resor",
 	"system_theme": "System",
 	"dark_theme": "Mörk",

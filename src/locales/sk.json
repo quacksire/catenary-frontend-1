@@ -99,6 +99,7 @@
 	"alert_effect_no_effect": "Žiadny účinok",
 	"alert_effect_accessibility_issue": "Problém s prístupnosťou",
 	"service_alerts": "Upozornenia na {n, plural, =1 {službu} other{služby}}",
+	"service_alert": "Upozornenia na službu",
 	"show_seconds_in_trips": "Zobraziť sekundy v jazdách",
 	"system_theme": "Systém",
 	"dark_theme": "Tmavá",

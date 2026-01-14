@@ -130,6 +130,7 @@
 	"ending_time": "Hora de fim",
 	"occupancy_percentage": "Percentagem de ocupação",
 	"service_alerts": "Avisos de Serviço {n, plural, =1 {Alerta} other{Alertas}}",
+	"service_alert": "Avisos de Serviço Alerta",
 	"trip_modified": "Viagem modificada",
 	"new_rt_shape": "Rota de desvio em tempo real desenhada",
 	"level": "Nível",

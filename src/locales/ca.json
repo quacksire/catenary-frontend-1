@@ -99,6 +99,7 @@
 	"alert_effect_no_effect": "Sense efecte",
 	"alert_effect_accessibility_issue": "Problema d'accessibilitat",
 	"service_alerts": "Servei {n, plural, =1 {Alerta} other{Alertes}}",
+	"service_alert": "Servei Alerta",
 	"show_seconds_in_trips": "Mostra segons en trajectes",
 	"system_theme": "Sistema",
 	"dark_theme": "Fosc",

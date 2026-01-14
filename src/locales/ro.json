@@ -99,6 +99,7 @@
 	"alert_effect_no_effect": "Niciun efect",
 	"alert_effect_accessibility_issue": "Problemă de accesibilitate",
 	"service_alerts": "Serviciu {n, plural, =1 {Alertă} other{Alerte}}",
+	"service_alert": "Serviciu Alertă",
 	"show_seconds_in_trips": "Arată secunde în călătorii",
 	"system_theme": "Sistem",
 	"dark_theme": "Întuneric",

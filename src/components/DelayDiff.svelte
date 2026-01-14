@@ -136,9 +136,9 @@
 		{/if}{#if diff > 0}<span class="text-xs {alltextclass}"
 				>{use_symbol_sign ? '+' : $_('late')}</span
 			>
-		{/if}{#if diff == 0 && !use_symbol_sign}<span
-				class="text-xs font-semibold text-[#58A738] {alltextclass}">{$_('ontime')}</span
-			>{/if}
+		{/if}{#if diff == 0}<span class="text-xs font-semibold text-[#58A738] {alltextclass}">
+				{#if use_symbol_sign}+0{:else}{$_('ontime')}{/if}
+			</span>{/if}
 		<span class="text-xs {alltextclass}">&nbsp;</span>
 	</span>
 

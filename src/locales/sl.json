@@ -99,6 +99,7 @@
 	"alert_effect_no_effect": "Brez učinka",
 	"alert_effect_accessibility_issue": "Težava z dostopnostjo",
 	"service_alerts": "Opozoril{n, plural, =1 {o} other{a}} na storitev",
+	"service_alert": "Opozorilo na storitev",
 	"show_seconds_in_trips": "Prikaži sekunde na vožnjah",
 	"system_theme": "Sistem",
 	"dark_theme": "Temno",

@@ -99,6 +99,7 @@
 	"alert_effect_no_effect": "Ei vaikutusta",
 	"alert_effect_accessibility_issue": "Esteettömyysongelma",
 	"service_alerts": "Liikenne{n, plural, =1 {tiedote} other{tiedotteet}}",
+	"service_alert": "Liikennetiedote",
 	"show_seconds_in_trips": "Näytä sekunnit matkoissa",
 	"system_theme": "Järjestelmä",
 	"dark_theme": "Tumma",

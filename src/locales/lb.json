@@ -99,6 +99,7 @@
 	"alert_effect_no_effect": "Keen Effekt",
 	"alert_effect_accessibility_issue": "Accessibilitéitsprobleem",
 	"service_alerts": "Service {n, plural, =1 {Alarm} other{Alarmen}}",
+	"service_alert": "Service Alarm",
 	"show_seconds_in_trips": "Sekonnen a Reesen weisen",
 	"system_theme": "System",
 	"dark_theme": "Donkel",
