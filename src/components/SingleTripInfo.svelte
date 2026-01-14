@@ -125,6 +125,10 @@
 
 	let last_inactive_stop_idx = -1;
 
+	let moving_dot_segment_idx = -1;
+	let moving_dot_progress = 0;
+	let is_at_station = false;
+
 	async function update_vehicle_rt() {
 		// /get_vehicle_information_from_label/{chateau}/{vehicle_label}
 		if (trip_data) {
@@ -881,6 +885,39 @@
 			// expose to template
 			last_inactive_stop_idx = last_departed_idx;
 			current_at_stop_idx_store = current_at_stop_idx;
+
+			// Calculate moving dot state
+			is_at_station = current_at_stop_idx !== -1;
+			moving_dot_segment_idx = -1;
+			moving_dot_progress = 0;
+
+			if (
+				!is_at_station &&
+				last_departed_idx !== -1 &&
+				last_departed_idx < stoptimes_cleaned_dataset.length - 1
+			) {
+				const prevStop = stoptimes_cleaned_dataset[last_departed_idx];
+				const nextStop = stoptimes_cleaned_dataset[last_departed_idx + 1];
+
+				const dep =
+					typeof prevStop.rt_departure_time === 'number'
+						? prevStop.rt_departure_time
+						: (prevStop.scheduled_departure_time_unix_seconds ??
+							prevStop.interpolated_stoptime_unix_seconds ??
+							null);
+
+				const arr =
+					typeof nextStop.rt_arrival_time === 'number'
+						? nextStop.rt_arrival_time
+						: (nextStop.scheduled_arrival_time_unix_seconds ?? null);
+
+				if (dep != null && arr != null && arr > dep) {
+					moving_dot_segment_idx = last_departed_idx;
+					const total = arr - dep;
+					const elapsed = nowSec - dep;
+					moving_dot_progress = Math.max(0, Math.min(1, elapsed / total));
+				}
+			}
 		}, 100);
 
 		return () => {
@@ -1158,7 +1195,7 @@
 				{@const connectionKey = stop_connections[stoptime.stop_id] ? stoptime.stop_id : null}
 				{@const isDoubleTime = shouldShowDoubleTime(stoptime)}
 
-				{#if show_previous_stops || i > last_inactive_stop_idx}
+				{#if show_previous_stops || i > last_inactive_stop_idx - 1}
 					{#if isDoubleTime}
 						<!-- Arrival Row -->
 						<tr class={`min-h-[3rem] ${i <= last_inactive_stop_idx ? 'opacity-60' : ''}`}>
@@ -1191,7 +1228,7 @@
 									<!-- Continuous Line -->
 									<div
 										class="w-0.5 h-full bg-current"
-										style={`background-color: ${trip_data.color}; opacity: ${i <= last_inactive_stop_idx + 1 ? '0.4' : '1'};`}
+										style={`background-color: ${trip_data.color}; opacity: ${i <= last_inactive_stop_idx ? '0.4' : '1'};`}
 									></div>
 								</div>
 							</td>
@@ -1202,9 +1239,13 @@
 					{/if}
 
 					<!-- Main/Departure Row -->
-					<tr class={`min-h-[3rem] ${i <= last_inactive_stop_idx ? 'opacity-60' : ''}`}>
+					<tr class={`min-h-[3rem]`}>
 						<!-- Time Column: Departure (or single time) -->
-						<td class="w-[3.5rem] align-top text-right">
+						<td
+							class="w-[3.5rem] align-top text-right {i <= last_inactive_stop_idx
+								? 'opacity-60'
+								: ''}"
+						>
 							<div class="flex flex-col items-end">
 								<div class="font-bold leading-none text-sm">
 									<Clock
@@ -1234,7 +1275,7 @@
 									{#if i < stoptimes_cleaned_dataset.length - 1}
 										<div
 											class="w-0.5 absolute top-0 bottom-1/2 bg-current"
-											style={`background-color: ${trip_data.color}; opacity: ${i <= last_inactive_stop_idx + 1 ? '0.4' : '1'};`}
+											style={`background-color: ${trip_data.color}; opacity: ${i <= last_inactive_stop_idx ? '0.4' : '1'};`}
 										></div>
 									{/if}
 								{/if}
@@ -1243,20 +1284,35 @@
 								{#if i < stoptimes_cleaned_dataset.length - 1}
 									<div
 										class="w-0.5 absolute top-1/2 bottom-0 bg-current"
-										style={`background-color: ${trip_data.color}; opacity: ${i <= last_inactive_stop_idx ? '0.4' : '1'};`}
+										style={`background-color: ${trip_data.color}; opacity: ${i <= last_inactive_stop_idx - 1 ? '0.4' : '1'};`}
 									></div>
 								{/if}
 
 								<!-- Dot -->
-								<div
-									class={`z-10 w-2 h-2 mt-1 rounded-full border-1 bg-white dark:bg-black `}
-									style={`border-color: ${trip_data.color}; box-shadow: 0 0 0 2px ${darkMode ? '#000' : '#fff'};`}
-								></div>
+								{#if is_at_station && i == current_at_stop_idx}
+									<div
+										class="z-20 w-3 h-3 mt-1 rounded-full animate-pulse"
+										style={`background-color: ${trip_data.color};`}
+									></div>
+								{:else}
+									<div
+										class={`z-10 w-2 h-2 mt-1 rounded-full border-1 bg-white dark:bg-black `}
+										style={`border-color: ${trip_data.color}; box-shadow: 0 0 0 2px ${darkMode ? '#000' : '#fff'};`}
+									></div>
+								{/if}
+
+								<!-- Interpolated Moving Dot -->
+								{#if !is_at_station && i == moving_dot_segment_idx}
+									<div
+										class="absolute z-50 w-3 h-3 rounded-full animate-pulse"
+										style={`background-color: ${trip_data.color}; top: calc(${moving_dot_progress * 100}% + 0.25rem); left: 50%; transform: translateX(-50%);`}
+									></div>
+								{/if}
 							</div>
 						</td>
 
 						<!-- Content Column -->
-						<td class="align-top pb-6 pl-4">
+						<td class="align-top pb-6 pl-4 {i <= last_inactive_stop_idx ? 'opacity-60' : ''}">
 							<div class="flex flex-col">
 								<!-- Header: Station Name + Platform -->
 								<div class="flex flex-row justify-between items-start leading-none gap-2">
