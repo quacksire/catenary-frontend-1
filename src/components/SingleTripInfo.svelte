@@ -1334,8 +1334,8 @@
 									></div>
 								{:else}
 									<div
-										class={`z-10 w-2 h-2 mt-1 rounded-full border-1 bg-transparent `}
-										style={`border-color: ${trip_data.color}; box-shadow: 0 0 0 2px ${darkMode ? '#000' : '#fff'};`}
+										class={`z-10 w-2 h-2 mt-1 rounded-full border-1 bg-white dark:bg-gray-800 `}
+										style={`border-color: ${trip_data.color}; box-shadow: 0 0 0 2px ${darkMode ? '#114' : '#fff'};`}
 									></div>
 								{/if}
 
