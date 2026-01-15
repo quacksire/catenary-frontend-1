@@ -37,7 +37,7 @@
 						showAndroidDownloadPopup = false;
 						localStorage.setItem('androidPopupDismissed', 'true');
 					}}
-					class="px-4 py-2 rounded-full font-semibold bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+					class="px-4 py-2 rounded-full font-semibold bg-transparent text-black dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
 				>
 					{$_('keepusingweb')}
 				</button>

@@ -139,4 +139,6 @@
 	"decline": "Rebutjar",
 	"show_arrivals": "Mostrar arribades a l'última estació",
 	"stations": "Estacions"
+,
+	"show_countdown": "Mostrar el compte enrere per aturar"
 }

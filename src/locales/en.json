@@ -103,6 +103,7 @@
 	"service_alerts": "Service {n, plural, =1 {Alert} other{Alerts}}",
 	"service_alert": "Service Alert",
 	"show_seconds_in_trips": "Show seconds in trips",
+	"show_countdown": "Show countdown to stop",
 	"system_theme": "System",
 	"dark_theme": "Dark",
 	"light_theme": "Light",

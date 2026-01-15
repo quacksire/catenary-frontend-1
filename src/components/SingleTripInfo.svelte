@@ -74,7 +74,8 @@
 		show_gtfs_ids_store,
 		ui_theme_store,
 		stops_to_hide_store,
-		show_stop_codes_store
+		show_stop_codes_store,
+		show_countdown_to_stop_store
 	} from '../globalstores';
 	//import RouteHeading from './RouteHeading.svelte';
 	import { hexToRgb } from '../utils/colour';
@@ -113,6 +114,11 @@
 	let show_stop_codes = get(show_stop_codes_store);
 	show_stop_codes_store.subscribe((value) => {
 		show_stop_codes = value;
+	});
+
+	let show_countdown_to_stop = get(show_countdown_to_stop_store);
+	show_countdown_to_stop_store.subscribe((value) => {
+		show_countdown_to_stop = value;
 	});
 
 	let current_at_stop_idx_store = -1;
@@ -1200,17 +1206,33 @@
 						<!-- Arrival Row -->
 						<tr class={`min-h-[3rem] ${i <= last_inactive_stop_idx ? 'opacity-60' : ''}`}>
 							<!-- Time Column: Arrival -->
-							<td class="w-[3.5rem] align-top text-right border-r-0">
+							<td class="align-top text-right border-r-0 whitespace-nowrap">
 								<div class="flex flex-col items-end">
-									<div class="leading-none mb-1 text-gray-500 dark:text-gray-400 text-sm">
-										<Clock
-											timezone={stoptime.timezone || trip_data.tz}
-											time_seconds={stoptime.rt_arrival_time ||
-												stoptime.scheduled_arrival_time_unix_seconds ||
-												stoptime.interpolated_stoptime_unix_seconds}
-											{show_seconds}
-										/>
+									<div class="flex flex-row items-baseline gap-2 mb-1">
+										{#if show_countdown_to_stop}
+											<div class="leading-none text-xs italic opacity-80">
+												<TimeDiff
+													diff={(stoptime.rt_arrival_time ||
+														stoptime.scheduled_arrival_time_unix_seconds ||
+														stoptime.interpolated_stoptime_unix_seconds) -
+														current_time / 1000}
+													show_seconds={true}
+													show_brackets={false}
+													use_ticks={true}
+												/>
+											</div>
+										{/if}
+										<div class="leading-none text-gray-500 dark:text-gray-400 text-sm">
+											<Clock
+												timezone={stoptime.timezone || trip_data.tz}
+												time_seconds={stoptime.rt_arrival_time ||
+													stoptime.scheduled_arrival_time_unix_seconds ||
+													stoptime.interpolated_stoptime_unix_seconds}
+												{show_seconds}
+											/>
+										</div>
 									</div>
+
 									<!-- Arrival Delay -->
 									{#if stoptime.rt_arrival_diff}
 										<div class="leading-none mb-1">
@@ -1242,20 +1264,36 @@
 					<tr class={`min-h-[3rem]`}>
 						<!-- Time Column: Departure (or single time) -->
 						<td
-							class="w-[3.5rem] align-top text-right {i <= last_inactive_stop_idx
-								? 'opacity-60'
+							class="align-top text-right whitespace-nowrap {i <= last_inactive_stop_idx
+								? 'opacity-70'
 								: ''}"
 						>
 							<div class="flex flex-col items-end">
-								<div class="font-bold leading-none text-sm">
-									<Clock
-										timezone={stoptime.timezone || trip_data.tz}
-										time_seconds={stoptime.rt_departure_time ||
-											stoptime.scheduled_departure_time_unix_seconds ||
-											stoptime.interpolated_stoptime_unix_seconds}
-										{show_seconds}
-									/>
+								<div class="flex flex-row items-baseline gap-2">
+									{#if show_countdown_to_stop}
+										<div class="leading-none text-xs italic opacity-75">
+											<TimeDiff
+												diff={(stoptime.rt_departure_time ||
+													stoptime.scheduled_departure_time_unix_seconds ||
+													stoptime.interpolated_stoptime_unix_seconds) -
+													current_time / 1000}
+												show_seconds={true}
+												show_brackets={false}
+												use_ticks={true}
+											/>
+										</div>
+									{/if}
+									<div class="font-bold leading-none text-sm">
+										<Clock
+											timezone={stoptime.timezone || trip_data.tz}
+											time_seconds={stoptime.rt_departure_time ||
+												stoptime.scheduled_departure_time_unix_seconds ||
+												stoptime.interpolated_stoptime_unix_seconds}
+											{show_seconds}
+										/>
+									</div>
 								</div>
+
 								<!-- Departure Delay -->
 								{#if stoptime.rt_departure_diff}
 									<div class="leading-none">

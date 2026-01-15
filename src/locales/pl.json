@@ -119,4 +119,6 @@
 	"ending_time": "Czas zakończenia",
 	"show_arrivals": "Pokaż przyjazdy na ostatniej stacji",
 	"stations": "Stacje"
+,
+	"show_countdown": "Pokaż odliczanie do przystanku"
 }

@@ -124,4 +124,6 @@
 	"decline": "辞退",
 	"show_arrivals": "終着駅の到着を表示",
 	"stations": "駅"
+,
+	"show_countdown": "停車までのカウントダウンを表示"
 }

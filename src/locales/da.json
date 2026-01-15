@@ -123,4 +123,6 @@
 	"decline": "Afvis",
 	"show_arrivals": "Vis ankomster ved sidste station",
 	"stations": "Stationer"
+,
+	"show_countdown": "Vis nedtælling til stop"
 }

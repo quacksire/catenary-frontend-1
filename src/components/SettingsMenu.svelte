@@ -7,7 +7,8 @@
 		show_gtfs_ids_store,
 		ui_theme_store,
 		show_seconds_store,
-		show_stop_codes_store
+		show_stop_codes_store,
+		show_countdown_to_stop_store
 	} from '../globalstores';
 
 	import { livedotscaling_store } from '../fontscalingstores';
@@ -215,6 +216,25 @@
 			}}
 		/>
 		<p>{$_('show_seconds_in_trips')}</p>
+	</div>
+
+	<div class="flex flex-row gap-x-2">
+		<input
+			type="checkbox"
+			class="accent-seashore"
+			checked={get(show_countdown_to_stop_store)}
+			on:click={() => {
+				show_countdown_to_stop_store.update((x) => !x);
+				window.localStorage.show_countdown_to_stop = get(show_countdown_to_stop_store);
+			}}
+			on:keydown={(e) => {
+				if (e.key === 'Enter') {
+					show_countdown_to_stop_store.update((x) => !x);
+					window.localStorage.show_countdown_to_stop = get(show_countdown_to_stop_store);
+				}
+			}}
+		/>
+		<p>{$_('show_countdown')}</p>
 	</div>
 
 	<div class="text-xl">

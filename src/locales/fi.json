@@ -144,4 +144,6 @@
 	"decline": "Hylkää",
 	"show_arrivals": "Näytä saapumiset viimeisellä asemalla",
 	"stations": "Asemat"
+,
+	"show_countdown": "Näytä lähtölaskenta pysäkille"
 }

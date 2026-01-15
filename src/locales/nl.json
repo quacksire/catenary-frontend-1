@@ -119,4 +119,6 @@
 	"ending_time": "Eindtijd",
 	"show_arrivals": "Aankomsten op het laatste station weergeven",
 	"stations": "Stations"
+,
+	"show_countdown": "Toon aftellen tot halte"
 }

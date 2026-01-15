@@ -143,4 +143,6 @@
 	"decline": "Elutasít",
 	"show_arrivals": "Utolsó állomásra érkezők megjelenítése",
 	"stations": "Állomások"
+,
+	"show_countdown": "Visszaszámlálás mutatása megállóig"
 }

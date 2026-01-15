@@ -136,4 +136,6 @@
 	"occupancy_percentage": "Beläggningsprocent",
 	"show_arrivals": "Visa ankomster vid sista stationen",
 	"stations": "Stationer"
+,
+	"show_countdown": "Visa nedräkning till stopp"
 }

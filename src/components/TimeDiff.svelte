@@ -11,6 +11,8 @@
 
 	let textclass: string = 'slashed-zero tabular-nums';
 
+	export let use_ticks = false;
+
 	let h: number = 0;
 	let m: number = 0;
 	let s: number = 0;
@@ -85,6 +87,10 @@
 			}
 		}
 
+		if (use_ticks) {
+			return "'";
+		}
+
 		return 'min';
 	}
 
@@ -105,10 +111,17 @@
 			}
 		}
 
+		if (use_ticks) {
+			return '"';
+		}
+
 		return 's';
 	}
 
 	locale.subscribe((x) => (this_locale = x));
+
+	let m_string = '';
+	let s_string = '';
 
 	$: if (diff) {
 		let remainder = Math.floor(Math.abs(diff));
@@ -122,6 +135,26 @@
 		m = Math.floor(remainder / 60);
 		remainder = remainder - m * 60;
 		s = remainder;
+
+		if (h > 0) {
+			if (m < 10) {
+				m_string = '0' + m.toString();
+			} else {
+				m_string = m.toString();
+			}
+		} else {
+			m_string = m.toString();
+		}
+
+		if (m > 0) {
+			if (s < 10) {
+				s_string = '0' + s.toString();
+			} else {
+				s_string = s.toString();
+			}
+		} else {
+			s_string = s.toString();
+		}
 	}
 </script>
 
@@ -146,13 +179,13 @@
 		>
 	{/if}
 	{#if h > 0 || m > 0 || (!show_seconds && m >= 0 && diff != 0)}
-		<span class={large ? 'text-base' : 'text-sm'}>{m}</span>
+		<span class="{large ? 'text-base' : 'text-sm'} tabular-nums">{m_string}</span>
 		<span class={`${large ? 'text-sm' : 'text-xs'}  ${stylesForUnits}`}
 			>{locale_min_marking(this_locale)}</span
 		>
 	{/if}
 	{#if show_seconds}
-		<span class={large ? 'text-base' : 'text-sm'}>{s.toFixed(0)}</span>
+		<span class="{large ? 'text-base' : 'text-sm'} tabular-nums">{s_string}</span>
 		<span class={`${large ? 'text-sm' : 'text-xs'}  ${stylesForUnits}`}
 			>{locale_s_marking(this_locale)}</span
 		>

@@ -132,4 +132,6 @@
 	"search_here": "在此处搜索",
 	"show_arrivals": "显示最后一站到达",
 	"stations": "车站"
+,
+	"show_countdown": "显示到站倒计时"
 }

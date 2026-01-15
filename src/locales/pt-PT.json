@@ -138,4 +138,6 @@
 	"noormdata": "Ocultar dados do Open Railway Map",
 	"show_arrivals": "Mostrar chegadas na última estação",
 	"stations": "Estações"
+,
+	"show_countdown": "Mostrar contagem decrescente para a paragem"
 }
