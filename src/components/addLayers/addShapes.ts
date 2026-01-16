@@ -12,7 +12,6 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 		'source-layer': 'data',
 		filter: [
 			'all',
-			//   ['!=', ['get', 'onestop_feed_id'], 'f-9-flixbus'],
 			[
 				'!',
 				[
@@ -36,7 +35,7 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 					[
 						'any',
 						['==', 'autobús~interurbano~de~cataluña', ['get', 'chateau']],
-						['==', 'flixbus', ['get', 'chateau']],
+						['==', 'flixbus~europe', ['get', 'chateau']],
 						['==', 'f-ahverkehrsverbund~schleswig~holstein~nah', ['get', 'chateau']]
 					],
 					['==', true, ['get', 'stop_to_stop_generated']]
@@ -86,7 +85,7 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 					[
 						'any',
 						['==', 'autobús~interurbano~de~cataluña', ['get', 'chateau']],
-						['==', 'flixbus', ['get', 'chateau']],
+						['==', 'flixbus~europe', ['get', 'chateau']],
 						['==', 'f-ahverkehrsverbund~schleswig~holstein~nah', ['get', 'chateau']]
 					],
 					['==', true, ['get', 'stop_to_stop_generated']]
@@ -100,13 +99,13 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 			//'text-field': ['coalesce', ['get', 'route_label']],
 			'text-field': urlParams.get('debug')
 				? [
-						'concat',
-						['get', 'onestop_feed_id'],
-						'|',
-						['get', 'shape_id'],
-						'|',
-						['coalesce', ['get', 'route_label']]
-					]
+					'concat',
+					['get', 'onestop_feed_id'],
+					'|',
+					['get', 'shape_id'],
+					'|',
+					['coalesce', ['get', 'route_label']]
+				]
 				: ['coalesce', ['get', 'route_label']],
 			//'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
 			'text-font': ['literal', ['NotoSans-Regular']],
