@@ -100,12 +100,15 @@
 					</div>
 				{/if}
 
+				{@const thisdiff = (shared_rt_time || shared_scheduled_time) - current_time / 1000}
+				{@const show_seconds_here = show_seconds && thisdiff < 3600}
 				<div class="mt-1">
 					<TimeDiff
 						large={false}
 						show_brackets={false}
-						{show_seconds}
-						diff={(shared_rt_time || shared_scheduled_time) - current_time / 1000}
+						show_seconds={show_seconds_here}
+						diff={thisdiff}
+						use_ticks={true}
 					/>
 				</div>
 			{/if}
@@ -166,10 +169,9 @@
 					{:else}
 						<span>{agencyName}</span>
 					{/if}
-					
 				{/if}
 				{#if show_route_name && !routeDef?.short_name}
-				<span class="opacity-80">•</span>
+					<span class="opacity-80">•</span>
 					<span
 						class="font-bold px-1 py-0.5 rounded-xs text-xs"
 						style={`background: ${routeDef?.color}; color: ${routeDef?.text_color};`}
