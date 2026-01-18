@@ -4,6 +4,7 @@
 	import { IDFM_CHATEAU_ID, isRatpRoute } from '../utils/ratp_utils';
 	import MtaBullet from './mtabullet.svelte';
 	import RatpBullet from './ratpbullet.svelte';
+	import { getAgencyInfo } from '../utils/national_rail_utils';
 
 	// Interface for route info
 	interface RouteInfo {
@@ -41,22 +42,31 @@
 	export let chateau_id: string | null = null;
 
 	// Computed values for UK National Rail grouping
-	$: gwr_routes = routeIds.filter((r) => getRouteInfo(r)?.agency_id === 'GW');
-	$: sw_routes = routeIds.filter((r) => getRouteInfo(r)?.agency_id === 'SW');
-	$: sn_routes = routeIds.filter((r) => getRouteInfo(r)?.agency_id === 'SN');
-	$: cc_routes = routeIds.filter((r) => getRouteInfo(r)?.agency_id === 'CC');
-	$: le_routes = routeIds.filter((r) => getRouteInfo(r)?.agency_id === 'LE');
+	// Computed values for UK National Rail grouping
+	$: agency_lookups = routeIds.map((r) => {
+		const info = getRouteInfo(r);
+		return {
+			r,
+			agency: getAgencyInfo(info?.agency_id)
+		};
+	});
 
-	$: grouped_route_ids = new Set([
-		...gwr_routes,
-		...sw_routes,
-		...sn_routes,
-		...cc_routes,
-		...le_routes
-	]);
+	$: grouped_agencies = (() => {
+		const unique = new Map();
+		agency_lookups.forEach((item) => {
+			if (item.agency) {
+				unique.set(item.agency.name, item.agency);
+			}
+		});
+		return Array.from(unique.values());
+	})();
+
+	$: handled_route_ids = new Set(
+		agency_lookups.filter((item) => item.agency).map((item) => item.r)
+	);
 
 	// Filter out grouped routes and sort by route type category
-	$: ungrouped_routes = routeIds.filter((r) => !grouped_route_ids.has(r));
+	$: ungrouped_routes = routeIds.filter((r) => !handled_route_ids.has(r));
 	$: rail_routes = ungrouped_routes.filter(
 		(r) => getRouteCategory(getRouteInfo(r)?.route_type) === 'rail'
 	);
@@ -74,13 +84,7 @@
 	);
 
 	// Track which categories have content (including UK rail grouped routes for rail category)
-	$: has_rail =
-		gwr_routes.length > 0 ||
-		sw_routes.length > 0 ||
-		sn_routes.length > 0 ||
-		cc_routes.length > 0 ||
-		le_routes.length > 0 ||
-		rail_routes.length > 0;
+	$: has_rail = grouped_agencies.length > 0 || rail_routes.length > 0;
 	$: has_metro = metro_routes.length > 0;
 	$: has_tram = tram_routes.length > 0;
 	$: has_bus = bus_routes.length > 0;
@@ -107,60 +111,19 @@
 
 <div class="flex flex-row gap-x-0.5 w-full flex-wrap gap-y-1 items-center">
 	<!-- RAIL category (UK grouped routes + rail_routes) -->
-	{#if gwr_routes.length > 0}
+	<!-- RAIL category (UK grouped routes + rail_routes) -->
+	{#each grouped_agencies as agency}
 		<div class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded">
-			<img
-				src="https://maps.catenarymaps.org/agencyicons/GreaterWesternRailway.svg"
-				alt="Great Western Railway"
-				class="h-3 inline-block dark:hidden mr-1"
-			/>
-			<img
-				src="https://maps.catenarymaps.org/agencyicons/GreaterWesternRailway.svg"
-				alt="Great Western Railway"
-				class="h-3 hidden dark:inline-block mr-1"
-			/>
-			<span class="text-xs font-semibold">Great Western Railway</span>
+			{#if agency.icon}
+				<img
+					src={`https://maps.catenarymaps.org/agencyicons/${agency.icon}`}
+					alt={agency.name}
+					class="h-3 inline-block mr-1"
+				/>
+			{/if}
+			<span class="text-xs font-semibold">{agency.name}</span>
 		</div>
-	{/if}
-
-	{#if sw_routes.length > 0}
-		<div class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded">
-			<img
-				src="https://maps.catenarymaps.org/agencyicons/SouthWesternRailway.svg"
-				alt="South Western Railway"
-				class="h-3 inline-block mr-1"
-			/>
-			<span class="text-xs font-semibold">South Western Railway</span>
-		</div>
-	{/if}
-
-	{#if sn_routes.length > 0}
-		<div class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded">
-			<img
-				src="https://maps.catenarymaps.org/agencyicons/SouthernIcon.svg"
-				alt="Southern"
-				class="h-3 inline-block mr-1"
-			/>
-			<span class="text-xs font-semibold">Southern</span>
-		</div>
-	{/if}
-
-	{#if cc_routes.length > 0}
-		<div class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded">
-			<img
-				src="https://maps.catenarymaps.org/agencyicons/c2c_logo.svg"
-				alt="c2c"
-				class="h-3 inline-block mr-1"
-			/>
-			<span class="text-xs font-semibold">c2c</span>
-		</div>
-	{/if}
-
-	{#if le_routes.length > 0}
-		<div class="flex flex-row items-center mr-2 bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded">
-			<span class="text-xs font-semibold">Greater Anglia</span>
-		</div>
-	{/if}
+	{/each}
 
 	{#each rail_routes as routeId}
 		{@const routeInfo = getRouteInfo(routeId)}
