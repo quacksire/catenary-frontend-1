@@ -62,7 +62,9 @@
 		}
 
 		if (use_ticks) {
-			return "'";
+			if (l.startsWith("fr")) {
+				return "'";
+			}
 		}
 
 		if (show_seconds) {
@@ -90,7 +92,9 @@
 		}
 
 		if (use_ticks) {
-			return '"';
+			if (l.startsWith("fr")) {
+				return '"';
+			}
 		}
 
 		return 's';
