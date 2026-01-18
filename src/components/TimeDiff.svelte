@@ -88,7 +88,9 @@
 		}
 
 		if (use_ticks) {
-			return "'";
+			if (l.startsWith("fr")) {
+				return "'";
+			}
 		}
 
 		return 'min';
@@ -111,7 +113,7 @@
 			}
 		}
 
-		if (use_ticks) {
+		if (l.startsWith("fr") && use_ticks == true) {
 			return '"';
 		}
 
