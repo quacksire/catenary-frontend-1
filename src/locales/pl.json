@@ -118,7 +118,7 @@
 	"starting_time": "Czas rozpoczęcia",
 	"ending_time": "Czas zakończenia",
 	"show_arrivals": "Pokaż przyjazdy na ostatniej stacji",
-	"stations": "Stacje"
-,
-	"show_countdown": "Pokaż odliczanie do przystanku"
+	"stations": "Stacje",
+	"show_countdown": "Pokaż odliczanie do przystanku",
+	"more_departures": "Więcej odjazdów"
 }

@@ -135,7 +135,7 @@
 	"level": "Nivel",
 	"occupancy_percentage": "Procentaj de ocupare",
 	"show_arrivals": "Afișează sosirile la ultima stație",
-	"stations": "Stații"
-,
-	"show_countdown": "Afișați numărătoarea inversă până la oprire"
+	"stations": "Stații",
+	"show_countdown": "Afișați numărătoarea inversă până la oprire",
+	"more_departures": "Mai multe plecări"
 }

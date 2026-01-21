@@ -139,7 +139,7 @@
 	"accept": "Akzeptieren",
 	"decline": "Ablehnen",
 	"show_arrivals": "Ankünfte am letzten Bahnhof anzeigen",
-	"stations": "Stationen"
-,
-	"show_countdown": "Countdown bis zum Halt anzeigen"
+	"stations": "Stationen",
+	"show_countdown": "Countdown bis zum Halt anzeigen",
+	"more_departures": "Mehr Abfahrten"
 }

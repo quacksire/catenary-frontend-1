@@ -135,7 +135,7 @@
 	"occupancy_percentage": "점유율",
 	"gpsdisclaimer": "대기 시간이 너무 길다면, 이 사이트에 귀하의 위치에 접근할 수 있는 브라우저 권한이 있는지 확인하고, GPS 신호가 강한지 확인하세요.",
 	"show_arrivals": "마지막 역 도착 보기",
-	"stations": "역"
-,
-	"show_countdown": "정류장까지 카운트다운 표시"
+	"stations": "역",
+	"show_countdown": "정류장까지 카운트다운 표시",
+	"more_departures": "더 많은 출발"
 }

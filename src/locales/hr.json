@@ -142,7 +142,7 @@
 	"accept": "Prihvati",
 	"decline": "Odbij",
 	"show_arrivals": "Prikaži dolaske na zadnjoj stanici",
-	"stations": "Stanice"
-,
-	"show_countdown": "Prikaži odbrojavanje do stanice"
+	"stations": "Stanice",
+	"show_countdown": "Prikaži odbrojavanje do stanice",
+	"more_departures": "Više polazaka"
 }

@@ -135,7 +135,7 @@
 	"level": "Niveau",
 	"occupancy_percentage": "Besetzungsprozentsaz",
 	"show_arrivals": "Arrivéeën op der leschter Statioun uweisen",
-	"stations": "Statiounen"
-,
-	"show_countdown": "Countdown bis zur Haltestelle anzeigen"
+	"stations": "Statiounen",
+	"show_countdown": "Countdown bis zur Haltestelle anzeigen",
+	"more_departures": "Méi Departen"
 }

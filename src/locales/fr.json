@@ -157,7 +157,7 @@
 	"continue": "Continuer",
 	"stop_cancelled": "Arrêt annulé",
 	"show_arrivals": "Afficher les arrivées à la dernière station",
-	"stations": "Stations"
-,
-	"show_countdown": "Afficher le compte à rebours jusqu'à l'arrêt"
+	"stations": "Stations",
+	"show_countdown": "Afficher le compte à rebours jusqu'à l'arrêt",
+	"more_departures": "Plus de départs"
 }

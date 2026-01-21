@@ -122,7 +122,7 @@
 	"accept": "Accepter",
 	"decline": "Afvis",
 	"show_arrivals": "Vis ankomster ved sidste station",
-	"stations": "Stationer"
-,
-	"show_countdown": "Vis nedtælling til stop"
+	"stations": "Stationer",
+	"show_countdown": "Vis nedtælling til stop",
+	"more_departures": "Flere afgange"
 }

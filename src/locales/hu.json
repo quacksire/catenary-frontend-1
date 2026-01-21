@@ -142,7 +142,7 @@
 	"accept": "Elfogad",
 	"decline": "Elutasít",
 	"show_arrivals": "Utolsó állomásra érkezők megjelenítése",
-	"stations": "Állomások"
-,
-	"show_countdown": "Visszaszámlálás mutatása megállóig"
+	"stations": "Állomások",
+	"show_countdown": "Visszaszámlálás mutatása megállóig",
+	"more_departures": "További indulások"
 }

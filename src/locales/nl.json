@@ -118,7 +118,7 @@
 	"starting_time": "Starttijd",
 	"ending_time": "Eindtijd",
 	"show_arrivals": "Aankomsten op het laatste station weergeven",
-	"stations": "Stations"
-,
-	"show_countdown": "Toon aftellen tot halte"
+	"stations": "Stations",
+	"show_countdown": "Toon aftellen tot halte",
+	"more_departures": "Meer vertrekken"
 }

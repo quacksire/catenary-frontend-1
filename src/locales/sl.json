@@ -140,7 +140,7 @@
 	"last_stop": "zadnja postaja",
 	"search_here": "Iskanje tukaj",
 	"show_arrivals": "Prikaži prihode na zadnji postaji",
-	"stations": "Postaje"
-,
-	"show_countdown": "Prikaži odštevanje do postajališča"
+	"stations": "Postaje",
+	"show_countdown": "Prikaži odštevanje do postajališča",
+	"more_departures": "Več odhodov"
 }

@@ -140,7 +140,7 @@
 	"last_stop": "paskutinė stotelė",
 	"search_here": "Ieškoti čia",
 	"show_arrivals": "Rodyti atvykimus paskutinėje stotyje",
-	"stations": "Stotys"
-,
-	"show_countdown": "Rodyti atgalinį skaičiavimą iki stotelės"
+	"stations": "Stotys",
+	"show_countdown": "Rodyti atgalinį skaičiavimą iki stotelės",
+	"more_departures": "Daugiau išvykimų"
 }

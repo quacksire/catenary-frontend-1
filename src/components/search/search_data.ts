@@ -200,6 +200,18 @@ export function new_query(text: string) {
 		cypressSubdomains[Math.floor(Math.random() * cypressSubdomains.length)];
 
 	// Cypress Autocomplete
+	// Check cache first
+	const cached_data = get(cypress_response_queries)[text];
+	if (cached_data) {
+		latest_cypress_data.set(cached_data);
+		selected_result_index_store.set(-1);
+		if (map && map.getSource('cypress_results')) {
+			if (cached_data.type === 'FeatureCollection' && Array.isArray(cached_data.features)) {
+				(map.getSource('cypress_results') as maplibregl.GeoJSONSource).setData(cached_data);
+			}
+		}
+	}
+
 	const cypressUrl = new URL(`https://${randomCypressSubdomain}.catenarymaps.org/v1/autocomplete`);
 	cypressUrl.searchParams.append('text', text);
 	cypressUrl.searchParams.append('focus.point.lat', centerCoordinates.lat.toString());
@@ -217,18 +229,27 @@ export function new_query(text: string) {
 				return existing_map;
 			});
 
-			if (get(text_input_store) == text) {
+			// Update if the input text starts with the query text (allow intermediate results)
+			// This fixes the issue where fast typing prevents results from showing.
+			const current_input = get(text_input_store);
+			if (current_input.startsWith(text)) {
 				latest_cypress_data.set(data);
 				selected_result_index_store.set(-1);
 
 				// Update Map source if it exists
 				if (map && map.getSource('cypress_results')) {
-					(map.getSource('cypress_results') as maplibregl.GeoJSONSource).setData(data);
+					if (data && data.type === 'FeatureCollection' && Array.isArray(data.features)) {
+						(map.getSource('cypress_results') as maplibregl.GeoJSONSource).setData(data);
+					}
 				}
 			}
 			console.log('Cypress data', data);
 		})
-		.catch((e) => console.error('Cypress fetch error', e));
+		.catch((e) => {
+			if (e.name !== 'AbortError') {
+				console.error('Cypress fetch error', e)
+			}
+		});
 
 	fetch(url, { signal: abortController.signal })
 		.then((response) => response.json())

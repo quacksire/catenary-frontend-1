@@ -140,7 +140,7 @@
 	"last_stop": "posledná zastávka",
 	"search_here": "Hľadať tu",
 	"show_arrivals": "Zobraziť príchody na poslednej stanici",
-	"stations": "Stanice"
-,
-	"show_countdown": "Zobraziť odpočítavanie do zastávky"
+	"stations": "Stanice",
+	"show_countdown": "Zobraziť odpočítavanie do zastávky",
+	"more_departures": "Ďalšie odchody"
 }

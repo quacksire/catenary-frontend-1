@@ -1,7 +1,16 @@
 <script lang="ts">
-	let stops_table: Record<string, Record<string, any>> = {};
 	let departure_list: any[] = [];
 
+	// We will hold the parsed data here
+	let v3_long_distance: any[] = [];
+	let v3_local: any[] = [];
+	let v3_routes: Record<string, Record<string, any>> = {};
+	let v3_agencies: Record<string, Record<string, any>> = {};
+	let v3_stops: Record<string, Record<string, any>> = {};
+
+	// This is the flattened list for main display
+	// Type: { type: 'station' | 'route_group', data: any, sortDistance: number }
+	let display_items: any[] = [];
 	export let usunits: boolean = false;
 	export let darkMode: boolean = true;
 
@@ -13,27 +22,13 @@
 	import type { Writable } from 'svelte/store';
 	import * as maplibregl from 'maplibre-gl';
 	import TidbitSidebarCard from './SidebarParts/tidbits.svelte';
+	import StationScreenTrainRowCompact from './StationScreenTrainRowCompact.svelte';
 
 	const onbutton = 'bg-blue-300 dark:bg-blue-500 bg-opacity-80';
-
 	const offbutton = '';
 
 	const TIME_CUTOFF = 64800;
 	const TIME_PREVIOUS_CUTOFF = 10 * 60;
-
-	function sort_directions_group(x: any): [[string, any]] {
-		let array = x;
-
-		array.sort((a, b) => a[1].headsign.localeCompare(b[1].headsign));
-
-		//console.log('sorted dep now ', array);
-
-		return array;
-	}
-
-	setInterval(() => {
-		current_time = Date.now();
-	}, 500);
 
 	import {
 		ui_theme_store,
@@ -57,7 +52,7 @@
 		show_gtfs_ids_store
 	} from '../globalstores';
 
-	import type { UserPicksNearby } from '../globalstores';
+	import type { UserPicksNearby, NearbySelectionFilterRouteType } from '../globalstores';
 
 	import haversine from 'haversine-distance';
 
@@ -79,9 +74,7 @@
 		}
 	}
 	function refreshPinnedSet() {
-		// avoid re-allocs if unchanged
 		const next = new Set(readPins());
-		// shallow compare sizes + membership to skip work if possible
 		if (next.size !== pinnedSet.size) {
 			pinnedSet = next;
 			return;
@@ -107,36 +100,18 @@
 		route_type: number,
 		nearby_departures_filter_local: NearbySelectionFilterRouteType
 	) {
-		//console.log('filtering for route type', route_type, nearby_departures_filter_local);
-
 		if ([3, 11, 700].includes(route_type)) {
-			if (nearby_departures_filter_local.bus == true) {
-				return true;
-			} else {
-				return false;
-			}
+			return nearby_departures_filter_local.bus;
 		}
-
 		if ([0, 1, 5, 7, 12, 900].includes(route_type)) {
-			if (nearby_departures_filter_local.metro == true) {
-				return true;
-			} else {
-				return false;
-			}
+			return nearby_departures_filter_local.metro;
 		}
-
 		if ([2, 106, 107, 101, 100, 102, 103].includes(route_type)) {
-			if (nearby_departures_filter_local.rail == true) {
-				return true;
-			} else {
-				return false;
-			}
+			return nearby_departures_filter_local.rail;
 		}
-
-		return true;
+		return true; // Default
 	}
 
-	import type { NearbySelectionFilterRouteType } from '../globalstores';
 	import { SingleTrip, StackInterface, StopStack, RouteStack } from './stackenum';
 	import jsonwebworkerpkg from '@cheprasov/json-web-worker';
 	const { jsonWebWorker, parse, stringify } = jsonwebworkerpkg;
@@ -155,8 +130,6 @@
 	import RatpBullet from './ratpbullet.svelte';
 
 	let nearby_departures_filter_local = { rail: true, bus: true, metro: true, other: true };
-
-	let departure_list_filtered = [];
 
 	let nearby_rail_show = nearby_departures_filter_local.rail;
 	let nearby_bus_show = nearby_departures_filter_local.bus;
@@ -181,15 +154,6 @@
 		refilter();
 	}
 
-	// Haversine distance in meters
-	function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
-		const a = { latitude: lat1, longitude: lon1 };
-		const b = { latitude: lat2, longitude: lon2 };
-
-		return haversine(a, b);
-	}
-
-	// Where are we sorting "distance from"?
 	function currentReferenceCoord(): { lat: number; lng: number } | null {
 		const mode = get(nearby_pick_state_store);
 		if (mode === 1) {
@@ -204,37 +168,6 @@
 		return null;
 	}
 
-	// Compute the best distance (meters) for a route group (nearest first-departing stop across directions)
-	function distanceForRouteGroup(route_group: any): number {
-		const ref = currentReferenceCoord();
-		if (!ref) return Number.POSITIVE_INFINITY;
-
-		try {
-			let best = Number.POSITIVE_INFINITY;
-			// Look at each direction group's first upcoming trip (you already sort trips)
-			for (const dg of Object.values(route_group.directions) as any[]) {
-				//console.log('dg', dg);
-
-				const firstTrip = dg?.trips?.[0];
-				if (!firstTrip) continue;
-				const stop = stops_table?.[route_group.chateau_id]?.[firstTrip.stop_id];
-				const lat = stop?.lat;
-				const lon = stop?.lon;
-
-				if (typeof lat === 'number' && typeof lon === 'number') {
-					//console.log('compare ', ref.lat, ref.lng, lat, lon)
-					const d = haversineMeters(ref.lat, ref.lng, lat, lon);
-					if (d < best) best = d;
-				}
-			}
-
-			//console.log('best distance', best);
-			return best;
-		} catch {
-			return Number.POSITIVE_INFINITY;
-		}
-	}
-
 	nearby_departures_filter.subscribe((x) => {
 		nearby_departures_filter_local = get(nearby_departures_filter);
 		nearby_rail_show = x.rail;
@@ -245,57 +178,99 @@
 	});
 
 	function refilter() {
-		departure_list_filtered = departure_list.filter(
-			(x) =>
-				Object.keys(x.directions).length > 0 &&
-				filter_for_route_type(x.route_type, nearby_departures_filter_local)
-		);
+		// 1. Filter Local Routes
+		let filtered_local = v3_local
+			.filter(
+				(x) =>
+					Object.keys(x.headsigns).length > 0 &&
+					filter_for_route_type(x.route_type, nearby_departures_filter_local)
+			)
+			.map((x) => ({ type: 'route_group', data: x, sortDistance: x.closest_distance }));
 
-		// --- Pin-first, then by selected sort mode ---
-		departure_list_filtered.sort((a, b) => {
-			const ap = isPinnedRoute(a.chateau_id, a.route_id) ? 1 : 0;
-			const bp = isPinnedRoute(b.chateau_id, b.route_id) ? 1 : 0;
-			if (ap !== bp) return bp - ap; // pinned routes first
+		// 2. Wrap Stations
+		let wrapped_stations = v3_long_distance.map((x) => ({
+			type: 'station',
+			data: x,
+			sortDistance: x.distance_m
+		}));
 
-			// A–Z (by display label)
-			const an = (a.short_name || a.long_name || '').toString().toLowerCase();
-			const bn = (b.short_name || b.long_name || '').toString().toLowerCase();
+		// 3. Sorting Logic:
+		let final_list = [];
 
-			const compareOptions = { numeric: true };
+		// Sort stations by distance first to find the closest
+		wrapped_stations.sort((a, b) => a.sortDistance - b.sortDistance);
 
-			if (sortMode === 'alpha') {
-				return an.localeCompare(bn, undefined, compareOptions);
-			}
+		if (wrapped_stations.length > 0) {
+			// First station (closest) always at Top
+			final_list.push(wrapped_stations[0]);
 
-			// Distance (nearest first). Tie-break by A–Z to keep deterministic ordering.
-			const da = distanceForRouteGroup(a);
-			const db = distanceForRouteGroup(b);
-			//console.log('distance for ', a.route_id, da, b.route_id, db)
-			if (Number.isFinite(da) && Number.isFinite(db) && da !== db) return da - db;
+			// Remaining stations
+			let remaining_stations = wrapped_stations.slice(1);
 
-			return 0;
+			// Mix with locals
+			let mixed = [...remaining_stations, ...filtered_local];
 
-			// If distances are equal or not available, fall back to A–Z
-			//return an.localeCompare(bn);
-		});
+			// Sort mixed list
+			mixed.sort((a, b) => {
+				// Pin logic first
+				let ap, bp;
+				if (a.type === 'route_group') ap = isPinnedRoute(a.data.chateau_id, a.data.route_id);
+				else ap = false;
+
+				if (b.type === 'route_group') bp = isPinnedRoute(b.data.chateau_id, b.data.route_id);
+				else bp = false;
+
+				if (ap !== bp) return (bp ? 1 : 0) - (ap ? 1 : 0);
+
+				if (sortMode === 'alpha') {
+					let an = getName(a).toLowerCase();
+					let bn = getName(b).toLowerCase();
+					return an.localeCompare(bn, undefined, { numeric: true });
+				}
+
+				// Distance
+				return a.sortDistance - b.sortDistance;
+			});
+
+			final_list = [...final_list, ...mixed];
+		} else {
+			// No stations, just local
+			final_list = filtered_local;
+			final_list.sort((a, b) => {
+				// Pin Logic
+				let ap = isPinnedRoute(a.data.chateau_id, a.data.route_id);
+				let bp = isPinnedRoute(b.data.chateau_id, b.data.route_id);
+				if (ap !== bp) return (bp ? 1 : 0) - (ap ? 1 : 0);
+
+				if (sortMode === 'alpha') {
+					let an = getName(a).toLowerCase();
+					let bn = getName(b).toLowerCase();
+					return an.localeCompare(bn, undefined, { numeric: true });
+				}
+				return a.sortDistance - b.sortDistance;
+			});
+		}
+
+		display_items = final_list;
+	}
+
+	function getName(item: any) {
+		if (item.type === 'station') return item.data.station_name;
+		return item.data.short_name || item.data.long_name || '';
 	}
 
 	let current_time: number = 0;
+	setInterval(() => {
+		current_time = Date.now();
+	}, 500);
 
 	let first_load = false;
-
 	let first_attempt_sent = false;
-
 	let timeout_first_attempt: NodeJS.Timeout | null = null;
-
 	let loading = false;
-
 	let marker_reference: maplibregl.Marker | null = null;
-
 	let amount_of_ms_total_server_side: number | null = null;
-
 	export let window_height_known: number = 500;
-
 	let show_filter_menu: boolean = false;
 
 	onMount(() => {
@@ -306,37 +281,28 @@
 			}
 
 			current_time = Date.now();
-
 			refreshPinnedSet();
 			const onStorage = (e: StorageEvent) => {
 				if (e.key === LS_KEY) {
 					refreshPinnedSet();
-					refilter(); // resort list when pins change
+					refilter();
 				}
 			};
 			window.addEventListener('storage', onStorage);
 
 			if (current_nearby_pick_state == 1) {
 				let map = get(map_pointer_store);
-
 				if (map) {
 					let marker_info = get(nearby_user_picks_store);
-
 					if (marker_reference == null) {
 						marker_reference = new maplibregl.Marker({ color: '#ac46ff', draggable: true })
 							.setLngLat([marker_info?.longitude, marker_info?.latitude])
 							.addTo(map);
-
 						marker_reference.on('dragend', onDragEnd);
 					}
-
-					//clear the old stops stops_context
 					let stops_context = map.getSource('stops_context');
 					if (stops_context) {
-						stops_context.setData({
-							type: 'FeatureCollection',
-							features: []
-						});
+						stops_context.setData({ type: 'FeatureCollection', features: [] });
 					}
 				}
 			}
@@ -344,22 +310,13 @@
 			window.addEventListener('resize', () => {
 				window_height_known = window.innerHeight;
 			});
-
 			window_height_known = window.innerHeight;
 
 			if (current_nearby_pick_state == 0) {
-				let hit_nearby_deps_cache = get(nearby_deps_cache_gps);
-
-				if (hit_nearby_deps_cache) {
-					stops_table = hit_nearby_deps_cache.stop;
-					departure_list = hit_nearby_deps_cache.departures;
-				}
-
 				refilter();
 			}
 
 			getNearbyDepartures();
-
 			let interval = setInterval(() => {
 				getNearbyDepartures();
 			}, 30_000);
@@ -373,23 +330,14 @@
 				if (!first_attempt_sent) {
 					getNearbyDepartures();
 				} else {
-					if (timeout_first_attempt != null) {
-						clearInterval(timeout_first_attempt);
-					}
+					if (timeout_first_attempt) clearInterval(timeout_first_attempt);
 				}
 			}, 300);
 
 			return () => {
 				clearInterval(interval);
-
-				if (timeout_first_attempt != null) {
-					clearInterval(timeout_first_attempt);
-				}
-
-				if (marker_reference) {
-					marker_reference.remove();
-				}
-
+				if (timeout_first_attempt) clearInterval(timeout_first_attempt);
+				if (marker_reference) marker_reference.remove();
 				window.removeEventListener('storage', onStorage);
 			};
 		}
@@ -397,23 +345,15 @@
 
 	function my_location_press() {
 		nearby_pick_state_store.set(0);
-
 		getNearbyDepartures();
 	}
 
 	function pin_drop_press() {
 		nearby_pick_state_store.set(1);
-
-		//get map centre
 		let map = get(map_pointer_store);
-
 		if (map) {
 			let centre = map.getCenter();
-
-			if (marker_reference == null) {
-				makeNewMarker();
-			}
-
+			if (marker_reference == null) makeNewMarker();
 			getNearbyDepartures();
 		}
 	}
@@ -421,142 +361,129 @@
 	function onDragEnd() {
 		if (marker_reference) {
 			const lngLat = marker_reference.getLngLat();
-
 			nearby_user_picks_store.set({ latitude: lngLat.lat, longitude: lngLat.lng });
-
 			getNearbyDepartures();
 		}
 	}
 
 	function makeNewMarker() {
 		let map = get(map_pointer_store);
-
 		if (map) {
 			let centre = map.getCenter();
-
 			if (marker_reference == null) {
 				marker_reference = new maplibregl.Marker({ color: '#ac46ff', draggable: true })
 					.setLngLat([centre.lng, centre.lat])
 					.addTo(map);
-
 				const lngLat = marker_reference.getLngLat();
-
 				nearby_user_picks_store.set({ latitude: lngLat.lat, longitude: lngLat.lng });
-
 				marker_reference.on('dragend', onDragEnd);
 			}
 		}
 	}
 
 	function centre_press() {
-		//get map centre
 		let map = get(map_pointer_store);
-
 		if (map) {
 			let centre = map.getCenter();
-
-			if (marker_reference == null) {
-				makeNewMarker();
-			}
-
+			if (marker_reference == null) makeNewMarker();
 			marker_reference.setLngLat([centre.lng, centre.lat]);
-
 			nearby_user_picks_store.set({ latitude: centre.lat, longitude: centre.lng });
 		}
-
 		pin_drop_press();
 	}
 
 	async function getNearbyDepartures() {
 		loading = true;
-
 		let query_type = get(nearby_pick_state_store);
-
 		let geolocation_of_user = get(geolocation_store);
-
 		let lat = 0;
 		let lng = 0;
 
 		if (query_type == 1) {
 			let user_picks = get(nearby_user_picks_store);
-
 			if (user_picks != null) {
 				lat = user_picks.latitude;
 				lng = user_picks.longitude;
 			}
 		}
 
-		if (query_type == 0) {
-			if (geolocation_of_user) {
-				lat = geolocation_of_user.coords.latitude;
-				lng = geolocation_of_user.coords.longitude;
-			}
+		if (query_type == 0 && geolocation_of_user) {
+			lat = geolocation_of_user.coords.latitude;
+			lng = geolocation_of_user.coords.longitude;
 		}
 
 		if (lat != 0 && lng != 0) {
 			first_attempt_sent = true;
-
-			let url = `https://birch_nearby.catenarymaps.org/nearbydeparturesfromcoordsv2?lat=${lat}&lon=${lng}`;
+			let url = `https://birch_nearby.catenarymaps.org/nearbydeparturesfromcoordsv3?lat=${lat}&lon=${lng}&limit_per_station=30`;
 
 			if (abort_controller) {
-				//abort_controller.abort();
+				/* abort_controller.abort(); */
 			}
-
 			abort_controller = new AbortController();
-
 			let signal = abort_controller.signal;
 
 			fetch(url, { signal: signal })
 				.then((response) => response.text())
 				.then((text) => jsonWebWorker.parse(text))
 				.then((data) => {
-					stops_table = data.stop;
-					let temp_departure_list = data.departures;
-
-					amount_of_ms_total_server_side = data.debug.total_time_ms;
-
-					temp_departure_list.forEach((route_group: any) => {
-						let new_directions: Record<string, any> = {};
-
-						Object.values(route_group.directions).forEach((direction_group: any) => {
-							Object.values(direction_group).forEach((headsign_group: any) => {
-								if (new_directions[headsign_group.headsign]) {
-									new_directions[headsign_group.headsign].trips = [
-										...new_directions[headsign_group.headsign].trips,
-										...headsign_group.trips
-									];
-								} else {
-									new_directions[headsign_group.headsign] = headsign_group;
-								}
-							});
-						});
-
-						//for each value in the directions object
-
-						for (const [key, value] of Object.entries(new_directions)) {
-							//sort the trips by departure time in place
-							new_directions[key].trips.sort(
-								(a: any, b: any) =>
-									(a.departure_realtime || a.departure_schedule) -
-									(b.departure_realtime || b.departure_schedule)
-							);
-						}
-
-						route_group.directions = new_directions;
-					});
-
-					departure_list = temp_departure_list;
-
-					//console.log('nearby deps', departure_list);
-
+					v3_long_distance = data.long_distance || [];
+					v3_local = data.local || [];
 					loading = false;
+
+					let raw_routes = data.routes || {};
+					let raw_agencies = {};
+					for (let chateau in raw_routes) {
+						if (!raw_agencies[chateau]) raw_agencies[chateau] = {};
+						for (let route_id in raw_routes[chateau]) {
+							let r = raw_routes[chateau][route_id];
+							if (r.agency_name && !r.agency_id) {
+								r.agency_id = r.agency_name;
+							}
+							if (r.agency_id) {
+								raw_agencies[chateau][r.agency_id] = { agency_name: r.agency_name };
+							}
+						}
+					}
+					v3_routes = raw_routes;
+					v3_agencies = raw_agencies;
+					v3_stops = data.stops || {};
+
 					refilter();
+
+					// Optional: Map Updates
+					let map = get(map_pointer_store);
+					if (map && v3_long_distance.length > 0) {
+						let stops_context = map.getSource('stops_context');
+						if (stops_context) {
+							let features = v3_long_distance.map((station) => ({
+								type: 'Feature',
+								geometry: {
+									type: 'Point',
+									coordinates: [station.lon, station.lat]
+								},
+								properties: {
+									name: station.station_name,
+									id: station.osm_station_id || 'station' // Fallback if ID missing
+								}
+							}));
+							stops_context.setData({
+								type: 'FeatureCollection',
+								features: features
+							});
+						}
+					}
 
 					if (query_type == 0) {
 						nearby_deps_cache_gps.set(data);
 					}
 				});
 		}
+	}
+
+	function sort_headsigns(headsigns: Record<string, any[]>) {
+		let entries = Object.entries(headsigns);
+		entries.sort((a, b) => a[0].localeCompare(b[0]));
+		return entries;
 	}
 </script>
 
@@ -575,8 +502,7 @@
 			</div>
 
 			<div
-				class={`border-2  ${current_nearby_pick_state == 1 ? 'bg-purple-200 dark:bg-purple-800 ' : ''} 
-	rounded-lg border-purple-500 flex flex-row`}
+				class={`border-2  ${current_nearby_pick_state == 1 ? 'bg-purple-200 dark:bg-purple-800 ' : ''} rounded-lg border-purple-500 flex flex-row`}
 			>
 				<div
 					class="px-2 py-0.5 border-r border-gray-500 flex flex-row"
@@ -607,11 +533,7 @@
 				<p class="text-gray-800 dark:text-gray-300 text-sm">{amount_of_ms_total_server_side} ms</p>
 			</div>
 		{/if}
-		<!--
-<h2 class={`${window_height_known < 600 ? 'text-lg' : ' text-lg md:text-xl mb-1'} font-medium text-gray-800 dark:text-gray-300 px-3 `}>
-		{$_('nearbydepartures')}
-	</h2>
-	-->
+
 		<div class="ml-auto pr-2 flex items-center gap-2">
 			<div class="flex rounded-full overflow-hidden border-2 border-gray-400 dark:border-gray-600">
 				<button
@@ -670,42 +592,31 @@
 		<div class="py-0.5 md:py-2 px-3 flex flex-row gap-x-2 text-sm md:text-base">
 			<button
 				on:click={() => {
-					nearby_departures_filter.update((x) => {
-						return { ...x, rail: !x.rail };
-					});
+					nearby_departures_filter.update((x) => ({ ...x, rail: !x.rail }));
 					refilter();
 				}}
 				class={`px-2 rounded-full border-black dark:border-white border-2 ${nearby_rail_show == true ? onbutton : ''}`}
 				>{$_('headingIntercityRail')}</button
 			>
-
 			<button
 				on:click={() => {
-					nearby_departures_filter.update((x) => {
-						return { ...x, metro: !x.metro };
-					});
+					nearby_departures_filter.update((x) => ({ ...x, metro: !x.metro }));
 					refilter();
 				}}
 				class={`px-2 rounded-full border-black dark:border-white  border-2  ${nearby_metro_show == true ? onbutton : ''}`}
 				>{$_('headingLocalRail')}</button
 			>
-
 			<button
 				on:click={() => {
-					nearby_departures_filter.update((x) => {
-						return { ...x, bus: !x.bus };
-					});
+					nearby_departures_filter.update((x) => ({ ...x, bus: !x.bus }));
 					refilter();
 				}}
 				class={`px-2 rounded-full border-black dark:border-white  border-2  ${nearby_bus_show == true ? onbutton : ''} `}
 				>{$_('headingBus')}</button
 			>
-
 			<button
 				on:click={() => {
-					nearby_departures_filter.update((x) => {
-						return { ...x, other: !x.other };
-					});
+					nearby_departures_filter.update((x) => ({ ...x, other: !x.other }));
 					refilter();
 				}}
 				class={`px-2 rounded-full border-black dark:border-white border-2  ${nearby_other_show == true ? onbutton : ''}`}
@@ -717,293 +628,305 @@
 	<div class=" catenary-scroll overflow-y-auto pb-64 h-full">
 		<div class="flex flex-col">
 			<TidbitSidebarCard />
-			{#each departure_list_filtered as route_group}
-				{@const isSubway =
-					route_group.chateau_id === MTA_CHATEAU_ID && isSubwayRouteId(route_group.route_id)}
-				{@const isRatp =
-					route_group.chateau_id === IDFM_CHATEAU_ID && isRatpRoute(route_group.short_name)}
-				<div
-					class={`${window_height_known < 600 ? 'mt-0 mb-1' : 'mt-1 mb-1 mb:mb-2'} px-1 mx-1 py-1 md:py-2 bg-gray-100 dark:bg-background rounded-md dark:bg-opacity-50`}
-				>
-					<div class="flex-row gap-x-1">
-						<p
-							class={`${window_height_known < 600 ? 'text-lg' : 'text-lg'}
-					 ml-1 underline decoration-sky-500/80 hover:decoration-sky-500 cursor-pointer inline leading-none`}
-							style={`color: ${darkMode ? lightenColour(route_group.color) : route_group.color}`}
-							on:click={() => {
-								data_stack_store.update((stack) => {
-									stack.push(
-										new StackInterface(new RouteStack(route_group.chateau_id, route_group.route_id))
-									);
-									return stack;
-								});
-							}}
-						>
-							{#if isSubway && route_group.short_name}
-								<MtaBullet route_short_name={route_group.short_name} matchTextHeight={true} />
-							{:else if isRatp && route_group.short_name}
-								<RatpBullet route_short_name={route_group.short_name} matchTextHeight={true} />
-							{:else if route_group.short_name}
-								<span class="font-bold mr-1">
-									{fixRouteName(
-										route_group.chateau_id,
-										route_group.short_name,
-										route_group.route_id
-									)}
-								</span>
-							{/if}
 
-							{#if route_group.long_name && !isSubway && !isRatp}
-								{#if route_group.long_name != route_group.short_name}
-									<span class="font-medium">
-										{fixRouteNameLong(
+			{#each display_items as item}
+				<!-- STATION CARD -->
+				{#if item.type === 'station'}
+					{@const station = item.data}
+					<div
+						class="px-2 py-2 mb-2 bg-gray-100 dark:bg-gray-800 rounded-lg mx-2 border border-gray-300 dark:border-gray-700 shadow-sm"
+					>
+						<div
+							class="flex flex-row justify-between items-center mb-2 border-b border-gray-300 dark:border-gray-600 pb-1"
+						>
+							<div class="flex flex-col">
+								<h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">
+									{station.station_name}
+								</h3>
+								<span class="text-xs text-gray-500 dark:text-gray-400"
+									>{(station.distance_m || 0).toFixed(0)}m</span
+								>
+							</div>
+						</div>
+
+						<table class="w-full text-left border-collapse">
+							<tbody>
+								{#each station.departures.filter((d) => !d.last_stop).slice(0, 10) as departure}
+									<StationScreenTrainRowCompact
+										platform={departure.platform}
+										event={{
+											chateau: departure.chateau_id,
+											trip_id: departure.trip_id,
+											route_id: departure.route_id,
+											headsign: departure.headsign,
+											scheduled_departure: departure.scheduled_departure,
+											realtime_departure: departure.realtime_departure,
+											service_date: departure.service_date,
+
+											trip_cancelled: departure.cancelled,
+											trip_deleted: false,
+											stop_cancelled: false,
+											trip_short_name: null
+										}}
+										show_timediff={false}
+										show_agency_name={false}
+										data_from_server={{
+											routes: v3_routes,
+											agencies: v3_agencies,
+											stops: v3_stops
+										}}
+										current_time={current_time / 1000}
+										show_seconds={false}
+										timezone={'UTC'}
+									/>
+								{/each}
+							</tbody>
+						</table>
+
+						<!-- More departures now needs CHATEAU and STOP ID. 
+                             Using FIRST departure as guess, or disabling if empty. -->
+						{#if station.departures.length > 0}
+							<button
+								class="w-full mt-2 py-1.5 text-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 rounded transition-colors"
+								on:click={() => {
+									data_stack_store.update((stack) => {
+										stack.push(
+											new StackInterface(
+												new StopStack(
+													station.departures[0].chateau_id,
+													station.departures[0].stop_id
+												)
+											)
+										);
+										return stack;
+									});
+								}}
+							>
+								{$_('more_departures')}
+							</button>
+						{/if}
+					</div>
+
+					<!-- LOCAL ROUTE CARD (REVERTED DESIGN) -->
+				{:else if item.type === 'route_group'}
+					{@const route_group = item.data}
+					{@const isSubway =
+						route_group.chateau_id === MTA_CHATEAU_ID && isSubwayRouteId(route_group.route_id)}
+					{@const isRatp =
+						route_group.chateau_id === IDFM_CHATEAU_ID && isRatpRoute(route_group.short_name)}
+					{@const isRail = route_group.route_type == 2}
+
+					<div
+						class={`${window_height_known < 600 ? 'mt-0 mb-1' : 'mt-1 mb-1 mb:mb-2'} px-1 mx-1 py-1 md:py-2 bg-gray-100 dark:bg-background rounded-md dark:bg-opacity-50`}
+					>
+						<div class="flex-row gap-x-1">
+							<p
+								class={`${window_height_known < 600 ? 'text-lg' : 'text-lg'}
+                        ml-1 underline decoration-sky-500/80 hover:decoration-sky-500 cursor-pointer inline leading-none`}
+								style={`color: ${darkMode ? lightenColour(route_group.color) : route_group.color}`}
+								on:click={() => {
+									data_stack_store.update((stack) => {
+										stack.push(
+											new StackInterface(
+												new RouteStack(route_group.chateau_id, route_group.route_id)
+											)
+										);
+										return stack;
+									});
+								}}
+							>
+								{#if isSubway && route_group.short_name}
+									<MtaBullet route_short_name={route_group.short_name} matchTextHeight={true} />
+								{:else if isRatp && route_group.short_name}
+									<RatpBullet route_short_name={route_group.short_name} matchTextHeight={true} />
+								{:else if route_group.short_name}
+									<span class="font-bold mr-1">
+										{fixRouteName(
 											route_group.chateau_id,
-											route_group.long_name,
+											route_group.short_name,
 											route_group.route_id
 										)}
 									</span>
 								{/if}
+
+								{#if route_group.long_name && !isSubway && !isRatp}
+									{#if route_group.long_name != route_group.short_name}
+										<span class="font-medium">
+											{fixRouteNameLong(
+												route_group.chateau_id,
+												route_group.long_name,
+												route_group.route_id
+											)}
+										</span>
+									{/if}
+								{/if}
+
+								<span class="font-medium align-bottom ml-1">
+									{#if route_group.route_type == 0}
+										<span
+											class="ml-auto material-symbols-outlined leading-none no-underline select-none text-lg"
+										>
+											<span class="text-base leading-none">tram</span>
+										</span>
+									{/if}
+									{#if route_group.route_type == 1}
+										<span
+											class="ml-auto material-symbols-outlined leading-none no-underline select-none text-lg"
+										>
+											<span class="text-base leading-none">subway</span>
+										</span>
+									{/if}
+									{#if route_group.route_type == 2}
+										<span
+											class="ml-auto material-symbols-outlined leading-none no-underline select-none text-lg"
+										>
+											<span class="text-base leading-none">train</span>
+										</span>
+									{/if}
+									{#if route_group.route_type == 4}
+										<span
+											class="ml-auto material-symbols-outlined leading-none no-underline select-none text-lg"
+										>
+											<span class="text-base leading-none">ferry</span>
+										</span>
+									{/if}
+								</span>
+							</p>
+
+							{#if isPinnedRoute(route_group.chateau_id, route_group.route_id)}
+								<span
+									class="ml-auto material-symbols-outlined leading-none opacity-80 my-auto mb-1 no-underline select-none"
+									aria-label="Pinned route"
+									title="Pinned route"
+								>
+									<span class="text-base leading-none">keep</span>
+								</span>
 							{/if}
+						</div>
 
-							<span class="font-medium align-bottom ml-1">
-								{#if route_group.route_type == 0}
-									<span
-										class="ml-auto material-symbols-outlined leading-none no-underline select-none text-lg"
-									>
-										<span class="text-base leading-none">tram</span>
-									</span>
-								{/if}
-								{#if route_group.route_type == 1}
-									<span
-										class="ml-auto material-symbols-outlined leading-none no-underline select-none text-lg"
-									>
-										<span class="text-base leading-none">subway</span>
-									</span>
-								{/if}
-								{#if route_group.route_type == 2}
-									<span
-										class="ml-auto material-symbols-outlined leading-none no-underline select-none text-lg"
-									>
-										<span class="text-base leading-none">train</span>
-									</span>
-								{/if}
-								{#if route_group.route_type == 3 && false}
-									<span
-										class="ml-auto material-symbols-outlined leading-none no-underline select-none text-lg"
-									>
-										<span class="text-base leading-none">directions_bus</span>
-									</span>
-								{/if}
-								{#if route_group.route_type == 4}
-									<span
-										class="ml-auto material-symbols-outlined leading-none no-underline select-none text-lg"
-									>
-										<span class="text-base leading-none">ferry</span>
-									</span>
-								{/if}
-							</span>
-						</p>
-
-						{#if isPinnedRoute(route_group.chateau_id, route_group.route_id)}
-							<span
-								class="ml-auto material-symbols-outlined leading-none opacity-80 my-auto mb-1 no-underline select-none"
-								aria-label="Pinned route"
-								title="Pinned route"
-							>
-								<span class="text-base leading-none">keep</span>
-							</span>
-						{/if}
-					</div>
-
-					{#each sort_directions_group(Object.entries(route_group.directions)) as [d_id, direction_group]}
-						{#if direction_group.trips.filter((x) => (x.departure_realtime || x.departure_schedule) > Date.now() / 1000 - TIME_PREVIOUS_CUTOFF && (x.departure_realtime || x.departure_schedule) < Date.now() / 1000 + TIME_CUTOFF).length > 0}
+						{#each sort_headsigns(route_group.headsigns) as [headsign, trips]}
 							<p class="font-medium -translate-x-1 mt-1 mb-1 leading-tight">
 								<span
 									class="material-symbols-outlined text-md align-middle -translate-y-0.5 select-none"
 									>chevron_right</span
 								>
-								{titleCase(
-									fixHeadsignText(
-										direction_group.headsign,
-										route_group.chateau_id,
-										route_group.route_id
-									)
-								)}
-								<span
-									on:click={() => {
-										data_stack_store.update((stack) => {
-											stack.push(
-												new StackInterface(
-													new StopStack(route_group.chateau_id, direction_group.trips[0].stop_id)
-												)
-											);
-
-											return stack;
-										});
-									}}
-									class="text-sm bg-white dark:bg-darksky inline-block px-1 rounded-sm -translate-y-0.5 ml-1"
-								>
-									<span class="material-symbols-outlined !text-sm align-middle select-none"
-										>distance</span
-									>
-									{fixStationName(
-										stops_table[route_group.chateau_id][direction_group.trips[0].stop_id].name
-									)}</span
-								>
-							</p>
-						{/if}
-						<div class="flex flex-row gap-x-1 overflow-x-auto catenary-scroll">
-							{#each direction_group.trips.filter((x) => (x.departure_realtime || x.departure_schedule) > Date.now() / 1000 - TIME_PREVIOUS_CUTOFF && (x.departure_realtime || x.departure_schedule) < Date.now() / 1000 + TIME_CUTOFF) as trip}
-								<button
-									aria-label={`Go to ${fixHeadsignText(direction_group.headsign, route_group.route_id)} at ${fixStationName(
-										stops_table[route_group.chateau_id][direction_group.trips[0].stop_id].name
-									)} at ${new Intl.DateTimeFormat('en-GB', {
-										hour: 'numeric',
-										minute: 'numeric',
-										timeZone:
-											stops_table[route_group.chateau_id][direction_group.trips[0].stop_id]
-												.timezone || trip.tz
-									}).format(
-										new Date((trip.departure_realtime || trip.departure_schedule) * 1000)
-									)}`}
-									class="bg-white dark:bg-darksky
-									 hover:bg-blue-100 hover:dark:bg-hover p-0.5
-									 mb-1 rounded-sm min-w-20 flex justify-center"
-									on:click={() => {
-										data_stack_store.update((stack) => {
-											stack.push(
-												new StackInterface(
-													new SingleTrip(
-														route_group.chateau_id,
-														trip.trip_id,
-														route_group.route_id,
-														trip.gtfs_frequency_start_time,
-														trip.gtfs_schedule_start_day.replace(/-/g, ''),
-														null,
-														route_group.route_type
+								{titleCase(fixHeadsignText(headsign, route_group.chateau_id, route_group.route_id))}
+								<!-- Stop Name Button - use stop_name from first trip -->
+								{#if trips.length > 0}
+									<span
+										on:click={() => {
+											data_stack_store.update((stack) => {
+												stack.push(
+													new StackInterface(
+														new StopStack(route_group.chateau_id, trips[0].stop_id)
 													)
-												)
-											);
+												);
 
-											return stack;
-										});
-									}}
-								>
-									<div class="text-center">
-										{#if [2, 4].includes(route_group.route_type) && trip.trip_short_name}
-											<p
-												class=" {trip.trip_short_name.length > 10
-													? 'text-sm font-regular '
-													: 'font-medium'} px-1 rounded-sm leading-none"
-												style:background-color={route_group.color}
-												style:color={route_group.text_color}
-											>
-												{trip.trip_short_name}
-											</p>
-										{/if}
-
-										<span
-											class={`font-semibold leading-none ${(trip.departure_realtime || trip.departure_schedule) - current_time / 1000 < -60 ? 'text-gray-600 dark:text-gray-400' : trip.departure_realtime ? 'text-seashore dark:text-seashoredark' : ''}`}
+												return stack;
+											});
+										}}
+										class="text-sm bg-white dark:bg-darksky inline-block px-1 rounded-sm -translate-y-0.5 ml-1"
+									>
+										<span class="material-symbols-outlined !text-sm align-middle select-none"
+											>distance</span
 										>
-											{#if (trip.departure_realtime || trip.departure_schedule) - current_time / 1000 > 60 || (trip.departure_realtime || trip.departure_schedule) - current_time / 1000 < -60}
-												<TimeDiff
-													large={false}
-													show_brackets={false}
-													show_seconds={false}
-													diff={(trip.departure_realtime || trip.departure_schedule) -
-														current_time / 1000}
-													stylesForUnits={'font-medium'}
-												/>
-											{:else}
-												<span class="text-md font-bold">{$_('now')}</span>
-											{/if}
-											{#if trip.departure_realtime}
-												<svg
-													class="dark:hidden inline ml-0.5 w-4 h-4 -translate-y-0.5"
-													height="24"
-													viewBox="0 -960 960 960"
-													width="24"
-													fill={'var(--color-seashore)'}
-													><path
-														d="M200-120q-33 0-56.5-23.5T120-200q0-33 23.5-56.5T200-280q33 0 56.5 23.5T280-200q0 33-23.5 56.5T200-120Zm480 0q0-117-44-218.5T516-516q-76-76-177.5-120T120-680v-120q142 0 265 53t216 146q93 93 146 216t53 265H680Zm-240 0q0-67-25-124.5T346-346q-44-44-101.5-69T120-440v-120q92 0 171.5 34.5T431-431q60 60 94.5 139.5T560-120H440Z"
-													/></svg
-												>
-												<svg
-													class="hidden dark:inline ml-0.5 w-4 h-4 -translate-y-0.5"
-													height="24"
-													viewBox="0 -960 960 960"
-													width="24"
-													fill={'var(--color-seashoredark)'}
-													><path
-														d="M200-120q-33 0-56.5-23.5T120-200q0-33 23.5-56.5T200-280q33 0 56.5 23.5T280-200q0 33-23.5 56.5T200-120Zm480 0q0-117-44-218.5T516-516q-76-76-177.5-120T120-680v-120q142 0 265 53t216 146q93 93 146 216t53 265H680Zm-240 0q0-67-25-124.5T346-346q-44-44-101.5-69T120-440v-120q92 0 171.5 34.5T431-431q60 60 94.5 139.5T560-120H440Z"
-													/></svg
-												>
-											{/if}
-										</span>
+										{fixStationName(trips[0].stop_name || trips[0].stop_id)}
+									</span>
+								{/if}
+							</p>
 
-										<p class="font-medium text-sm leading-none">
-											{new Intl.DateTimeFormat('en-GB', {
-												hour: 'numeric',
-												minute: 'numeric',
-												timeZone:
-													stops_table[route_group.chateau_id][direction_group.trips[0].stop_id]
-														.timezone || trip.tz
-											}).format(
-												new Date((trip.departure_realtime || trip.departure_schedule) * 1000)
-											)}
-										</p>
-
-										{#if trip.cancelled}
-											<p class="text-red-500 leading-none md:leading-tight">{$_('cancelled')}</p>
-										{/if}
-
-										{#if trip.deleted}
-											<p class="text-red-500 leading-none md:leading-tight">{$_('deleted')}</p>
-										{/if}
-
-										{#if trip.departure_realtime != null && trip.departure_schedule != null}
-											<p class="leading-none">
-												<DelayDiff
-													show_seconds={false}
-													diff={trip.departure_realtime - trip.departure_schedule}
-												/>
-											</p>
-										{/if}
-
-										{#if trip.platform}
-											<p
-												class="text-xs text-gray-800 dark:text-gray-200 leading-none md:leading-tight"
+							<div class="flex flex-row gap-x-1 overflow-x-auto catenary-scroll">
+								{#each trips as trip}
+									<button
+										class="bg-white dark:bg-darksky
+                                         hover:bg-blue-100 hover:dark:bg-hover p-0.5
+                                         mb-1 rounded-sm min-w-16 md:min-w-20 flex justify-center"
+										on:click={() => {
+											data_stack_store.update((stack) => {
+												stack.push(
+													new StackInterface(
+														new SingleTrip(
+															route_group.chateau_id,
+															trip.trip_id,
+															route_group.route_id,
+															null,
+															new Date().toISOString().split('T')[0].replace(/-/g, ''),
+															null,
+															route_group.route_type
+														)
+													)
+												);
+												return stack;
+											});
+										}}
+									>
+										<div class="text-center">
+											<span
+												class={`font-semibold leading-none ${(trip.departure_realtime || trip.departure_schedule) - current_time / 1000 < -60 ? 'text-gray-600 dark:text-gray-400' : trip.departure_realtime ? 'text-seashore dark:text-seashoredark' : ''}`}
 											>
-												{$_('platform')}
-												{trip.platform.replace('Track', '').trim()}
-											</p>
-										{/if}
+												{#if !isRail && ((trip.departure_realtime || trip.departure_schedule) - current_time / 1000 > 60 || (trip.departure_realtime || trip.departure_schedule) - current_time / 1000 < -60)}
+													<TimeDiff
+														large={false}
+														show_brackets={false}
+														show_seconds={false}
+														diff={(trip.departure_realtime || trip.departure_schedule) -
+															current_time / 1000}
+														stylesForUnits={'font-medium'}
+													/>
+												{:else if isRail}
+													<!-- Only Time for Local Rail per User Request -->
+												{:else}
+													<!-- Bus/Metro (not rail) within 60s -->
+													<span class="text-md font-bold">{$_('now')}</span>
+												{/if}
 
-										{#if show_gtfs_ids}
-											<p class="text-xs font-mono text-gray-500 dark:text-gray-400">
-												{trip.trip_id}
-											</p>
+												{#if trip.departure_realtime}
+													<!-- Wifi/Realtime Icon -->
+													<svg
+														class="dark:hidden inline ml-0.5 w-3 h-3 md:w-4 md:h-4 -translate-y-0.5"
+														height="24"
+														viewBox="0 -960 960 960"
+														width="24"
+														fill={'var(--color-seashore)'}
+														><path
+															d="M200-120q-33 0-56.5-23.5T120-200q0-33 23.5-56.5T200-280q33 0 56.5 23.5T280-200q0 33-23.5 56.5T200-120Zm480 0q0-117-44-218.5T516-516q-76-76-177.5-120T120-680v-120q142 0 265 53t216 146q93 93 146 216t53 265H680Zm-240 0q0-67-25-124.5T346-346q-44-44-101.5-69T120-440v-120q92 0 171.5 34.5T431-431q60 60 94.5 139.5T560-120H440Z"
+														/></svg
+													>
+													<svg
+														class="hidden dark:inline ml-0.5 w-3 h-3 md:w-4 md:h-4 -translate-y-0.5"
+														height="24"
+														viewBox="0 -960 960 960"
+														width="24"
+														fill={'var(--color-seashoredark)'}
+														><path
+															d="M200-120q-33 0-56.5-23.5T120-200q0-33 23.5-56.5T200-280q33 0 56.5 23.5T280-200q0 33-23.5 56.5T200-120Zm480 0q0-117-44-218.5T516-516q-76-76-177.5-120T120-680v-120q142 0 265 53t216 146q93 93 146 216t53 265H680Zm-240 0q0-67-25-124.5T346-346q-44-44-101.5-69T120-440v-120q92 0 171.5 34.5T431-431q60 60 94.5 139.5T560-120H440Z"
+														/></svg
+													>
+												{/if}
+											</span>
 
-											{#if trip.gtfs_frequency_start_time}
-												<p class="text-xs font-mono text-gray-500 dark:text-gray-400 italics">
-													{trip.gtfs_frequency_start_time}
-												</p>
-											{/if}
-										{/if}
-									</div>
-								</button>
-							{/each}
-						</div>
-					{/each}
-				</div>
+											<p class="font-medium text-sm leading-none">
+												{new Intl.DateTimeFormat('en-GB', {
+													hour: 'numeric',
+													minute: 'numeric',
+													timeZone: trip.tz // Use trip specific TZ if avail
+												}).format(
+													new Date((trip.departure_realtime || trip.departure_schedule) * 1000)
+												)}
+											</p>
+										</div>
+									</button>
+								{/each}
+							</div>
+						{/each}
+					</div>
+				{/if}
 			{/each}
 		</div>
 
-		{#if departure_list_filtered.length == 0 && first_load == true && !loading}
+		{#if v3_long_distance.length == 0 && v3_local.length == 0 && first_load == true && !loading}
 			<br />
-
 			<p>No departures.</p>
-
 			<img src="/premium_photo-1671611799147-68a4f9b3f0e1.avif" alt="No departures found" />
 		{/if}
 	</div>

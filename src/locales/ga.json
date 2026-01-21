@@ -121,7 +121,7 @@
 	"accept": "Glac",
 	"decline": "Diúltaigh",
 	"show_arrivals": "Taispeáin Teacht ar an Stáisiún Deireanach",
-	"stations": "Stáisiúin"
-,
-	"show_countdown": "Taispeáin comhaireamh síos go dtí an stad"
+	"stations": "Stáisiúin",
+	"show_countdown": "Taispeáin comhaireamh síos go dtí an stad",
+	"more_departures": "Tuilleadh imeachtaí"
 }

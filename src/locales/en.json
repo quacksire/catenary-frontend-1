@@ -158,5 +158,6 @@
 	"continue": "Continue",
 	"stop_cancelled": "Stop cancelled",
 	"show_arrivals": "Show Arrivals at Last Station",
-	"stations": "Stations"
+	"stations": "Stations",
+	"more_departures": "More departures"
 }

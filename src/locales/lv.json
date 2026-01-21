@@ -140,7 +140,7 @@
 	"last_stop": "pēdējā pietura",
 	"search_here": "Meklēt šeit",
 	"show_arrivals": "Rādīt ierašanās pēdējā stacijā",
-	"stations": "Stacijas"
-,
-	"show_countdown": "Rādīt atpakaļskaitīšanu līdz pieturai"
+	"stations": "Stacijas",
+	"show_countdown": "Rādīt atpakaļskaitīšanu līdz pieturai",
+	"more_departures": "Vairāk atiešanas"
 }

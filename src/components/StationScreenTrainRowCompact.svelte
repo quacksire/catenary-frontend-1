@@ -16,6 +16,7 @@
 	export let timezone: string = 'UTC';
 	export let show_timediff: boolean = true;
 	export let show_agency_name: boolean = true;
+	export let platform: string | null = null;
 
 	$: shared_rt_time = event.last_stop ? event.realtime_arrival : event.realtime_departure;
 	$: shared_scheduled_time = event.last_stop ? event.scheduled_arrival : event.scheduled_departure;
@@ -51,9 +52,21 @@
 		});
 	}}
 >
+	<!-- Leftmost: Route Name -->
+	<td class="px-1 py-0.5 w-[40px] align-middle text-center">
+		{#if show_route_name && routeDef?.short_name}
+			<span
+				class="rounded-xs font-bold px-1 py-0.5 text-xs inline-block min-w-[24px]"
+				style={`background: ${routeDef?.color}; color: ${routeDef?.text_color};`}
+			>
+				{routeDef?.short_name}
+			</span>
+		{/if}
+	</td>
+
 	<!-- Left: Time (Vertical Stack) -->
-	<td class="px-2 py-2 w-[80px] align-middle">
-		<div class="flex flex-col items-start justify-center">
+	<td class="px-1 py-0.5 w-[70px] align-middle">
+		<div class="flex flex-col items-start justify-center text-xs">
 			{#if event.trip_cancelled}
 				<span class="text-red-500 font-semibold text-xs">{$_('cancelled')}</span>
 				<div class="line-through opacity-70 text-xs">
@@ -105,7 +118,7 @@
 				{@const thisdiff = (shared_rt_time || shared_scheduled_time) - current_time / 1000}
 				{@const show_seconds_here = show_seconds && thisdiff < 3600}
 				{#if show_timediff}
-					<div class="mt-1">
+					<div class="mt-0.5">
 						<TimeDiff
 							large={false}
 							show_brackets={false}
@@ -120,28 +133,19 @@
 	</td>
 
 	<!-- Middle: Info -->
-	<td class="px-2 py-2 align-top">
-		<div class="flex flex-col justify-start">
-			<div class="flex flex-row items-center gap-2 mb-1">
-				<div class="text-base font-normal leading-tight">
+	<td class="px-1 py-0.5 align-middle">
+		<div class="flex flex-col justify-center">
+			<div class="flex flex-row items-center gap-2 mb-0.5">
+				<div class="text-sm font-normal leading-none">
 					{event.headsign}
 					{#if event.trip_short_name}
-						<span class="font-bold ml-1">{event.trip_short_name}</span>
+						<span class="font-bold ml-1 text-xs">{event.trip_short_name}</span>
 					{/if}
 				</div>
 			</div>
 			<div
-				class="flex flex-row text-sm text-gray-600 dark:text-gray-400 gap-2 items-center flex-wrap"
+				class="flex flex-row text-xs text-gray-600 dark:text-gray-400 gap-2 items-center flex-wrap"
 			>
-				{#if show_route_name && routeDef?.short_name}
-					<span
-						class="rounded-xs font-bold px-1 py-0.5 text-sm"
-						style={`background: ${routeDef?.color}; color: ${routeDef?.text_color};`}
-					>
-						{routeDef?.short_name}
-					</span>
-				{/if}
-
 				{#if agencyName && show_agency_name}
 					{#if agencyId === 'GWR' || agencyName?.trim().toLowerCase() === 'gwr'}
 						<img
@@ -188,16 +192,12 @@
 	</td>
 
 	<!-- Right: Platform -->
-	<td class="px-2 py-2 text-right w-[100px] align-middle">
-		{#if event.platform_string_realtime}
+	<td class="px-1 py-0.5 text-right w-[80px] align-middle">
+		{#if platform}
 			<span
-				class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded text-sm font-bold text-gray-800 dark:text-gray-200 inline-block"
+				class="bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs font-bold text-gray-800 dark:text-gray-200 inline-block"
 			>
-				{event.platform_string_realtime
-					.replace('Track', '')
-					.replace('platform', '')
-					.replace('Platform', '')
-					.trim()}
+				{platform.replace('Track', '').replace('platform', '').replace('Platform', '').trim()}
 			</span>
 		{/if}
 	</td>
