@@ -90,6 +90,19 @@
 		return pinnedSet.has(keyForRoute(chateau_id, route_id));
 	}
 
+	// Helper function to get effective departure time for v3 local departures
+	// Uses realtime_departure if available, otherwise uses arrival_realtime if it's
+	// greater than departure_schedule, otherwise falls back to departure_schedule
+	function getEffectiveDepartureTime(trip: any): number | null {
+		if (trip.departure_realtime != null) {
+			return trip.departure_realtime;
+		}
+		if (trip.arrival_realtime != null && trip.arrival_realtime > trip.departure_schedule) {
+			return trip.arrival_realtime;
+		}
+		return trip.departure_schedule;
+	}
+
 	let current_nearby_pick_state = get(nearby_pick_state_store);
 
 	nearby_pick_state_store.subscribe((x) => {
