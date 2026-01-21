@@ -93,6 +93,19 @@
 	// Helper function to get effective departure time for v3 local departures
 	// Uses realtime_departure if available, otherwise uses arrival_realtime if it's
 	// greater than departure_schedule, otherwise falls back to departure_schedule
+	function getEffectiveStationRealtimeDeparture(departure: any): number | null {
+		if (departure.realtime_departure != null) {
+			return departure.realtime_departure;
+		}
+		if (
+			departure.realtime_arrival != null &&
+			departure.realtime_arrival > departure.scheduled_departure
+		) {
+			return departure.realtime_arrival;
+		}
+		return null;
+	}
+
 	function getEffectiveDepartureTime(trip: any): number | null {
 		if (trip.departure_realtime != null) {
 			return trip.departure_realtime;
@@ -673,7 +686,7 @@
 											route_id: departure.route_id,
 											headsign: departure.headsign,
 											scheduled_departure: departure.scheduled_departure,
-											realtime_departure: departure.realtime_departure,
+											realtime_departure: getEffectiveStationRealtimeDeparture(departure),
 											service_date: departure.service_date,
 
 											trip_cancelled: departure.cancelled,
@@ -875,15 +888,14 @@
 									>
 										<div class="text-center">
 											<span
-												class={`font-semibold leading-none ${(trip.departure_realtime || trip.departure_schedule) - current_time / 1000 < -60 ? 'text-gray-600 dark:text-gray-400' : trip.departure_realtime ? 'text-seashore dark:text-seashoredark' : ''}`}
+												class={`font-semibold leading-none ${getEffectiveDepartureTime(trip) - current_time / 1000 < -60 ? 'text-gray-600 dark:text-gray-400' : trip.departure_realtime != null || (trip.arrival_realtime != null && trip.arrival_realtime > trip.departure_schedule) ? 'text-seashore dark:text-seashoredark' : ''}`}
 											>
-												{#if !isRail && ((trip.departure_realtime || trip.departure_schedule) - current_time / 1000 > 60 || (trip.departure_realtime || trip.departure_schedule) - current_time / 1000 < -60)}
+												{#if !isRail && (getEffectiveDepartureTime(trip) - current_time / 1000 > 60 || getEffectiveDepartureTime(trip) - current_time / 1000 < -60)}
 													<TimeDiff
 														large={false}
 														show_brackets={false}
 														show_seconds={false}
-														diff={(trip.departure_realtime || trip.departure_schedule) -
-															current_time / 1000}
+														diff={getEffectiveDepartureTime(trip) - current_time / 1000}
 														stylesForUnits={'font-medium'}
 													/>
 												{:else if isRail}
@@ -893,7 +905,7 @@
 													<span class="text-md font-bold">{$_('now')}</span>
 												{/if}
 
-												{#if trip.departure_realtime}
+												{#if trip.departure_realtime != null || (trip.arrival_realtime != null && trip.arrival_realtime > trip.departure_schedule)}
 													<!-- Wifi/Realtime Icon -->
 													<svg
 														class="dark:hidden inline ml-0.5 w-3 h-3 md:w-4 md:h-4 -translate-y-0.5"
@@ -923,9 +935,7 @@
 													hour: 'numeric',
 													minute: 'numeric',
 													timeZone: trip.tz // Use trip specific TZ if avail
-												}).format(
-													new Date((trip.departure_realtime || trip.departure_schedule) * 1000)
-												)}
+												}).format(new Date(getEffectiveDepartureTime(trip) * 1000))}
 											</p>
 										</div>
 									</button>
