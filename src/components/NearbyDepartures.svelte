@@ -677,7 +677,7 @@
 										}}
 										current_time={current_time / 1000}
 										show_seconds={false}
-										timezone={'UTC'}
+										timezone={station.timezone}
 									/>
 								{/each}
 							</tbody>
