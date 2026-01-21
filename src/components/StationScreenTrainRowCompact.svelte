@@ -59,7 +59,7 @@
 				class="rounded-xs font-bold px-1 py-0.5 text-xs inline-block min-w-[24px]"
 				style={`background: ${routeDef?.color}; color: ${routeDef?.text_color};`}
 			>
-				{routeDef?.short_name}
+				{routeDef?.short_name.replace(' Line', '')}
 			</span>
 		{/if}
 	</td>
