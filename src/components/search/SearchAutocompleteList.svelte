@@ -46,6 +46,11 @@
 
 	text_input_store.subscribe((n) => (text_input = n));
 
+	let current_locale_value: string | null = null;
+	locale.subscribe((val) => {
+		current_locale_value = val;
+	});
+
 	import { StopStack, StackInterface, OsmItemStack, RouteStack } from './../stackenum';
 	import RouteResultItem from './RouteResultItem.svelte';
 
@@ -152,9 +157,9 @@
 								>{item.data.properties.layer}</span
 							>
 						</p>
-						{#if item.data.properties.names && $locale && item.data.properties.names[$locale] && item.data.properties.names[$locale].toLowerCase() !== item.data.properties.name.toLowerCase()}
+						{#if item.data.properties.names && current_locale_value && item.data.properties.names[current_locale_value] && item.data.properties.names[current_locale_value].toLowerCase() !== item.data.properties.name.toLowerCase()}
 							<p class="text-[11px] text-gray-600 dark:text-gray-400 -mt-0.5 leading-tight">
-								{item.data.properties.names[$locale]}
+								{item.data.properties.names[current_locale_value]}
 							</p>
 						{/if}
 						<p class="text-[10px] text-gray-800 dark:text-gray-200">
