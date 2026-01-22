@@ -32,6 +32,7 @@
 		current_orm_layer_type_store
 	} from '../../globalstores';
 	import StopRankingInfo from './StopRankingInfo.svelte';
+	import { locale } from 'svelte-i18n';
 
 	let latest_query_data_local = get(latest_query_data);
 	let text_input = get(text_input_store);
@@ -151,6 +152,11 @@
 								>{item.data.properties.layer}</span
 							>
 						</p>
+						{#if item.data.properties.names && $locale && item.data.properties.names[$locale] && item.data.properties.names[$locale].toLowerCase() !== item.data.properties.name.toLowerCase()}
+							<p class="text-[11px] text-gray-600 dark:text-gray-400 -mt-0.5 leading-tight">
+								{item.data.properties.names[$locale]}
+							</p>
+						{/if}
 						<p class="text-[10px] text-gray-800 dark:text-gray-200">
 							{getSubtitle(item.data.properties)}
 						</p>
