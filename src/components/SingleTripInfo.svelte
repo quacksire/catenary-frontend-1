@@ -1327,7 +1327,7 @@
 								{/if}
 
 								<!-- Dot -->
-								{#if is_at_station && i == current_at_stop_idx}
+								{#if is_at_station && i == current_at_stop_idx_store}
 									<div
 										class="z-20 w-3 h-3 mt-1 rounded-full animate-pulse"
 										style={`background-color: ${trip_data.color};`}
