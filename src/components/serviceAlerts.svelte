@@ -17,15 +17,13 @@
 	let fading = false;
 	let intervalId: NodeJS.Timeout;
 
-	$: locale.subscribe((value) => {
-		if (value) {
-			if (locale_code.startsWith('en')) {
-				locale_code = 'en-CA';
-			} else {
-				locale_code = value;
-			}
+	$: if ($locale) {
+		if ($locale.startsWith('en')) {
+			locale_code = 'en-CA';
+		} else {
+			locale_code = $locale;
 		}
-	});
+	}
 
 	var languagelist = Object.values(alerts)
 		.map((alert: any) => {
@@ -47,6 +45,15 @@
 	let languagelistToUse = languagelist.includes('en-html')
 		? languagelist.filter((x) => x != 'en')
 		: languagelist;
+
+	$: userLanguagePrefix = locale_code.split('-')[0];
+	$: previewLanguageList = (() => {
+		const matches = languagelistToUse.filter(
+			(lang) =>
+				lang === locale_code || lang === userLanguagePrefix || lang.startsWith(userLanguagePrefix)
+		);
+		return matches.length > 0 ? matches : languagelistToUse;
+	})();
 
 	// Cycling logic for collapsed state
 	function startCycling() {
@@ -110,7 +117,7 @@
 					>
 						{#if currentAlert}
 							{#if currentAlert.header_text}
-								{#each languagelistToUse as language}
+								{#each previewLanguageList as language}
 									{#each currentAlert.header_text.translation.filter((x) => x.language == language) as each_header_translation_obj}
 										<p class="truncate">
 											<span class="font-bold">
@@ -131,7 +138,7 @@
 							{/if}
 
 							{#if currentAlert.description_text}
-								{#each languagelistToUse as language}
+								{#each previewLanguageList as language}
 									{#each currentAlert.description_text.translation.filter((x) => x.language == language) as each_desc_translation_obj}
 										<p class="truncate">
 											{#each each_desc_translation_obj.text.split(/(\[[A-Z0-9]+\])/g) as part, i}
