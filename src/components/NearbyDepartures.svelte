@@ -926,7 +926,7 @@
 												{new Intl.DateTimeFormat('en-GB', {
 													hour: 'numeric',
 													minute: 'numeric',
-													timeZone: trip.tz // Use trip specific TZ if avail
+													timeZone: v3_stops[route_group.chateau_id]?.[trip.stop_id]?.timezone // Use trip specific TZ if avail
 												}).format(new Date(getEffectiveDepartureTime(trip) * 1000))}
 												{#if trip.departure_realtime != null || (trip.arrival_realtime != null && trip.arrival_realtime > trip.departure_schedule)}
 													<br />
