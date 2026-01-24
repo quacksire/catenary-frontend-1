@@ -17,6 +17,8 @@
 
 	export let alltextclass: string = '';
 
+	export let unitsclass: string = '';
+
 	let h: number = 0;
 	let m: number = 0;
 	let s: number = 0;
@@ -62,7 +64,7 @@
 		}
 
 		if (use_ticks) {
-			if (l.startsWith("fr")) {
+			if (l.startsWith('fr')) {
 				return "'";
 			}
 		}
@@ -92,7 +94,7 @@
 		}
 
 		if (use_ticks) {
-			if (l.startsWith("fr")) {
+			if (l.startsWith('fr')) {
 				return '"';
 			}
 		}
@@ -149,14 +151,15 @@
 	{#if diff != 0}
 		{#if h > 0}
 			<span class="text-sm {alltextclass}">{h}</span>
-			<span class="text-xs {alltextclass}">{locale_hour_marking(this_locale)}</span>
+			<span class="text-xs {alltextclass}  {unitsclass}">{locale_hour_marking(this_locale)}</span>
 		{/if}{#if h > 0 || m > 0 || (!show_seconds && m >= 0 && diff != 0)}
 			<span class="text-sm {alltextclass}">{!show_seconds && Math.abs(diff) < 60 ? '<1' : m}</span>
-			<span class="text-xs {alltextclass}">{locale_min_marking(this_locale)}</span>{/if}
+			<span class="text-xs {alltextclass} {unitsclass}">{locale_min_marking(this_locale)}</span
+			>{/if}
 		{#if show_seconds}
 			{#if Math.abs(diff) > 0}
 				<span class="text-sm">{s}</span>
-				<span class="text-xs {alltextclass}">{locale_s_marking(this_locale)}</span>
+				<span class="text-xs {alltextclass}  {unitsclass}">{locale_s_marking(this_locale)}</span>
 			{/if}
 		{/if}
 	{/if}

@@ -16,7 +16,7 @@
 
 	import { onMount } from 'svelte';
 	import { writable, get } from 'svelte/store';
-	import { _ } from 'svelte-i18n';
+	import { _, locale } from 'svelte-i18n';
 	import DelayDiff from './DelayDiff.svelte';
 	import TimeDiff from './TimeDiff.svelte';
 	import type { Writable } from 'svelte/store';
@@ -88,6 +88,18 @@
 	}
 	function isPinnedRoute(chateau_id: string, route_id: string) {
 		return pinnedSet.has(keyForRoute(chateau_id, route_id));
+	}
+
+	let should_show_symbol_sign_nearby = false;
+
+	let locale_local = get(locale);
+
+	$: if (
+		locale_local.startsWith('fr') ||
+		locale_local.startsWith('de') ||
+		locale_local.startsWith('ja')
+	) {
+		should_show_symbol_sign_nearby = true;
 	}
 
 	// Helper function to get effective departure time for v3 local departures
@@ -865,8 +877,8 @@
 								{#each trips as trip}
 									<button
 										class="bg-white dark:bg-darksky
-                                         hover:bg-blue-100 hover:dark:bg-hover p-0.5
-                                         mb-1 rounded-sm min-w-16 md:min-w-20 flex justify-center"
+                                         hover:bg-blue-100 hover:dark:bg-hover
+                                         mb-0.5 rounded-sm min-w-16 md:min-w-20 flex justify-center"
 										on:click={() => {
 											data_stack_store.update((stack) => {
 												stack.push(
@@ -907,26 +919,6 @@
 
 												{#if trip.departure_realtime != null || (trip.arrival_realtime != null && trip.arrival_realtime > trip.departure_schedule)}
 													<!-- Wifi/Realtime Icon -->
-													<svg
-														class="dark:hidden inline ml-0.5 w-3 h-3 md:w-4 md:h-4 -translate-y-0.5"
-														height="24"
-														viewBox="0 -960 960 960"
-														width="24"
-														fill={'var(--color-seashore)'}
-														><path
-															d="M200-120q-33 0-56.5-23.5T120-200q0-33 23.5-56.5T200-280q33 0 56.5 23.5T280-200q0 33-23.5 56.5T200-120Zm480 0q0-117-44-218.5T516-516q-76-76-177.5-120T120-680v-120q142 0 265 53t216 146q93 93 146 216t53 265H680Zm-240 0q0-67-25-124.5T346-346q-44-44-101.5-69T120-440v-120q92 0 171.5 34.5T431-431q60 60 94.5 139.5T560-120H440Z"
-														/></svg
-													>
-													<svg
-														class="hidden dark:inline ml-0.5 w-3 h-3 md:w-4 md:h-4 -translate-y-0.5"
-														height="24"
-														viewBox="0 -960 960 960"
-														width="24"
-														fill={'var(--color-seashoredark)'}
-														><path
-															d="M200-120q-33 0-56.5-23.5T120-200q0-33 23.5-56.5T200-280q33 0 56.5 23.5T280-200q0 33-23.5 56.5T200-120Zm480 0q0-117-44-218.5T516-516q-76-76-177.5-120T120-680v-120q142 0 265 53t216 146q93 93 146 216t53 265H680Zm-240 0q0-67-25-124.5T346-346q-44-44-101.5-69T120-440v-120q92 0 171.5 34.5T431-431q60 60 94.5 139.5T560-120H440Z"
-														/></svg
-													>
 												{/if}
 											</span>
 
@@ -936,6 +928,14 @@
 													minute: 'numeric',
 													timeZone: trip.tz // Use trip specific TZ if avail
 												}).format(new Date(getEffectiveDepartureTime(trip) * 1000))}
+												{#if trip.departure_realtime != null || (trip.arrival_realtime != null && trip.arrival_realtime > trip.departure_schedule)}
+													<br />
+													<DelayDiff
+														diff={getEffectiveDepartureTime(trip) - trip.departure_schedule}
+														use_symbol_sign={should_show_symbol_sign_nearby}
+														unitsclass="font-normal text-xs"
+													/>
+												{/if}
 											</p>
 										</div>
 									</button>
