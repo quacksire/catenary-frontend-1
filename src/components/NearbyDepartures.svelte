@@ -692,7 +692,7 @@
 											trip_cancelled: departure.cancelled,
 											trip_deleted: false,
 											stop_cancelled: false,
-											trip_short_name: null
+											trip_short_name: departure.trip_short_name
 										}}
 										show_timediff={false}
 										show_agency_name={false}
