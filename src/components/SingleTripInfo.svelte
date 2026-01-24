@@ -1255,7 +1255,12 @@
 			<div class="text-orange-500 italics text-semibold text-sm">{$_('new_rt_shape')}</div>
 		{/if}
 
-		<AlertBox {alerts} chateau={trip_selected.chateau_id} default_tz={trip_data.tz || null} />
+		<AlertBox
+			{alerts}
+			chateau={trip_selected.chateau_id}
+			default_tz={trip_data.tz || null}
+			expanded={false}
+		/>
 
 		{#key trip_data}
 			{#if show_previous_stops && last_inactive_stop_idx > -1}

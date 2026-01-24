@@ -3,15 +3,19 @@
 	import { cause_id_str, effect_id_str } from './alert_id_to_str_key';
 	import TimeDiff from './TimeDiff.svelte';
 	import MtaBullet from './mtabullet.svelte';
+	import { onDestroy } from 'svelte';
 
 	export let alerts = {};
 	export let default_tz: string | null = null;
+	export let chateau: string | null = null;
+	export let expanded: boolean = true;
 
 	//get locale from the store
 
-	let locale_code: string = 'en-CA';
-	let expanded: boolean = true;
-	export let chateau: string | null = null;
+	let locale_code: string = 'en-CA'; // default
+	let currentIndex = 0;
+	let fading = false;
+	let intervalId: NodeJS.Timeout;
 
 	$: locale.subscribe((value) => {
 		if (value) {
@@ -24,15 +28,15 @@
 	});
 
 	var languagelist = Object.values(alerts)
-		.map((alert) => {
+		.map((alert: any) => {
 			let list: any[] = [];
 
 			if (alert.header_text != null) {
-				list = list.concat(alert.header_text.translation.map((x) => x.language));
+				list = list.concat(alert.header_text.translation.map((x: any) => x.language));
 			}
 
 			if (alert.description_text != null) {
-				list = list.concat(alert.description_text.translation.map((x) => x.language));
+				list = list.concat(alert.description_text.translation.map((x: any) => x.language));
 			}
 
 			return list;
@@ -43,27 +47,119 @@
 	let languagelistToUse = languagelist.includes('en-html')
 		? languagelist.filter((x) => x != 'en')
 		: languagelist;
+
+	// Cycling logic for collapsed state
+	function startCycling() {
+		stopCycling();
+		if (Object.keys(alerts).length > 1) {
+			intervalId = setInterval(() => {
+				fading = true;
+				setTimeout(() => {
+					currentIndex = (currentIndex + 1) % Object.keys(alerts).length;
+					fading = false;
+				}, 500); // Wait for fade out
+			}, 4000);
+		} else {
+			currentIndex = 0;
+		}
+	}
+
+	function stopCycling() {
+		if (intervalId) clearInterval(intervalId);
+		fading = false;
+	}
+
+	$: if (!expanded) {
+		startCycling();
+	} else {
+		stopCycling();
+	}
+
+	onDestroy(() => {
+		stopCycling();
+	});
+
+	$: currentAlert = Object.values(alerts)[currentIndex] as any;
 </script>
 
 {#if Object.keys(alerts).length > 0}
-	<div class="border-[#F99C24] border leading-snug mb-3 p-2 rounded-md">
-		<div class="flex flex-row align-center">
-			<div>
-				<img src="/icons/service_alert.svg" alt="(i)" class="h-6 w-6 inline mr-2" />
-				<span class="text-[#F99C24] font-semibold text-lg align-middle"
-					>{$_('service_alerts', {
-						values: {
-							n: Object.keys(alerts).length
-						}
-					})}</span
-				>
+	<div class="border-[#F99C24] border leading-snug mb-3 p-2 rounded-md transition-all duration-300">
+		<div
+			class="flex flex-row items-start cursor-pointer"
+			on:click={() => {
+				expanded = !expanded;
+			}}
+		>
+			<div class="flex-grow flex flex-col justify-center min-w-0">
+				<div class="flex items-center">
+					<img src="/icons/service_alert.svg" alt="(i)" class="h-6 w-6 inline mr-2" />
+					<span
+						class={`text-[#F99C24] font-semibold transition-all duration-300 ${expanded ? 'text-lg' : 'text-sm'}`}
+					>
+						{$_('service_alerts', {
+							values: {
+								n: Object.keys(alerts).length
+							}
+						})}
+					</span>
+				</div>
+
+				{#if !expanded}
+					<div
+						class={`ml-8 text-xs text-gray-400 dark:text-gray-300 transition-opacity duration-500 ${fading ? 'opacity-0' : 'opacity-100'}`}
+					>
+						{#if currentAlert}
+							{#if currentAlert.header_text}
+								{#each languagelistToUse as language}
+									{#each currentAlert.header_text.translation.filter((x) => x.language == language) as each_header_translation_obj}
+										<p class="truncate">
+											<span class="font-bold">
+												{#each each_header_translation_obj.text.split(/(\[[A-Z0-9]+\])/g) as part, i}
+													{#if i % 2 === 1}
+														<MtaBullet
+															matchTextHeight={true}
+															route_short_name={part.slice(1, -1)}
+														/>
+													{:else}
+														{@html part.replaceAll(/\<(\/)?p\>/g, '').replaceAll(/\<(\/)?b\>/g, '')}
+													{/if}
+												{/each}
+											</span>
+										</p>
+									{/each}
+								{/each}
+							{/if}
+
+							{#if currentAlert.description_text}
+								{#each languagelistToUse as language}
+									{#each currentAlert.description_text.translation.filter((x) => x.language == language) as each_desc_translation_obj}
+										<p class="truncate">
+											{#each each_desc_translation_obj.text.split(/(\[[A-Z0-9]+\])/g) as part, i}
+												{#if i % 2 === 1}
+													<MtaBullet matchTextHeight={true} route_short_name={part.slice(1, -1)} />
+												{:else}
+													{@html part
+														.replaceAll(/\<(\/)?p\>/g, '')
+														.replaceAll(/\<(\/)?b\>/g, '')
+														.replaceAll(/\\n/g, ' ')}
+												{/if}
+											{/each}
+										</p>
+									{/each}
+								{/each}
+							{/if}
+
+							{#if !currentAlert.header_text && !currentAlert.description_text}
+								<p class="truncate text-gray-500 italic">
+									{$_(cause_id_str(currentAlert.cause))} // {$_(effect_id_str(currentAlert.effect))}
+								</p>
+							{/if}
+						{/if}
+					</div>
+				{/if}
 			</div>
-			<button
-				class="ml-auto w-6 h-6 rounded-full flex flex-col align-center"
-				on:click={(e) => {
-					expanded = !expanded;
-				}}
-			>
+
+			<button class="w-6 h-6 rounded-full flex flex-col justify-center items-center ml-2">
 				{#if expanded}
 					<span class="material-symbols-outlined select-none"> collapse_content </span>
 				{:else}
