@@ -353,6 +353,49 @@
 						}
 					});
 
+					// Propagate delay to stops without realtime data
+					let last_known_arrival_delay: number | null = null;
+					let last_known_departure_delay: number | null = null;
+
+					next_stoptimes_cleaned.forEach((stoptime: any) => {
+						// Track the last known delays from stops that have RT data
+						if (typeof stoptime.rt_arrival_diff === 'number') {
+							last_known_arrival_delay = stoptime.rt_arrival_diff;
+						}
+						if (typeof stoptime.rt_departure_diff === 'number') {
+							last_known_departure_delay = stoptime.rt_departure_diff;
+						}
+
+						// If this stop doesn't have RT data but we have a known delay, propagate it
+						if (stoptime.rt_arrival_time == null && last_known_arrival_delay != null) {
+							if (stoptime.scheduled_arrival_time_unix_seconds) {
+								stoptime.rt_arrival_time =
+									stoptime.scheduled_arrival_time_unix_seconds + last_known_arrival_delay;
+								stoptime.rt_arrival_diff = last_known_arrival_delay;
+								stoptime.strike_arrival = true;
+							}
+						}
+
+						if (stoptime.rt_departure_time == null && last_known_departure_delay != null) {
+							if (stoptime.scheduled_departure_time_unix_seconds) {
+								stoptime.rt_departure_time =
+									stoptime.scheduled_departure_time_unix_seconds + last_known_departure_delay;
+								stoptime.rt_departure_diff = last_known_departure_delay;
+								stoptime.strike_departure = true;
+							}
+						}
+
+						// Ensure departure is not before arrival after propagation
+						if (
+							typeof stoptime.rt_departure_time === 'number' &&
+							typeof stoptime.rt_arrival_time === 'number'
+						) {
+							if (stoptime.rt_departure_time < stoptime.rt_arrival_time) {
+								stoptime.rt_departure_time = stoptime.rt_arrival_time;
+							}
+						}
+					});
+
 					stoptimes_cleaned_dataset = next_stoptimes_cleaned;
 					init_loaded = Date.now();
 					label_stops_on_map();
@@ -783,6 +826,49 @@
 
 							stoptimes_cleaned.push(stoptime_to_use);
 							index = index + 1;
+						});
+
+						// Propagate delay to stops without realtime data
+						let last_known_arrival_delay: number | null = null;
+						let last_known_departure_delay: number | null = null;
+
+						stoptimes_cleaned.forEach((stoptime: any) => {
+							// Track the last known delays from stops that have RT data
+							if (typeof stoptime.rt_arrival_diff === 'number') {
+								last_known_arrival_delay = stoptime.rt_arrival_diff;
+							}
+							if (typeof stoptime.rt_departure_diff === 'number') {
+								last_known_departure_delay = stoptime.rt_departure_diff;
+							}
+
+							// If this stop doesn't have RT data but we have a known delay, propagate it
+							if (stoptime.rt_arrival_time == null && last_known_arrival_delay != null) {
+								if (stoptime.scheduled_arrival_time_unix_seconds) {
+									stoptime.rt_arrival_time =
+										stoptime.scheduled_arrival_time_unix_seconds + last_known_arrival_delay;
+									stoptime.rt_arrival_diff = last_known_arrival_delay;
+									stoptime.strike_arrival = true;
+								}
+							}
+
+							if (stoptime.rt_departure_time == null && last_known_departure_delay != null) {
+								if (stoptime.scheduled_departure_time_unix_seconds) {
+									stoptime.rt_departure_time =
+										stoptime.scheduled_departure_time_unix_seconds + last_known_departure_delay;
+									stoptime.rt_departure_diff = last_known_departure_delay;
+									stoptime.strike_departure = true;
+								}
+							}
+
+							// Ensure departure is not before arrival after propagation
+							if (
+								typeof stoptime.rt_departure_time === 'number' &&
+								typeof stoptime.rt_arrival_time === 'number'
+							) {
+								if (stoptime.rt_departure_time < stoptime.rt_arrival_time) {
+									stoptime.rt_departure_time = stoptime.rt_arrival_time;
+								}
+							}
 						});
 
 						let all_timepoints_empty = data.stoptimes.every(
