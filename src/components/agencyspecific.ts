@@ -89,7 +89,7 @@ export function fixRouteNameLong(chateau: string, route: string, rid: string): s
 	};
 
 	if (chateau == 'metrolinktrains') {
-		return route.replace('Metrolink ', '');
+		return route.replace('Metrolink ', '').replace(' Line', '');
 	}
 
 	if (fixPatterns[chateau]) {

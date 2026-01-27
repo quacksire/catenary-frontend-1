@@ -144,14 +144,6 @@
 			style={`
 				${isSubway ? '' : `color: ${darkMode ? lightenColour(color) : color}`}`}
 		>
-			{#if run_number}
-				<span
-					style={`
-						${isSubway ? '' : `background-color: ${color}; color: ${text_color};`}`}
-					class="font-bold text-md px-1 py-0.5 mr-1 rounded-md w-min">{run_number}</span
-				>
-			{/if}
-
 			<span
 				class={`
 					${
@@ -173,7 +165,7 @@
 					<MtaBullet route_short_name={short_name} matchTextHeight={true} />
 				{:else if isRatp && short_name}
 					<RatpBullet route_short_name={short_name} matchTextHeight={true} />
-				{:else if short_name}
+				{:else if short_name && (chateau_id !== 'nationalrailuk' || short_name.startsWith('LO-') || short_name === 'XR-ELIZABETH') && chateau_id !== 'metrolinktrains'}
 					<span class="font-bold">{fixRouteName(chateau_id, short_name, route_id)}</span>
 				{/if}
 
@@ -220,6 +212,10 @@
 		{/if}
 		<span class="align-middle">
 			{text}
+
+			{#if run_number}
+				<span class="font-bold text-md px-1 py-0.5 mr-1 rounded-md w-min">{run_number}</span>
+			{/if}
 			{#if icon}
 				<span class="material-symbols-outlined text-xl align-middle -translate-y-0.5 ml-1"
 					>{icon}</span

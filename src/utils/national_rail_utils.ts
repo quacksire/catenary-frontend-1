@@ -54,3 +54,28 @@ export function getAgencyIconUrl(
     const info = getAgencyInfo(agencyId, agencyName);
     return info?.icon ? `https://maps.catenarymaps.org/agencyicons/${info.icon}` : null;
 }
+
+export function cleanStationName(name: string): string {
+    return name
+        .replace('Station ', '')
+        .replace(' Station', '')
+        .replace(', Bahnhof', '')
+        .replace(' Bahnhof', '')
+        .replace('Estación de tren ', '')
+        .replace(' Metrolink', '')
+        .replace('Northbound', 'N.B.')
+        .replace('Eastbound', 'E.B.')
+        .replace('Southbound', 'S.B.')
+        .replace('Westbound', 'W.B.')
+        .replace(' (Railway) ', '')
+        .replace(' Light Rail', '')
+        .replace(' Amtrak', '');
+}
+
+export function cleanPlatformName(platform: string): string {
+    return platform
+        .replace('Track', '')
+        .replace('platform', '')
+        .replace('Platform', '')
+        .trim();
+}

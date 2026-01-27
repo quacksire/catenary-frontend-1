@@ -32,6 +32,7 @@
 		fixRunNumber,
 		fixStationName
 	} from './agencyspecific';
+	import { cleanStationName, cleanPlatformName } from '../utils/national_rail_utils';
 	let is_loading_trip_data: boolean = true;
 	let trip_data: Record<string, any> | null = null;
 	let init_loaded = 0;
@@ -454,20 +455,9 @@
 					});
 				}
 
-				let label = `${eachstoptime.schedule_relationship == 1 ? '(X)' : ''}${time_text} ${eachstoptime.name
-					.replace('Station ', '')
-					.replace(' Station', '')
-					.replace(', Bahnhof', '')
-					.replace(' Bahnhof', '')
-					.replace('Estación de tren ', '')
-					.replace(' Metrolink', '')
-					.replace('Northbound', 'N.B.')
-					.replace('Eastbound', 'E.B.')
-					.replace('Southbound', 'S.B.')
-					.replace('Westbound', 'W.B.')
-					.replace(' (Railway) ', '')
-					.replace(' Light Rail', '')
-					.replace(' Amtrak', '')}`;
+				let label = `${eachstoptime.schedule_relationship == 1 ? '(X)' : ''}${time_text} ${cleanStationName(
+					eachstoptime.name
+				)}`;
 
 				return {
 					type: 'Feature',
@@ -1460,7 +1450,7 @@
 												}}
 												class={`cursor-pointer hover:underline ${stoptime.schedule_relationship == 1 ? 'text-[#EF3841]' : stop_id_to_alert_ids[stoptime.stop_id] ? 'text-[#F99C24]' : ''}`}
 											>
-												{fixStationName(stoptime.name)}
+												{cleanStationName(fixStationName(stoptime.name))}
 											</span>
 										{/if}
 									</div>
@@ -1471,11 +1461,7 @@
 											<span class="sr-only">{$_('platform')}</span>
 											<span aria-hidden="true" class="opacity-70">{$_('platform')}</span>
 											<span class="font-bold">
-												{stoptime.rt_platform_string
-													.replace('Track', '')
-													.replace('platform', '')
-													.replace('Platform', '')
-													.trim()}
+												{cleanPlatformName(stoptime.rt_platform_string)}
 											</span>
 										</div>
 									{/if}

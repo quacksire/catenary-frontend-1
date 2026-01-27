@@ -27,6 +27,7 @@
 	} from './agencyspecific';
 	import { MTA_CHATEAU_ID, isSubwayRouteId } from '../utils/mta_subway_utils';
 	import { IDFM_CHATEAU_ID, isRatpRoute } from '../utils/ratp_utils';
+	import { cleanStationName, cleanPlatformName } from '../utils/national_rail_utils';
 	import MtaBullet from './mtabullet.svelte';
 	import RatpBullet from './ratpbullet.svelte';
 	import RouteSymbols from './RouteSymbols.svelte';
@@ -347,7 +348,7 @@
 					</div>
 
 					<p>
-						{option.data.stop_name}
+						{cleanStationName(option.data.stop_name)}
 					</p>
 
 					{#if stops_preview_data}
@@ -363,8 +364,10 @@
 								{#if stops_preview_data.stops[option.data.chateau_id][option.data.stop_id].platform_code}
 									<span class="text-sm"
 										>{$_('platform')}
-										{stops_preview_data.stops[option.data.chateau_id][option.data.stop_id]
-											.platform_code}</span
+										{cleanPlatformName(
+											stops_preview_data.stops[option.data.chateau_id][option.data.stop_id]
+												.platform_code
+										)}</span
 									>
 								{/if}
 							</div>
@@ -413,10 +416,8 @@
 					{/if}
 					{#if isSubwayRouteId(option.data.route_id) && option.data.chateau_id === MTA_CHATEAU_ID}
 						<MtaBullet route_short_name={option.data.name} matchTextHeight={false} />
-					
 					{:else if option.data.chateau_id === IDFM_CHATEAU_ID && isRatpRoute(option.data.name)}
 						<RatpBullet route_short_name={option.data.name} matchTextHeight={false} />
-						
 					{:else if option.data.name}
 						<span
 							style={`color: ${darkMode ? lightenColour(option.data.colour) : option.data.colour}`}
