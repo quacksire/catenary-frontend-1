@@ -122,8 +122,7 @@ export function fixRunNumber(
 	if (
 		(chateau == 'san-diego-mts' &&
 			route.toString().length == 3 &&
-			route.toString().startsWith('5')) ||
-		chateau == 'metra'
+			route.toString().startsWith('5'))
 	)
 		return vehicle;
 	if (chateau == 'northcountytransitdistrict' && route != 398) return null;
