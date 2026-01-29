@@ -50,11 +50,29 @@
 
 	$: userLanguagePrefix = locale_code.split('-')[0];
 	$: previewLanguageList = (() => {
-		const matches = languagelistToUse.filter(
+		if (!currentAlert) return [];
+		let languages: any[] = [];
+		if (currentAlert.header_text) {
+			languages = languages.concat(
+				currentAlert.header_text.translation.map((x: any) => x.language || 'unknown')
+			);
+		}
+		if (currentAlert.description_text) {
+			languages = languages.concat(
+				currentAlert.description_text.translation.map((x: any) => x.language || 'unknown')
+			);
+		}
+		languages = [...new Set(languages)];
+
+		if (languages.includes('en-html')) {
+			languages = languages.filter((x) => x != 'en');
+		}
+
+		const matches = languages.filter(
 			(lang) =>
 				lang === locale_code || lang === userLanguagePrefix || lang.startsWith(userLanguagePrefix)
 		);
-		return matches.length > 0 ? matches : languagelistToUse;
+		return matches.length > 0 ? matches : languages;
 	})();
 
 	// Cycling logic for collapsed state
