@@ -22,6 +22,14 @@
 		resetAdditionalVehicleFilter,
 		additional_filter_for_vehicles_store
 	} from './filterState';
+	import {
+		connectSpruceWebSocket,
+		disconnectSpruceWebSocket,
+		spruce_trip_data,
+		spruce_update_data,
+		spruce_error,
+		spruce_status
+	} from '../spruce_websocket';
 
 	import {
 		fixHeadsignIcon,
@@ -244,168 +252,141 @@
 		}
 	}
 
-	async function update_realtime_data() {
-		let url = new URL(
-			`https://birch_req_trip.catenarymaps.org/get_trip_information_rt_update/${trip_selected.chateau_id}/`
-		);
+	function handle_trip_update(data: any) {
+		try {
+			if (data) {
+				let next_stoptimes_cleaned: any[] = stoptimes_cleaned_dataset;
 
-		if (trip_selected.trip_id != null) {
-			url.searchParams.append('trip_id', trip_selected.trip_id);
-		}
+				let new_stop_times_queue = data.stoptimes;
 
-		if (trip_selected.start_date != null) {
-			url.searchParams.append('start_date', trip_selected.start_date);
-		}
+				next_stoptimes_cleaned.forEach((existing_stop_time: any) => {
+					let new_stop_time_to_use_idx = new_stop_times_queue.findIndex((new_stop_time: any) => {
+						if (
+							new_stop_time.gtfs_stop_sequence != null &&
+							existing_stop_time.gtfs_stop_sequence != null
+						) {
+							let answer =
+								new_stop_time.gtfs_stop_sequence == existing_stop_time.gtfs_stop_sequence;
 
-		if (trip_selected.start_time != null) {
-			url.searchParams.append('start_time', trip_selected.start_time);
-		}
-
-		await fetch(url.toString()).then(async (response) => {
-			let text = await response.text();
-			try {
-				const rt_update_json = JSON.parse(text);
-				//	console.log('rt trip data', rt_update_json);
-
-				const data = rt_update_json.data;
-
-				if (rt_update_json.found_data === true) {
-					let next_stoptimes_cleaned: any[] = stoptimes_cleaned_dataset;
-
-					let new_stop_times_queue = data.stoptimes;
-
-					next_stoptimes_cleaned.forEach((existing_stop_time: any) => {
-						let new_stop_time_to_use_idx = new_stop_times_queue.findIndex((new_stop_time: any) => {
-							if (
-								new_stop_time.gtfs_stop_sequence != null &&
-								existing_stop_time.gtfs_stop_sequence != null
-							) {
-								let answer =
-									new_stop_time.gtfs_stop_sequence == existing_stop_time.gtfs_stop_sequence;
-
-								if (answer == true) {
-									return answer;
-								}
+							if (answer == true) {
+								return answer;
 							}
-							if (new_stop_time.gtfs_stop_id != null && existing_stop_time.gtfs_stop_id != null) {
-								return new_stop_time.gtfs_stop_id == existing_stop_time.gtfs_stop_id;
+						}
+						if (new_stop_time.gtfs_stop_id != null && existing_stop_time.gtfs_stop_id != null) {
+							return new_stop_time.gtfs_stop_id == existing_stop_time.gtfs_stop_id;
+						}
+
+						return false;
+					});
+
+					if (new_stop_time_to_use_idx != -1) {
+						let new_stop_time_to_use_arr = new_stop_times_queue.splice(new_stop_time_to_use_idx, 1);
+						let new_stop_time_data_to_use = new_stop_time_to_use_arr[0];
+
+						existing_stop_time.rt_platform_string = new_stop_time_data_to_use.rt_platform_string;
+
+						if (typeof new_stop_time_data_to_use.rt_arrival?.time == 'number') {
+							existing_stop_time.rt_arrival_time = new_stop_time_data_to_use.rt_arrival?.time;
+							existing_stop_time.strike_arrival = true;
+						} else {
+							existing_stop_time.rt_arrival_time = null;
+							existing_stop_time.strike_arrival = false;
+							existing_stop_time.rt_departure_diff = null;
+						}
+
+						if (typeof new_stop_time_data_to_use.rt_departure?.time == 'number') {
+							existing_stop_time.rt_departure_time = new_stop_time_data_to_use.rt_departure?.time;
+							existing_stop_time.strike_departure = true;
+						} else {
+							existing_stop_time.rt_departure_time = null;
+							existing_stop_time.strike_departure = false;
+							existing_stop_time.rt_arrival_diff = null;
+						}
+
+						if (typeof existing_stop_time.rt_departure_time == 'number') {
+							if (existing_stop_time.scheduled_departure_time_unix_seconds) {
+								existing_stop_time.rt_departure_diff =
+									existing_stop_time.rt_departure_time -
+									existing_stop_time.scheduled_departure_time_unix_seconds;
 							}
+						}
 
-							return false;
-						});
-
-						if (new_stop_time_to_use_idx != -1) {
-							let new_stop_time_to_use_arr = new_stop_times_queue.splice(
-								new_stop_time_to_use_idx,
-								1
-							);
-							let new_stop_time_data_to_use = new_stop_time_to_use_arr[0];
-
-							existing_stop_time.rt_platform_string = new_stop_time_data_to_use.rt_platform_string;
-
-							if (typeof new_stop_time_data_to_use.rt_arrival?.time == 'number') {
-								existing_stop_time.rt_arrival_time = new_stop_time_data_to_use.rt_arrival?.time;
-								existing_stop_time.strike_arrival = true;
-							} else {
-								existing_stop_time.rt_arrival_time = null;
-								existing_stop_time.strike_arrival = false;
-								existing_stop_time.rt_departure_diff = null;
-							}
-
-							if (typeof new_stop_time_data_to_use.rt_departure?.time == 'number') {
-								existing_stop_time.rt_departure_time = new_stop_time_data_to_use.rt_departure?.time;
-								existing_stop_time.strike_departure = true;
-							} else {
-								existing_stop_time.rt_departure_time = null;
-								existing_stop_time.strike_departure = false;
-								existing_stop_time.rt_arrival_diff = null;
+						if (typeof existing_stop_time.rt_arrival_time == 'number') {
+							if (existing_stop_time.scheduled_arrival_time_unix_seconds) {
+								existing_stop_time.rt_arrival_diff =
+									existing_stop_time.rt_arrival_time -
+									existing_stop_time.scheduled_arrival_time_unix_seconds;
 							}
 
 							if (typeof existing_stop_time.rt_departure_time == 'number') {
-								if (existing_stop_time.scheduled_departure_time_unix_seconds) {
-									existing_stop_time.rt_departure_diff =
-										existing_stop_time.rt_departure_time -
-										existing_stop_time.scheduled_departure_time_unix_seconds;
+								if (existing_stop_time.rt_departure_time < existing_stop_time.rt_arrival_time) {
+									existing_stop_time.rt_departure_time = existing_stop_time.rt_arrival_time;
+									existing_stop_time.strike_departure = true;
 								}
-							}
-
-							if (typeof existing_stop_time.rt_arrival_time == 'number') {
-								if (existing_stop_time.scheduled_arrival_time_unix_seconds) {
-									existing_stop_time.rt_arrival_diff =
-										existing_stop_time.rt_arrival_time -
-										existing_stop_time.scheduled_arrival_time_unix_seconds;
-								}
-
-								if (typeof existing_stop_time.rt_departure_time == 'number') {
-									if (existing_stop_time.rt_departure_time < existing_stop_time.rt_arrival_time) {
-										existing_stop_time.rt_departure_time = existing_stop_time.rt_arrival_time;
-										existing_stop_time.strike_departure = true;
-									}
-								} else {
-									if (
-										existing_stop_time.scheduled_departure_time_unix_seconds <
-										existing_stop_time.rt_arrival_time
-									) {
-										existing_stop_time.rt_departure_time = existing_stop_time.rt_arrival_time;
-										existing_stop_time.strike_departure = true;
-									}
+							} else {
+								if (
+									existing_stop_time.scheduled_departure_time_unix_seconds <
+									existing_stop_time.rt_arrival_time
+								) {
+									existing_stop_time.rt_departure_time = existing_stop_time.rt_arrival_time;
+									existing_stop_time.strike_departure = true;
 								}
 							}
 						}
-					});
+					}
+				});
 
-					// Propagate delay to stops without realtime data
-					let last_known_arrival_delay: number | null = null;
-					let last_known_departure_delay: number | null = null;
+				// Propagate delay to stops without realtime data
+				let last_known_arrival_delay: number | null = null;
+				let last_known_departure_delay: number | null = null;
 
-					next_stoptimes_cleaned.forEach((stoptime: any) => {
-						// Track the last known delays from stops that have RT data
-						if (typeof stoptime.rt_arrival_diff === 'number') {
-							last_known_arrival_delay = stoptime.rt_arrival_diff;
+				next_stoptimes_cleaned.forEach((stoptime: any) => {
+					// Track the last known delays from stops that have RT data
+					if (typeof stoptime.rt_arrival_diff === 'number') {
+						last_known_arrival_delay = stoptime.rt_arrival_diff;
+					}
+					if (typeof stoptime.rt_departure_diff === 'number') {
+						last_known_departure_delay = stoptime.rt_departure_diff;
+					}
+
+					// If this stop doesn't have RT data but we have a known delay, propagate it
+					if (stoptime.rt_arrival_time == null && last_known_arrival_delay != null) {
+						if (stoptime.scheduled_arrival_time_unix_seconds) {
+							stoptime.rt_arrival_time =
+								stoptime.scheduled_arrival_time_unix_seconds + last_known_arrival_delay;
+							stoptime.rt_arrival_diff = last_known_arrival_delay;
+							stoptime.strike_arrival = true;
 						}
-						if (typeof stoptime.rt_departure_diff === 'number') {
-							last_known_departure_delay = stoptime.rt_departure_diff;
-						}
+					}
 
-						// If this stop doesn't have RT data but we have a known delay, propagate it
-						if (stoptime.rt_arrival_time == null && last_known_arrival_delay != null) {
-							if (stoptime.scheduled_arrival_time_unix_seconds) {
-								stoptime.rt_arrival_time =
-									stoptime.scheduled_arrival_time_unix_seconds + last_known_arrival_delay;
-								stoptime.rt_arrival_diff = last_known_arrival_delay;
-								stoptime.strike_arrival = true;
-							}
+					if (stoptime.rt_departure_time == null && last_known_departure_delay != null) {
+						if (stoptime.scheduled_departure_time_unix_seconds) {
+							stoptime.rt_departure_time =
+								stoptime.scheduled_departure_time_unix_seconds + last_known_departure_delay;
+							stoptime.rt_departure_diff = last_known_departure_delay;
+							stoptime.strike_departure = true;
 						}
+					}
 
-						if (stoptime.rt_departure_time == null && last_known_departure_delay != null) {
-							if (stoptime.scheduled_departure_time_unix_seconds) {
-								stoptime.rt_departure_time =
-									stoptime.scheduled_departure_time_unix_seconds + last_known_departure_delay;
-								stoptime.rt_departure_diff = last_known_departure_delay;
-								stoptime.strike_departure = true;
-							}
+					// Ensure departure is not before arrival after propagation
+					if (
+						typeof stoptime.rt_departure_time === 'number' &&
+						typeof stoptime.rt_arrival_time === 'number'
+					) {
+						if (stoptime.rt_departure_time < stoptime.rt_arrival_time) {
+							stoptime.rt_departure_time = stoptime.rt_arrival_time;
 						}
+					}
+				});
 
-						// Ensure departure is not before arrival after propagation
-						if (
-							typeof stoptime.rt_departure_time === 'number' &&
-							typeof stoptime.rt_arrival_time === 'number'
-						) {
-							if (stoptime.rt_departure_time < stoptime.rt_arrival_time) {
-								stoptime.rt_departure_time = stoptime.rt_arrival_time;
-							}
-						}
-					});
-
-					stoptimes_cleaned_dataset = next_stoptimes_cleaned;
-					init_loaded = Date.now();
-					label_stops_on_map();
-					//console.log('single trip rt update', stoptimes_cleaned_dataset);
-				}
-			} catch (e: any) {
-				console.error(e);
+				stoptimes_cleaned_dataset = next_stoptimes_cleaned;
+				init_loaded = Date.now();
+				label_stops_on_map();
+				//console.log('single trip rt update', stoptimes_cleaned_dataset);
 			}
-		});
+		} catch (e: any) {
+			console.error(e);
+		}
 	}
 
 	onDestroy(() => {
@@ -416,6 +397,7 @@
 		if (updatetimecounter != null) {
 			clearInterval(updatetimecounter);
 		}
+		disconnectSpruceWebSocket();
 	});
 
 	export let trip_selected: SingleTrip;
@@ -524,382 +506,416 @@
 		return false;
 	}
 
-	async function fetch_trip_selected() {
+	function handle_trip_initial(data: any) {
 		let map = get(map_pointer_store);
+		let success = true;
 
-		console.log('t-s', trip_selected);
+		if (success == true) {
+			try {
+				//	console.log('trip data', data);
+				is_loading_trip_data = false;
+				trip_data = data;
 
-		let url = new URL(
-			`https://birch_req_trip.catenarymaps.org/get_trip_information/${trip_selected.chateau_id}/`
-		);
+				// Build a per-stop connection map from connections_per_stop + connecting_routes
+				let tmp_stop_connections: Record<string, any[]> = {};
 
-		if (trip_selected.trip_id != null) {
-			url.searchParams.append('trip_id', trip_selected.trip_id);
-		}
-		if (trip_selected.start_date != null) {
-			url.searchParams.append('start_date', trip_selected.start_date);
-		}
+				if (trip_data.connections_per_stop && trip_data.connecting_routes) {
+					for (const [base_stop_id, per_chateau] of Object.entries(
+						trip_data.connections_per_stop as Record<string, Record<string, string[]>>
+					)) {
+						for (const [chateau_id, route_ids] of Object.entries(
+							per_chateau as Record<string, string[]>
+						)) {
+							const routesForChateau =
+								(trip_data.connecting_routes as Record<string, Record<string, any>>)[chateau_id] ||
+								{};
 
-		if (trip_selected.start_time != null) {
-			url.searchParams.append('start_time', trip_selected.start_time);
-		}
+							for (const route_id of route_ids as string[]) {
+								const routeInfo = routesForChateau[route_id];
+								if (!routeInfo) continue; // backend might not have details for all
 
-		await fetch(url.toString())
-			.then(async (response) => {
-				let text = await response.text();
-
-				let success = true;
-
-				var data;
-
-				try {
-					data = JSON.parse(text);
-				} catch (e) {
-					success = false;
-
-					error = text;
-				}
-
-				if (success == true) {
-					try {
-						//	console.log('trip data', data);
-						is_loading_trip_data = false;
-						trip_data = data;
-
-						// Build a per-stop connection map from connections_per_stop + connecting_routes
-						let tmp_stop_connections: Record<string, any[]> = {};
-
-						if (trip_data.connections_per_stop && trip_data.connecting_routes) {
-							for (const [base_stop_id, per_chateau] of Object.entries(
-								trip_data.connections_per_stop as Record<string, Record<string, string[]>>
-							)) {
-								for (const [chateau_id, route_ids] of Object.entries(
-									per_chateau as Record<string, string[]>
-								)) {
-									const routesForChateau =
-										(trip_data.connecting_routes as Record<string, Record<string, any>>)[
-											chateau_id
-										] || {};
-
-									for (const route_id of route_ids as string[]) {
-										const routeInfo = routesForChateau[route_id];
-										if (!routeInfo) continue; // backend might not have details for all
-
-										if (!tmp_stop_connections[base_stop_id]) {
-											tmp_stop_connections[base_stop_id] = [];
-										}
-
-										tmp_stop_connections[base_stop_id].push({
-											chateau_id,
-											route_id,
-											route: routeInfo
-										});
-									}
+								if (!tmp_stop_connections[base_stop_id]) {
+									tmp_stop_connections[base_stop_id] = [];
 								}
-							}
 
-							// Sort connections
-							for (const base_stop_id in tmp_stop_connections) {
-								tmp_stop_connections[base_stop_id].sort((a, b) => {
-									const typeOrder: Record<number, number> = {
-										2: 1, // Rail
-										1: 2, // Subway, Metro
-										0: 3, // Tram, Streetcar, Light rail
-										4: 4 // Ferry
-									};
-
-									const a_type = a.route.route_type;
-									const b_type = b.route.route_type;
-
-									const a_order = typeOrder[a_type] ?? 5;
-									const b_order = typeOrder[b_type] ?? 5;
-
-									if (a_order !== b_order) {
-										return a_order - b_order;
-									}
-
-									// Secondary sort by name
-									const a_name = a.route.short_name || a.route.long_name || '';
-									const b_name = b.route.short_name || b.route.long_name || '';
-									return a_name.localeCompare(b_name);
+								tmp_stop_connections[base_stop_id].push({
+									chateau_id,
+									route_id,
+									route: routeInfo
 								});
 							}
 						}
+					}
 
-						stop_connections = tmp_stop_connections;
-
-						map.getSource('transit_shape_context_for_stop').setData({
-							type: 'FeatureCollection',
-							features: []
-						});
-
-						if (data.shape_polyline) {
-							let geojson_polyline_geo = polyline.toGeoJSON(data.shape_polyline);
-
-							let geojson_polyline = {
-								geometry: geojson_polyline_geo,
-								type: 'Feature',
-								properties: {
-									text_color: data.text_color,
-									color: data.color,
-									route_label: data.route_short_name || data.route_long_name
-								}
+					// Sort connections
+					for (const base_stop_id in tmp_stop_connections) {
+						tmp_stop_connections[base_stop_id].sort((a, b) => {
+							const typeOrder: Record<number, number> = {
+								2: 1, // Rail
+								1: 2, // Subway, Metro
+								0: 3, // Tram, Streetcar, Light rail
+								4: 4 // Ferry
 							};
 
-							//		console.log(' geojson_polyline ', geojson_polyline);
+							const a_type = a.route.route_type;
+							const b_type = b.route.route_type;
 
-							let geojson_source_new = { type: 'FeatureCollection', features: [geojson_polyline] };
+							const a_order = typeOrder[a_type] ?? 5;
+							const b_order = typeOrder[b_type] ?? 5;
 
-							//	console.log(' geojson_source_new ', geojson_source_new);
-
-							if (map != null) {
-								//console.log('map is not null');
-								let transit_shape_context = map.getSource('transit_shape_context');
-								if (transit_shape_context) {
-									transit_shape_context.setData(geojson_source_new);
-								}
-
-								let transit_shape_detour = map.getSource('transit_shape_context_detour');
-
-								if (data.old_shape_polyline) {
-									transit_shape_detour.setData({
-										type: 'FeatureCollection',
-										features: [
-											{
-												geometry: polyline.toGeoJSON(data.old_shape_polyline),
-												type: 'Feature',
-												properties: {
-													text_color: data.text_color,
-													color: data.color,
-													route_label: data.route_short_name || data.route_long_name
-												}
-											}
-										]
-									});
-								} else {
-									transit_shape_detour.setData({ type: 'FeatureCollection', features: [] });
-								}
+							if (a_order !== b_order) {
+								return a_order - b_order;
 							}
-						} else {
-							let transit_shape_context = map.getSource('transit_shape_context');
-							transit_shape_context.setData({ type: 'FeatureCollection', features: [] });
 
-							let transit_shape_detour = map?.getSource('transit_shape_context_detour');
-
-							transit_shape_detour.setData({ type: 'FeatureCollection', features: [] });
-
-							let transit_shape_context_for_stop = map?.getSource('transit_shape_context_for_stop');
-
-							transit_shape_context_for_stop.setData({ type: 'FeatureCollection', features: [] });
-						}
-
-						if (map != null) {
-							update_vehicle_rt();
-						}
-
-						//load alerts in
-						alerts = trip_data.alert_id_to_alert;
-
-						Object.keys(alerts).forEach((alert_id) => {
-							let alert = alerts[alert_id];
-							alert.informed_entity.forEach((each_entity: any) => {
-								if (each_entity.stop_id) {
-									if (stop_id_to_alert_ids[each_entity.stop_id] == undefined) {
-										stop_id_to_alert_ids[each_entity.stop_id] = [alert_id];
-									} else {
-										stop_id_to_alert_ids[each_entity.stop_id].push(alert_id);
-									}
-								}
-							});
+							// Secondary sort by name
+							const a_name = a.route.short_name || a.route.long_name || '';
+							const b_name = b.route.short_name || b.route.long_name || '';
+							return a_name.localeCompare(b_name);
 						});
-
-						console.log('alerts', alerts);
-
-						let stoptimes_cleaned: any[] = [];
-
-						if (trip_data.tz != null) {
-							if (timezones.indexOf(trip_data.tz) === -1) {
-								timezones.push(trip_data.tz);
-							}
-						}
-
-						let index = 0;
-						data.stoptimes.forEach((stoptime: any) => {
-							if (timezones.indexOf(stoptime.timezone) === -1) {
-								timezones.push(stoptime.timezone);
-							}
-
-							let stoptime_to_use = {
-								...stoptime,
-								strike_departure: false,
-								strike_arrival: false,
-								rt_arrival_diff: null,
-								rt_departure_diff: null
-							};
-
-							if (stoptime_to_use.rt_arrival?.time) {
-								stoptime_to_use.rt_arrival_time = stoptime_to_use.rt_arrival?.time;
-								stoptime_to_use.strike_arrival = true;
-
-								if (stoptime_to_use.scheduled_arrival_time_unix_seconds) {
-									if (
-										stoptime_to_use.scheduled_arrival_time_unix_seconds >
-										stoptime_to_use.rt_departure?.time
-									) {
-										stoptime_to_use.rt_arrival_time = stoptime_to_use.rt_departure?.time;
-
-										stoptime_to_use.strike_arrival = true;
-									}
-								}
-							}
-
-							if (stoptime_to_use.rt_departure?.time) {
-								stoptime_to_use.rt_departure_time = stoptime_to_use.rt_departure?.time;
-								stoptime_to_use.strike_departure = true;
-							}
-
-							//prevents departure prior to arrival
-							if (stoptime_to_use.scheduled_departure_time_unix_seconds) {
-								if (stoptime_to_use.rt_arrival?.time) {
-									if (
-										stoptime_to_use.scheduled_departure_time_unix_seconds <
-										stoptime_to_use.rt_arrival?.time
-									) {
-										stoptime_to_use.rt_departure_time = stoptime_to_use.rt_arrival?.time;
-
-										stoptime_to_use.strike_departure = true;
-									}
-								}
-							}
-
-							if (typeof stoptime_to_use.rt_departure_time == 'number') {
-								if (stoptime_to_use.scheduled_departure_time_unix_seconds) {
-									stoptime_to_use.rt_departure_diff =
-										stoptime_to_use.rt_departure_time -
-										stoptime_to_use.scheduled_departure_time_unix_seconds;
-								}
-							}
-
-							if (typeof stoptime_to_use.rt_arrival_time == 'number') {
-								if (stoptime_to_use.scheduled_arrival_time_unix_seconds) {
-									stoptime_to_use.rt_arrival_diff =
-										stoptime_to_use.rt_arrival_time -
-										stoptime_to_use.scheduled_arrival_time_unix_seconds;
-								}
-							}
-
-							stoptime.show_both_departure_and_arrival = false;
-
-							if (
-								stoptime_to_use.scheduled_arrival_time_unix_seconds &&
-								stoptime_to_use.scheduled_departure_time_unix_seconds
-							) {
-								// if both are different by more than 1 minute, show both
-
-								if (
-									Math.abs(
-										stoptime_to_use.scheduled_arrival_time_unix_seconds -
-											stoptime_to_use.scheduled_departure_time_unix_seconds
-									) > 60
-								) {
-									stoptime.show_both_departure_and_arrival = true;
-								}
-
-								if (
-									stoptime_to_use.scheduled_arrival_time_unix_seconds ==
-										stoptime_to_use.scheduled_departure_time_unix_seconds &&
-									stoptime_to_use.rt_arrival_time == stoptime_to_use.rt_departure_time
-								) {
-									stoptime.show_both_departure_and_arrival = false;
-								}
-							}
-
-							stoptimes_cleaned.push(stoptime_to_use);
-							index = index + 1;
-						});
-
-						// Propagate delay to stops without realtime data
-						let last_known_arrival_delay: number | null = null;
-						let last_known_departure_delay: number | null = null;
-
-						stoptimes_cleaned.forEach((stoptime: any) => {
-							// Track the last known delays from stops that have RT data
-							if (typeof stoptime.rt_arrival_diff === 'number') {
-								last_known_arrival_delay = stoptime.rt_arrival_diff;
-							}
-							if (typeof stoptime.rt_departure_diff === 'number') {
-								last_known_departure_delay = stoptime.rt_departure_diff;
-							}
-
-							// If this stop doesn't have RT data but we have a known delay, propagate it
-							if (stoptime.rt_arrival_time == null && last_known_arrival_delay != null) {
-								if (stoptime.scheduled_arrival_time_unix_seconds) {
-									stoptime.rt_arrival_time =
-										stoptime.scheduled_arrival_time_unix_seconds + last_known_arrival_delay;
-									stoptime.rt_arrival_diff = last_known_arrival_delay;
-									stoptime.strike_arrival = true;
-								}
-							}
-
-							if (stoptime.rt_departure_time == null && last_known_departure_delay != null) {
-								if (stoptime.scheduled_departure_time_unix_seconds) {
-									stoptime.rt_departure_time =
-										stoptime.scheduled_departure_time_unix_seconds + last_known_departure_delay;
-									stoptime.rt_departure_diff = last_known_departure_delay;
-									stoptime.strike_departure = true;
-								}
-							}
-
-							// Ensure departure is not before arrival after propagation
-							if (
-								typeof stoptime.rt_departure_time === 'number' &&
-								typeof stoptime.rt_arrival_time === 'number'
-							) {
-								if (stoptime.rt_departure_time < stoptime.rt_arrival_time) {
-									stoptime.rt_departure_time = stoptime.rt_arrival_time;
-								}
-							}
-						});
-
-						let all_timepoints_empty = data.stoptimes.every(
-							(stoptime: any) => stoptime.timepoint == null
-						);
-
-						if (all_timepoints_empty) {
-							all_exact_stoptimes = true;
-						} else {
-							let all_timepoints_true = data.stoptimes.every(
-								(stoptime: any) => stoptime.timepoint == true
-							);
-							all_exact_stoptimes = all_timepoints_true;
-						}
-
-						stoptimes_cleaned_dataset = stoptimes_cleaned;
-
-						console.log('stoptimes_cleaned_dataset', stoptimes_cleaned_dataset);
-						init_loaded = Date.now();
-						console.log('refresh component');
-						error = null;
-						label_stops_on_map();
-					} catch (e: any) {
-						console.error(e);
-						error = e;
-						//console.log(stringifyObject(trip_selected, { indent: '  ', singleQuotes: false }));
-
-						fetch_trip_selected();
 					}
 				}
-			})
-			.catch((e) => {
+
+				stop_connections = tmp_stop_connections;
+
+				map.getSource('transit_shape_context_for_stop').setData({
+					type: 'FeatureCollection',
+					features: []
+				});
+
+				if (data.shape_polyline) {
+					let geojson_polyline_geo = polyline.toGeoJSON(data.shape_polyline);
+
+					let geojson_polyline = {
+						geometry: geojson_polyline_geo,
+						type: 'Feature',
+						properties: {
+							text_color: data.text_color,
+							color: data.color,
+							route_label: data.route_short_name || data.route_long_name
+						}
+					};
+
+					//		console.log(' geojson_polyline ', geojson_polyline);
+
+					let geojson_source_new = { type: 'FeatureCollection', features: [geojson_polyline] };
+
+					//	console.log(' geojson_source_new ', geojson_source_new);
+
+					if (map != null) {
+						//console.log('map is not null');
+						let transit_shape_context = map.getSource('transit_shape_context');
+						if (transit_shape_context) {
+							transit_shape_context.setData(geojson_source_new);
+						}
+
+						let transit_shape_detour = map.getSource('transit_shape_context_detour');
+
+						if (data.old_shape_polyline) {
+							transit_shape_detour.setData({
+								type: 'FeatureCollection',
+								features: [
+									{
+										geometry: polyline.toGeoJSON(data.old_shape_polyline),
+										type: 'Feature',
+										properties: {
+											text_color: data.text_color,
+											color: data.color,
+											route_label: data.route_short_name || data.route_long_name
+										}
+									}
+								]
+							});
+						} else {
+							transit_shape_detour.setData({ type: 'FeatureCollection', features: [] });
+						}
+					}
+				} else {
+					let transit_shape_context = map.getSource('transit_shape_context');
+					transit_shape_context.setData({ type: 'FeatureCollection', features: [] });
+
+					let transit_shape_detour = map?.getSource('transit_shape_context_detour');
+
+					transit_shape_detour.setData({ type: 'FeatureCollection', features: [] });
+
+					let transit_shape_context_for_stop = map?.getSource('transit_shape_context_for_stop');
+
+					transit_shape_context_for_stop.setData({ type: 'FeatureCollection', features: [] });
+				}
+
+				if (map != null) {
+					update_vehicle_rt();
+				}
+
+				//load alerts in
+				alerts = trip_data.alert_id_to_alert;
+
+				Object.keys(alerts).forEach((alert_id) => {
+					let alert = alerts[alert_id];
+					alert.informed_entity.forEach((each_entity: any) => {
+						if (each_entity.stop_id) {
+							if (stop_id_to_alert_ids[each_entity.stop_id] == undefined) {
+								stop_id_to_alert_ids[each_entity.stop_id] = [alert_id];
+							} else {
+								stop_id_to_alert_ids[each_entity.stop_id].push(alert_id);
+							}
+						}
+					});
+				});
+
+				console.log('alerts', alerts);
+
+				let stoptimes_cleaned: any[] = [];
+
+				if (trip_data.tz != null) {
+					if (timezones.indexOf(trip_data.tz) === -1) {
+						timezones.push(trip_data.tz);
+					}
+				}
+
+				const getServiceDateTimestamp = (date_str: string, tz: string) => {
+					try {
+						const [y, m, d] = date_str.split('-').map(Number);
+						let time = Date.UTC(y, m - 1, d, 0, 0, 0);
+						for (let i = 0; i < 3; i++) {
+							const date = new Date(time);
+							const parts = new Intl.DateTimeFormat('en-US', {
+								timeZone: tz,
+								hour: 'numeric',
+								minute: 'numeric',
+								second: 'numeric',
+								hour12: false
+							}).formatToParts(date);
+							let hour = 0,
+								minute = 0,
+								second = 0;
+							parts.forEach((p) => {
+								if (p.type === 'hour') hour = parseInt(p.value);
+								if (p.type === 'minute') minute = parseInt(p.value);
+								if (p.type === 'second') second = parseInt(p.value);
+							});
+							if (hour === 0 && minute === 0 && second === 0) break;
+							let currentSeconds = hour * 3600 + minute * 60 + second;
+							if (hour > 12) {
+								time += (24 - hour) * 3600 * 1000 - minute * 60 * 1000 - second * 1000;
+							} else {
+								time -= hour * 3600 * 1000 + minute * 60 * 1000 + second * 1000;
+							}
+						}
+						return time / 1000;
+					} catch (e) {
+						console.error('Error calculating service date timestamp', e);
+						return 0;
+					}
+				};
+
+				let midnight_unix = 0;
+				if (data.service_date && data.tz) {
+					midnight_unix = getServiceDateTimestamp(data.service_date, data.tz);
+				}
+
+				let index = 0;
+				data.stoptimes.forEach((stoptime: any) => {
+					if (!stoptime.name && stoptime.stop_name) {
+						stoptime.name = stoptime.stop_name;
+					}
+
+					if (midnight_unix !== 0) {
+						if (stoptime.arrival != null && !stoptime.scheduled_arrival_time_unix_seconds) {
+							stoptime.scheduled_arrival_time_unix_seconds = midnight_unix + stoptime.arrival;
+						}
+						if (stoptime.departure != null && !stoptime.scheduled_departure_time_unix_seconds) {
+							stoptime.scheduled_departure_time_unix_seconds = midnight_unix + stoptime.departure;
+						}
+					}
+
+					if (timezones.indexOf(stoptime.timezone) === -1) {
+						timezones.push(stoptime.timezone);
+					}
+
+					let stoptime_to_use = {
+						...stoptime,
+						strike_departure: false,
+						strike_arrival: false,
+						rt_arrival_diff: null,
+						rt_departure_diff: null
+					};
+
+					if (stoptime_to_use.rt_arrival?.time) {
+						stoptime_to_use.rt_arrival_time = stoptime_to_use.rt_arrival?.time;
+						stoptime_to_use.strike_arrival = true;
+
+						if (stoptime_to_use.scheduled_arrival_time_unix_seconds) {
+							if (
+								stoptime_to_use.scheduled_arrival_time_unix_seconds >
+								stoptime_to_use.rt_departure?.time
+							) {
+								stoptime_to_use.rt_arrival_time = stoptime_to_use.rt_departure?.time;
+
+								stoptime_to_use.strike_arrival = true;
+							}
+						}
+					}
+
+					if (stoptime_to_use.rt_departure?.time) {
+						stoptime_to_use.rt_departure_time = stoptime_to_use.rt_departure?.time;
+						stoptime_to_use.strike_departure = true;
+					}
+
+					//prevents departure prior to arrival
+					if (stoptime_to_use.scheduled_departure_time_unix_seconds) {
+						if (stoptime_to_use.rt_arrival?.time) {
+							if (
+								stoptime_to_use.scheduled_departure_time_unix_seconds <
+								stoptime_to_use.rt_arrival?.time
+							) {
+								stoptime_to_use.rt_departure_time = stoptime_to_use.rt_arrival?.time;
+
+								stoptime_to_use.strike_departure = true;
+							}
+						}
+					}
+
+					if (typeof stoptime_to_use.rt_departure_time == 'number') {
+						if (stoptime_to_use.scheduled_departure_time_unix_seconds) {
+							stoptime_to_use.rt_departure_diff =
+								stoptime_to_use.rt_departure_time -
+								stoptime_to_use.scheduled_departure_time_unix_seconds;
+						}
+					}
+
+					if (typeof stoptime_to_use.rt_arrival_time == 'number') {
+						if (stoptime_to_use.scheduled_arrival_time_unix_seconds) {
+							stoptime_to_use.rt_arrival_diff =
+								stoptime_to_use.rt_arrival_time -
+								stoptime_to_use.scheduled_arrival_time_unix_seconds;
+						}
+					}
+
+					stoptime.show_both_departure_and_arrival = false;
+
+					if (
+						stoptime_to_use.scheduled_arrival_time_unix_seconds &&
+						stoptime_to_use.scheduled_departure_time_unix_seconds
+					) {
+						// if both are different by more than 1 minute, show both
+
+						if (
+							Math.abs(
+								stoptime_to_use.scheduled_arrival_time_unix_seconds -
+									stoptime_to_use.scheduled_departure_time_unix_seconds
+							) > 60
+						) {
+							stoptime.show_both_departure_and_arrival = true;
+						}
+
+						if (
+							stoptime_to_use.scheduled_arrival_time_unix_seconds ==
+								stoptime_to_use.scheduled_departure_time_unix_seconds &&
+							stoptime_to_use.rt_arrival_time == stoptime_to_use.rt_departure_time
+						) {
+							stoptime.show_both_departure_and_arrival = false;
+						}
+					}
+
+					stoptimes_cleaned.push(stoptime_to_use);
+					index = index + 1;
+				});
+
+				// Propagate delay to stops without realtime data
+				let last_known_arrival_delay: number | null = null;
+				let last_known_departure_delay: number | null = null;
+
+				stoptimes_cleaned.forEach((stoptime: any) => {
+					// Track the last known delays from stops that have RT data
+					if (typeof stoptime.rt_arrival_diff === 'number') {
+						last_known_arrival_delay = stoptime.rt_arrival_diff;
+					}
+					if (typeof stoptime.rt_departure_diff === 'number') {
+						last_known_departure_delay = stoptime.rt_departure_diff;
+					}
+
+					// If this stop doesn't have RT data but we have a known delay, propagate it
+					if (stoptime.rt_arrival_time == null && last_known_arrival_delay != null) {
+						if (stoptime.scheduled_arrival_time_unix_seconds) {
+							stoptime.rt_arrival_time =
+								stoptime.scheduled_arrival_time_unix_seconds + last_known_arrival_delay;
+							stoptime.rt_arrival_diff = last_known_arrival_delay;
+							stoptime.strike_arrival = true;
+						}
+					}
+
+					if (stoptime.rt_departure_time == null && last_known_departure_delay != null) {
+						if (stoptime.scheduled_departure_time_unix_seconds) {
+							stoptime.rt_departure_time =
+								stoptime.scheduled_departure_time_unix_seconds + last_known_departure_delay;
+							stoptime.rt_departure_diff = last_known_departure_delay;
+							stoptime.strike_departure = true;
+						}
+					}
+
+					// Ensure departure is not before arrival after propagation
+					if (
+						typeof stoptime.rt_departure_time === 'number' &&
+						typeof stoptime.rt_arrival_time === 'number'
+					) {
+						if (stoptime.rt_departure_time < stoptime.rt_arrival_time) {
+							stoptime.rt_departure_time = stoptime.rt_arrival_time;
+						}
+					}
+				});
+
+				let all_timepoints_empty = data.stoptimes.every(
+					(stoptime: any) => stoptime.timepoint == null
+				);
+
+				if (all_timepoints_empty) {
+					all_exact_stoptimes = true;
+				} else {
+					let all_timepoints_true = data.stoptimes.every(
+						(stoptime: any) => stoptime.timepoint == true
+					);
+					all_exact_stoptimes = all_timepoints_true;
+				}
+
+				stoptimes_cleaned_dataset = stoptimes_cleaned;
+
+				console.log('stoptimes_cleaned_dataset', stoptimes_cleaned_dataset);
+				init_loaded = Date.now();
+				console.log('refresh component');
+				error = null;
+				label_stops_on_map();
+			} catch (e: any) {
 				console.error(e);
+				error = e;
 				//console.log(stringifyObject(trip_selected, { indent: '  ', singleQuotes: false }));
-			});
+
+				// retry removed here
+			}
+		}
 	}
 
 	$: if (trip_selected) {
 		is_loading_trip_data = true;
 		error = null;
-		fetch_trip_selected();
+
+		connectSpruceWebSocket(trip_selected.chateau_id, {
+			trip_id: trip_selected.trip_id,
+			start_date: trip_selected.start_date,
+			start_time: trip_selected.start_time
+		});
+	}
+
+	$: if ($spruce_trip_data) {
+		handle_trip_initial($spruce_trip_data);
+	}
+
+	$: if ($spruce_update_data) {
+		handle_trip_update($spruce_update_data);
+	}
+
+	$: if ($spruce_error) {
+		error = $spruce_error;
+		is_loading_trip_data = false;
 	}
 
 	onMount(() => {
@@ -914,18 +930,8 @@
 		update_vehicle_rt();
 
 		fetchtimeout = setInterval(() => {
-			update_realtime_data();
-
 			update_vehicle_rt();
 		}, 1_000);
-
-		bigfetchtimeout = setInterval(() => {
-			if (trip_selected) {
-				fetch_trip_selected();
-			}
-
-			update_vehicle_rt();
-		}, 30_000);
 
 		updatetimecounter = setInterval(() => {
 			current_time = Date.now();

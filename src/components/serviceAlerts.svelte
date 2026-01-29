@@ -30,8 +30,7 @@
 			let list: any[] = [];
 
 			if (alert.header_text != null) {
-					alert.header_text.translation.map((x: any) => x.language || 'unknown')
-				);
+				list = list.concat(alert.header_text.translation.map((x: any) => x.language || 'unknown'));
 			}
 
 			if (alert.description_text != null) {
