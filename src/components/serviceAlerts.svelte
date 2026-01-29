@@ -30,17 +30,20 @@
 			let list: any[] = [];
 
 			if (alert.header_text != null) {
-				list = list.concat(alert.header_text.translation.map((x: any) => x.language));
+					alert.header_text.translation.map((x: any) => x.language || 'unknown')
+				);
 			}
 
 			if (alert.description_text != null) {
-				list = list.concat(alert.description_text.translation.map((x: any) => x.language));
+				list = list.concat(
+					alert.description_text.translation.map((x: any) => x.language || 'unknown')
+				);
 			}
 
 			return list;
 		})
 		.flat()
-		.filter((x, i, a) => x != null && a.indexOf(x) == i);
+		.filter((x, i, a) => a.indexOf(x) == i);
 
 	let languagelistToUse = languagelist.includes('en-html')
 		? languagelist.filter((x) => x != 'en')
@@ -118,7 +121,7 @@
 						{#if currentAlert}
 							{#if currentAlert.header_text}
 								{#each previewLanguageList as language}
-									{#each currentAlert.header_text.translation.filter((x) => x.language == language) as each_header_translation_obj}
+									{#each currentAlert.header_text.translation.filter((x) => (x.language || 'unknown') == language) as each_header_translation_obj}
 										<p class="truncate">
 											<span class="font-bold">
 												{#each each_header_translation_obj.text.split(/(\[[A-Z0-9]+\])/g) as part, i}
@@ -139,7 +142,7 @@
 
 							{#if currentAlert.description_text}
 								{#each previewLanguageList as language}
-									{#each currentAlert.description_text.translation.filter((x) => x.language == language) as each_desc_translation_obj}
+									{#each currentAlert.description_text.translation.filter((x) => (x.language || 'unknown') == language) as each_desc_translation_obj}
 										<p class="truncate">
 											{#each each_desc_translation_obj.text.split(/(\[[A-Z0-9]+\])/g) as part, i}
 												{#if i % 2 === 1}
@@ -199,7 +202,7 @@
 					{/if}
 					{#each languagelistToUse as language}
 						{#if alert.header_text != null}
-							{#each alert.header_text.translation.filter((x) => x.language == language) as each_header_translation_obj}
+							{#each alert.header_text.translation.filter((x) => (x.language || 'unknown') == language) as each_header_translation_obj}
 								<p class={`text-sm`}>
 									{#each each_header_translation_obj.text.split(/(\[[A-Z0-9]+\])/g) as part, i}
 										{#if i % 2 === 1}
@@ -213,7 +216,7 @@
 						{/if}
 
 						{#if alert.description_text != null}
-							{#each alert.description_text.translation.filter((x) => x.language == language) as description_alert}
+							{#each alert.description_text.translation.filter((x) => (x.language || 'unknown') == language) as description_alert}
 								<div class="leading-none">
 									{#each description_alert.text.split('\n') as each_desc_line}
 										<div class="text-xs pt-0.5">
