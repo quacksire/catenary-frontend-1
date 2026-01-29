@@ -40,7 +40,7 @@
 			return list;
 		})
 		.flat()
-		.filter((x, i, a) => a.indexOf(x) == i);
+		.filter((x, i, a) => x != null && a.indexOf(x) == i);
 
 	let languagelistToUse = languagelist.includes('en-html')
 		? languagelist.filter((x) => x != 'en')
