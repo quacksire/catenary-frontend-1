@@ -8,9 +8,14 @@ export const spruce_error = writable<string | null>(null);
 
 let socket: WebSocket | null = null;
 let heartbeatInterval: any = null;
+let activeChateau: string | null = null;
+let activeParams: any = null;
 
 export function connectSpruceWebSocket(chateau: string, params: any) {
     disconnectSpruceWebSocket();
+
+    activeChateau = chateau;
+    activeParams = params;
 
     spruce_trip_data.set(null);
     spruce_update_data.set(null);
@@ -69,12 +74,24 @@ export function disconnectSpruceWebSocket() {
     if (socket) {
         console.log('Disconnecting Spruce WS');
         if (socket.readyState === WebSocket.OPEN) {
-            // Best effort unsubscribe, though closing socket cleans up on server usually
-            socket.send(JSON.stringify({ type: 'unsubscribe_trip' }));
+            // Unsubscribe with stored params
+            if (activeChateau && activeParams) {
+                const msg = {
+                    type: 'unsubscribe_trip',
+                    chateau: activeChateau,
+                    ...activeParams
+                };
+                console.log('Sending unsubscribe to Spruce:', msg);
+                socket.send(JSON.stringify(msg));
+            } else {
+                socket.send(JSON.stringify({ type: 'unsubscribe_trip' }));
+            }
         }
         socket.close();
         socket = null;
     }
+    activeChateau = null;
+    activeParams = null;
     spruce_status.set('disconnected');
     spruce_trip_data.set(null);
     spruce_update_data.set(null);
