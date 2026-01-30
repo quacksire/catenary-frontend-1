@@ -24,6 +24,8 @@ import { makeGpsLayer } from './makeGpsLayer';
 import { makeContextLayerDataset, makeContextLayerDots } from './addLayers/contextLayer';
 import { start_location_watch, update_geolocation_source } from '../user_location_lib';
 import { setup_click_handler } from '../components/mapClickHandler';
+import { initSpruceWebSocket, spruce_map_data } from '../spruce_websocket';
+import { process_realtime_vehicle_locations_v2 } from './process_realtime_data';
 
 const RASTER_SOURCES = [
 	{ id: 'foamertiles', url: 'standard' },
@@ -68,6 +70,20 @@ export async function setup_load_map(
 	map.on('load', async () => {
 		recompute_map_padding();
 		clearbottomright();
+
+		// Initialize WebSocket
+		initSpruceWebSocket();
+
+		let current_request_bounds: any = null;
+
+		// Subscribe to map data updates from WebSocket
+		// We use a singleton store, so it fires whenever data comes.
+		// We need to pair it with the latest bounds we asked for (or close enough) to process it correctly.
+		spruce_map_data.subscribe(data => {
+			if (data && current_request_bounds) {
+				process_realtime_vehicle_locations_v2(data, map, current_request_bounds);
+			}
+		});
 
 		addGeoRadius(map);
 		makeGpsLayer(map);
@@ -187,21 +203,19 @@ export async function setup_load_map(
 		updateInterval = setInterval(() => {
 			console.log('interval fetch');
 
-			fetch_realtime_vehicle_locations(
+			current_request_bounds = fetch_realtime_vehicle_locations(
 				layersettings,
 				chateaus_in_frame,
 				chateau_to_realtime_feed_lookup,
-				pending_chateau_rt_request,
 				map
 			);
 			garbageCollectNotInView(chateaus_in_frame);
 		}, 700);
 
-		fetch_realtime_vehicle_locations(
+		current_request_bounds = fetch_realtime_vehicle_locations(
 			layersettings,
 			chateaus_in_frame,
 			chateau_to_realtime_feed_lookup,
-			pending_chateau_rt_request,
 			map
 		);
 

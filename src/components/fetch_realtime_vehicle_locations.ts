@@ -1,29 +1,13 @@
 import type { Writable } from 'svelte/store';
-import { writable } from 'svelte/store';
 import { get } from 'svelte/store';
-import { process_realtime_vehicle_locations_v2 } from './process_realtime_data';
-
-import {
-	realtime_vehicle_locations_store,
-	realtime_vehicle_route_cache_store,
-	realtime_vehicle_route_cache_hash_store,
-	realtime_vehicle_locations_last_updated_store,
-	previous_tile_boundaries_store
-} from '../globalstores';
-
-import jsonwebworkerpkg from '@cheprasov/json-web-worker';
-const { jsonWebWorker, parse, stringify } = jsonwebworkerpkg;
-
-let store_of_pending_requests: Writable<Record<string, number>> = writable({});
+import { updateMap } from '../spruce_websocket';
 
 export function fetch_realtime_vehicle_locations(
 	layersettings: Record<string, any>,
 	chateaus_in_frame: Writable<string[]>,
 	chateau_to_realtime_feed_lookup: Record<string, any>,
-	pending_chateau_rt_request: Record<string, number>,
 	map: maplibregl.Map
 ) {
-	console.log('fetch realtime vehicles');
 	const categories_to_request: string[] = [];
 
 	let shortest_screen_width = Math.min(window.screen.width, window.screen.height);
@@ -56,104 +40,23 @@ export function fetch_realtime_vehicle_locations(
 		}
 	}
 
+	// Filter chateaus based on whether they have a realtime feed
 	const realtime_chateaus_in_frame = get(chateaus_in_frame).filter((chateau_id: string) => {
-		return chateau_to_realtime_feed_lookup[chateau_id].length > 0;
+		return chateau_to_realtime_feed_lookup[chateau_id] && chateau_to_realtime_feed_lookup[chateau_id].length > 0;
 	});
 
-	//console.log('realtime chateaus in frame', realtime_chateaus_in_frame);
-
-	//console.log('realtime_chateaus_in_frame', realtime_chateaus_in_frame);
-
-	let chateaus_to_fetch: Record<string, Record<string, any>> = {};
-
-	const previous_tile_boundaries = get(previous_tile_boundaries_store);
 	const bounds = bounds_input_calculate(map);
 
-	get(chateaus_in_frame).forEach((chateauId) => {
-		const realtime_vehicle_locations_last_updated = get(
-			realtime_vehicle_locations_last_updated_store
-		);
-
-		let this_chateau_last_updated = realtime_vehicle_locations_last_updated[chateauId];
-
-		let category_params = {};
-
-		['bus', 'rail', 'metro', 'other'].forEach((category) => {
-			let last_updated = 0;
-			if (this_chateau_last_updated && this_chateau_last_updated[category]) {
-				last_updated = this_chateau_last_updated[category];
-			}
-			category_params[category] = {
-				last_updated_time_ms: last_updated
-			};
-
-			//fetch from previous_tile_boundaries_store[chateau][category]
-			if (previous_tile_boundaries[chateauId]) {
-				if (previous_tile_boundaries[chateauId][category]) {
-					category_params[category].prev_user_min_x =
-						previous_tile_boundaries[chateauId][category].min_x;
-					category_params[category].prev_user_max_x =
-						previous_tile_boundaries[chateauId][category].max_x;
-					category_params[category].prev_user_min_y =
-						previous_tile_boundaries[chateauId][category].min_y;
-					category_params[category].prev_user_max_y =
-						previous_tile_boundaries[chateauId][category].max_y;
-				}
-			}
-		});
-
-		chateaus_to_fetch[chateauId] = {
-			category_params: category_params
-		};
-	});
-
-	let raw = JSON.stringify({
-		categories: categories_to_request,
-		chateaus: chateaus_to_fetch,
-		bounds_input: bounds
-	});
-
-	const myHeaders = new Headers();
-	myHeaders.append('Content-Type', 'application/json');
-
-	const requestOptions = {
-		method: 'POST',
-		headers: myHeaders,
-		body: raw,
-		redirect: 'follow',
-		mode: 'cors'
-	};
-
-	const subdomains = ['birch_rt', 'birch_rt2', 'birch_rt3', 'birch_rt4'];
-	const randomSubdomain = subdomains[Math.floor(Math.random() * subdomains.length)];
-	const url = `https://${randomSubdomain}.catenarymaps.org/bulk_realtime_fetch_v3`;
-
-	const request_hash = raw;
-	const pending_requests = get(store_of_pending_requests);
-
-	if (pending_requests[request_hash]) {
-		return;
-	}
-
 	if (categories_to_request.length > 0) {
-		store_of_pending_requests.update((val) => {
-			val[request_hash] = Date.now();
-			return val;
+		// Send simplified MapViewportUpdate
+		updateMap({
+			categories: categories_to_request,
+			chateaus: realtime_chateaus_in_frame, // Just the list of IDs
+			bounds_input: bounds
 		});
-		fetch(url, requestOptions)
-			.then((response) => response.text())
-			.then((text) => jsonWebWorker.parse(text))
-			.then((result) => {
-				process_realtime_vehicle_locations_v2(result, map, bounds);
-			})
-			.catch((error) => console.log('error', error))
-			.finally(() => {
-				store_of_pending_requests.update((val) => {
-					delete val[request_hash];
-					return val;
-				});
-			});
 	}
+
+	return bounds;
 }
 
 export function bounds_input_calculate(map: maplibregl.Map) {

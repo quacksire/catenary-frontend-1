@@ -168,6 +168,10 @@ export function process_realtime_vehicle_locations_v2(
 								realtime_vehicle_locations[category] = {};
 							}
 
+							if (!realtime_vehicle_locations[category][chateau_id]) {
+								realtime_vehicle_locations[category][chateau_id] = {};
+							}
+
 							if (category_data.vehicle_positions) {
 								//console.log('agency list', chateau_id, category_data.list_of_agency_ids);
 								if (category_data.replaces_all == true) {
