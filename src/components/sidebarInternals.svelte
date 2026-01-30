@@ -143,11 +143,11 @@
 		/>
 	{/if}
 	{#if latest_item_on_stack.data instanceof RouteStack}
-		<!--{#await import('./RouteScreen.svelte') then { default: RouteScreen }}
+		{#await import('./RouteScreen.svelte') then { default: RouteScreen }}
 			{#key latest_item_on_stack.data}
 				<HomeButton />
 			{/key}
-		{/await}-->
+		{/await}
 
 		<RouteScreen {darkMode} routestack={latest_item_on_stack.data} />
 	{/if}
