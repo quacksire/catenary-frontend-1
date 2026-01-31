@@ -586,6 +586,28 @@
 				console.error('no stops label layer found for ', category);
 			}
 
+			if (categoryvalues.osmstops) {
+				let stoplayer = mapglobal.getLayer(categoryvalues.osmstops);
+				if (stoplayer) {
+					if (this_layer_settings.stops) {
+						mapglobal.setLayoutProperty(categoryvalues.osmstops, 'visibility', 'visible');
+					} else {
+						mapglobal.setLayoutProperty(categoryvalues.osmstops, 'visibility', 'none');
+					}
+				}
+			}
+
+			if (categoryvalues.osmlabelstops) {
+				let stopslabellayer = mapglobal.getLayer(categoryvalues.osmlabelstops);
+				if (stopslabellayer) {
+					if (this_layer_settings.stoplabels) {
+						mapglobal.setLayoutProperty(categoryvalues.osmlabelstops, 'visibility', 'visible');
+					} else {
+						mapglobal.setLayoutProperty(categoryvalues.osmlabelstops, 'visibility', 'none');
+					}
+				}
+			}
+
 			let dotcirclelayer = mapglobal.getLayer(categoryvalues.livedots);
 			let dotlabel = mapglobal.getLayer(categoryvalues.labeldots);
 
