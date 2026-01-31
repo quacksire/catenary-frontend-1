@@ -175,7 +175,11 @@
 
 						//console.log('vehicle data', data);
 
-						vehicle_data = data.data;
+						if (Array.isArray(data.data)) {
+							vehicle_data = data.data[0];
+						} else {
+							vehicle_data = data.data;
+						}
 
 						if (vehicle_data) {
 							if (trip_data.route_type == 3) {
@@ -224,7 +228,7 @@
 											start_date: trip_selected.start_date,
 											start_time: trip_selected.start_time,
 											crowd_symbol: occupancy_to_symbol(vehicle_data.occupancy_status),
-											delay_label: makeDelayLabel(vehicle_data.trip.delay),
+											delay_label: makeDelayLabel(vehicle_data.trip?.delay),
 											delay: vehicle_data.trip?.delay,
 											route_type: trip_data.route_type,
 											headsign: trip_data.trip_headsign
