@@ -7,6 +7,7 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: [
+					'Arimo',
 					'Noto Sans',
 					'Noto Sans JP',
 					'Noto Sans KR',
