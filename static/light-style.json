@@ -54,7 +54,7 @@
           12,
           "#f6f6f6"
         ],
-        "fill-opacity": {"stops": [[8, 1], [9, 0]]}
+        "fill-opacity": {"stops": [[8, 0.2], [9, 0]]}
       }
     },
     {
@@ -118,7 +118,7 @@
           9,
           "#D3F8E2"
         ],
-        "fill-opacity": {"stops": [[4, 1], [7, 0.1]]}
+        "fill-opacity": {"stops": [[4, 0.4], [7, 0.1]]}
       }
     },
     {
@@ -254,7 +254,7 @@
           9,
           "#D3F8E2"
         ],
-        "fill-opacity": {"stops": [[9, 1], [10, 0.17], [11, 0.17]]}
+        "fill-opacity": {"stops": [[9, 0.5], [10, 0.2], [11, 0.17]]}
       }
     },
     {
@@ -406,6 +406,7 @@
       "type": "fill",
       "source": "openmaptiles",
       "source-layer": "landcover",
+      "minzoom": 4,
       "filter": ["==", ["get", "class"], "grass"],
       "layout": {"visibility": "visible"},
       "paint": {
