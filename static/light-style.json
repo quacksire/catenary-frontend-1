@@ -28,6 +28,7 @@
     {
       "id": "background",
       "type": "background",
+      "layout": {"visibility": "visible"},
       "paint": {"background-color": "#f4f4f4"}
     },
     {
@@ -346,7 +347,7 @@
       "paint": {
         "fill-antialias": false,
         "fill-color": "rgba(157, 224, 166, 1)",
-        "fill-opacity": 0.5
+        "fill-opacity": {"stops": [[6, 0.4], [13, 0.4]]}
       }
     },
     {
@@ -1013,31 +1014,6 @@
       }
     },
     {
-      "id": "tunnel_major_rail",
-      "type": "line",
-      "source": "openmaptiles",
-      "source-layer": "transportation",
-      "filter": [
-        "all",
-        ["==", ["get", "brunnel"], "tunnel"],
-        ["match", ["get", "class"], ["rail"], true, false]
-      ],
-      "paint": {
-        "line-color": "#bbb",
-        "line-width": [
-          "interpolate",
-          ["exponential", 1.4],
-          ["zoom"],
-          14,
-          0.4,
-          15,
-          0.75,
-          20,
-          2
-        ]
-      }
-    },
-    {
       "id": "tunnel_major_rail_hatching",
       "type": "line",
       "source": "openmaptiles",
@@ -1048,57 +1024,6 @@
         ["==", ["get", "class"], "rail"]
       ],
       "layout": {"visibility": "none"},
-      "paint": {
-        "line-color": "#bbb",
-        "line-dasharray": [0.2, 8],
-        "line-width": [
-          "interpolate",
-          ["exponential", 1.4],
-          ["zoom"],
-          14.5,
-          0,
-          15,
-          3,
-          20,
-          8
-        ]
-      }
-    },
-    {
-      "id": "tunnel_transit_rail",
-      "type": "line",
-      "source": "openmaptiles",
-      "source-layer": "transportation",
-      "filter": [
-        "all",
-        ["==", ["get", "brunnel"], "tunnel"],
-        ["match", ["get", "class"], ["transit"], true, false]
-      ],
-      "paint": {
-        "line-color": "rgba(131, 131, 131, 1)",
-        "line-width": [
-          "interpolate",
-          ["exponential", 1.4],
-          ["zoom"],
-          14,
-          0.4,
-          15,
-          0.75,
-          20,
-          2
-        ]
-      }
-    },
-    {
-      "id": "tunnel_transit_rail_hatching",
-      "type": "line",
-      "source": "openmaptiles",
-      "source-layer": "transportation",
-      "filter": [
-        "all",
-        ["==", ["get", "brunnel"], "tunnel"],
-        ["==", ["get", "class"], "transit"]
-      ],
       "paint": {
         "line-color": "#bbb",
         "line-dasharray": [0.2, 8],
@@ -1323,7 +1248,11 @@
         ["==", ["get", "class"], "motorway"],
         ["!=", ["get", "ramp"], 1]
       ],
-      "layout": {"line-cap": "round", "line-join": "round"},
+      "layout": {
+        "line-cap": "round",
+        "line-join": "round",
+        "visibility": "none"
+      },
       "paint": {
         "line-color": "rgba(131, 138, 145, 1)",
         "line-width": [
@@ -1592,57 +1521,6 @@
       }
     },
     {
-      "id": "road_transit_rail",
-      "type": "line",
-      "source": "openmaptiles",
-      "source-layer": "transportation",
-      "filter": [
-        "all",
-        ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
-        ["==", ["get", "class"], "transit"]
-      ],
-      "paint": {
-        "line-color": "#bbb",
-        "line-width": [
-          "interpolate",
-          ["exponential", 1.4],
-          ["zoom"],
-          14,
-          0.4,
-          15,
-          0.75,
-          20,
-          2
-        ]
-      }
-    },
-    {
-      "id": "road_transit_rail_hatching",
-      "type": "line",
-      "source": "openmaptiles",
-      "source-layer": "transportation",
-      "filter": [
-        "all",
-        ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
-        ["==", ["get", "class"], "transit"]
-      ],
-      "paint": {
-        "line-color": "#bbb",
-        "line-dasharray": [0.2, 8],
-        "line-width": [
-          "interpolate",
-          ["exponential", 1.4],
-          ["zoom"],
-          14.5,
-          0,
-          15,
-          3,
-          20,
-          8
-        ]
-      }
-    },
-    {
       "id": "road_one_way_arrow",
       "type": "symbol",
       "source": "openmaptiles",
@@ -1696,6 +1574,83 @@
         "fill-color": "#fefefe",
         "fill-antialias": false,
         "fill-opacity": 1
+      }
+    },
+    {
+      "id": "road_transit_rail",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": [
+        "all",
+        ["match", ["get", "brunnel"], ["bridge", "tunnel"], false, true],
+        ["==", ["get", "class"], "transit"]
+      ],
+      "paint": {
+        "line-color": "rgba(71, 71, 71, 1)",
+        "line-width": [
+          "interpolate",
+          ["exponential", 1.4],
+          ["zoom"],
+          14,
+          0.4,
+          15,
+          0.75,
+          20,
+          2
+        ]
+      }
+    },
+    {
+      "id": "tunnel_transit_rail",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": [
+        "all",
+        ["==", ["get", "brunnel"], "tunnel"],
+        ["match", ["get", "class"], ["transit"], true, false]
+      ],
+      "paint": {
+        "line-color": "rgba(131, 131, 131, 1)",
+        "line-width": [
+          "interpolate",
+          ["exponential", 1.4],
+          ["zoom"],
+          14,
+          1,
+          15,
+          1,
+          20,
+          4
+        ]
+      }
+    },
+    {
+      "id": "tunnel_major_rail",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": [
+        "all",
+        ["==", ["get", "brunnel"], "tunnel"],
+        ["match", ["get", "class"], ["rail"], true, false]
+      ],
+      "paint": {
+        "line-color": "rgba(102, 102, 102, 1)",
+        "line-width": [
+          "interpolate",
+          ["exponential", 1.4],
+          ["zoom"],
+          10,
+          1,
+          14,
+          1,
+          15,
+          2,
+          20,
+          4
+        ]
       }
     },
     {
@@ -2124,43 +2079,17 @@
         ["==", ["get", "brunnel"], "bridge"]
       ],
       "paint": {
-        "line-color": "#bbb",
+        "line-color": "rgba(63, 63, 63, 1)",
         "line-width": [
           "interpolate",
           ["exponential", 1.4],
           ["zoom"],
           14,
-          0.4,
+          1,
           15,
-          0.75,
+          2,
           20,
-          2
-        ]
-      }
-    },
-    {
-      "id": "bridge_major_rail_hatching",
-      "type": "line",
-      "source": "openmaptiles",
-      "source-layer": "transportation",
-      "filter": [
-        "all",
-        ["==", ["get", "class"], "rail"],
-        ["==", ["get", "brunnel"], "bridge"]
-      ],
-      "paint": {
-        "line-color": "#bbb",
-        "line-dasharray": [0.2, 8],
-        "line-width": [
-          "interpolate",
-          ["exponential", 1.4],
-          ["zoom"],
-          14.5,
-          0,
-          15,
-          3,
-          20,
-          8
+          4
         ]
       }
     },
@@ -2345,17 +2274,19 @@
         ["==", ["get", "class"], "rail"]
       ],
       "paint": {
-        "line-color": "rgba(152, 152, 152, 1)",
+        "line-color": "rgba(104, 104, 104, 1)",
         "line-width": [
           "interpolate",
           ["exponential", 1.4],
           ["zoom"],
+          10,
+          2,
           14,
-          0.4,
+          1,
           15,
-          0.75,
+          2,
           20,
-          2
+          4
         ]
       }
     },
