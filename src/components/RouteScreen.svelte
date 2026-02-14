@@ -698,7 +698,7 @@
 
 				<div
 					on:click={() => change_active_pattern(directionparentid)}
-					class={`border border-gray-500 py-1 px-1 text-sm  hover:bg-seashore flex rounded-md min-w-36  leading-tight ${directionparentid == activePattern ? 'bg-seashore' : 'bg-white dark:bg-slate-800'}`}
+					class={`border border-gray-500 py-1 px-1 text-sm  hover:bg-seashore flex rounded-md min-w-36  leading-tight ${directionparentid == activePattern ? 'bg-seashore' : 'bg-white dark:bg-gray-800'}`}
 				>
 					<p>
 						<span>{titleCase(directionReference.direction_pattern.headsign_or_destination)}</span>
@@ -734,7 +734,7 @@
 						{#each vehicles_under_direction_id_parent[activePattern].sort() as vehicle_id}
 							{#if vehicle_positions[vehicle_id]}
 								<div
-									class="rounded-md bg-gray-100 dark:bg-gray-800 py-1 px-1"
+									class="rounded-md bg-gray-100 dark:bg-gray-800   py-1 px-1"
 									on:click={() => {
 										data_stack_store.update((data_stack) => {
 											data_stack.push(
@@ -942,8 +942,8 @@
 	</div>
 {:else}
 	<div class="w-full p-2 flex flex-col gap-y-2">
-		<div class="h-5 w-1/2 bg-slate-400 dark:bg-slate-800 rounded-lg animate-pulse"></div>
-		<div class="h-3 w-1/4 bg-slate-400 dark:bg-slate-800 rounded-lg animate-pulse"></div>
-		<div class="h-3 w-2/5 bg-slate-400 dark:bg-slate-800 rounded-lg animate-pulse"></div>
+		<div class="h-5 w-1/2 bg-gray-400 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+		<div class="h-3 w-1/4 bg-gray-400 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+		<div class="h-3 w-2/5 bg-gray-400 dark:bg-gray-800 rounded-lg animate-pulse"></div>
 	</div>
 {/if}

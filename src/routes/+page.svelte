@@ -1819,7 +1819,7 @@
 
 		{#key top_margin_collapser_sidebar}
 			<div
-				class="fixed hidden md:flex p-1 items-center rounded-r-md bg-white dark:bg-darksky text-black dark:text-white"
+				class="fixed hidden md:flex p-1 items-center rounded-r-md bg-white dark:bg-gray-900 text-black dark:text-white"
 				role="button"
 				aria-label="Toggle sidebar"
 				tabindex="0"
@@ -1856,7 +1856,7 @@
 			<div
 				id="catenary-sidebar"
 				style="height: {sidebar_height_output}; transform: translateX({translate_x_sidebar});"
-				class="z-20 rounded-t-2xl md:rounded-none fixed bottom-0 w-full sm:w-2/5 md:h-full md:w-[380px] bg-white dark:bg-slate-900 bg-opacity-70 dark:bg-opacity-70 md:bg-opacity-80 md:dark:bg-opacity-70 backdrop-blur-xs md:backdrop-blur-sm md:fixed md:left-0 md:top-0 md:bottom-0 text-black dark:text-white flex flex-col select-text"
+				class="z-20 rounded-t-2xl md:rounded-none fixed bottom-0 w-full sm:w-2/5 md:h-full md:w-[380px] bg-white dark:bg-gray-900 bg-opacity-70 dark:bg-opacity-70 md:bg-opacity-80 md:dark:bg-opacity-70 backdrop-blur-xs md:backdrop-blur-sm md:fixed md:left-0 md:top-0 md:bottom-0 text-black dark:text-white flex flex-col select-text"
 			>
 				<div
 					class="flex md:hidden py-2 flex-row"
@@ -1946,7 +1946,7 @@
 									on:click={(e) => {
 										e.preventDefault();
 									}}
-									class="leading-tight md:text-base rounded-lg text-black bg-white dark:text-white border border-gray-500 dark:bg-slate-800 shadow-sm shadow-slate-400 dark:shadow-slate-700 px-1 py-0.5"
+									class="leading-tight md:text-base rounded-lg text-black bg-white dark:text-white border border-gray-500 dark:bg-gray-800 shadow-sm shadow-gray-400 dark:shadow-gray-700 px-1 py-0.5"
 									style={`font-size: 0px;bottom: ${gpsbutton_bottom_offset_calc()}`}
 								>
 									<p class="leading-none">
@@ -2018,7 +2018,7 @@
 
 	<style>
 		body {
-			font-family: 'Noto Sans', sans-serif;
+			font-family: 'Arimo', 'Noto Sans', sans-serif;
 		}
 
 		.material-symbols-outlined {

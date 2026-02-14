@@ -126,7 +126,7 @@
 		<div class="flex flex-row gap-x-1 align-middle items-center">
 			{#if show_back_button == true}
 				<button
-					class="text-seashore dark:text-seashoredark text-sm cursor-pointer mx-2 inline-block align-middle"
+					class="text-black dark:text-white text-sm cursor-pointer mx-2 inline-block align-middle"
 					on:click={() => {
 						autocomplete_focus_state.set(false);
 						show_back_button = false;
@@ -151,7 +151,7 @@
 
 			{#if text_input.length == 0}
 				<button
-					class="text-seashore dark:text-seashoredark text-sm cursor-pointer mx-2 inline-block align-middle"
+					class="text-black dark:text-white text-sm cursor-pointer mx-2 inline-block align-middle"
 					on:click={() => {
 						data_stack_store.update((x) => {
 							x.push(new StackInterface(new SettingsStack()));
@@ -163,7 +163,7 @@
 				</button>
 			{:else}
 				<button
-					class="text-seashore dark:text-seashoredark text-sm cursor-pointer mx-2 inline-block align-middle"
+					class="text-black dark:text-white text-sm cursor-pointer mx-2 inline-block align-middle"
 					on:click={() => {
 						text_input = '';
 						text_input_store.set('');

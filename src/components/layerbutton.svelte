@@ -44,7 +44,7 @@
 			class:border-blue-500={layersettings[selectedSettingsTab][change][nestedchange] == true}
 			class:dark:border-blue-50={layersettings[selectedSettingsTab][change][nestedchange] == true}
 			class:border-transparent={layersettings[selectedSettingsTab][change][nestedchange] == false}
-			class={`bg-[#f5f1f0] dark:bg-[#1C2738] rounded-xl border-2`}
+			class={`bg-gray-100 dark:bg-gray-800 rounded-xl border-2`}
 		>
 			<img src={urlicon} class="w-14 h-14" alt="" />
 		</div>
@@ -55,7 +55,7 @@
 			class:border-blue-500={layersettings[selectedSettingsTab][change] == true}
 			class:dark:border-blue-50={layersettings[selectedSettingsTab][change] == true}
 			class:border-transparent={layersettings[selectedSettingsTab][change] == false}
-			class={`bg-[#f5f1f0] dark:bg-[#1C2738] rounded-xl border-2`}
+			class={`bg-gray-100 dark:bg-gray-800 rounded-xl border-2`}
 		>
 			<img src={urlicon} class="w-14 h-14" alt="" />
 		</div>

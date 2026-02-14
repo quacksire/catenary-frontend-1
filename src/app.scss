@@ -4,7 +4,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@100;200;300;400;500;600;700;800;900&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet');
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -64,7 +64,7 @@ html,
 body {
 	overscroll-behavior: none;
 	font-family:
-		'Noto Sans', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans SC', sans-serif;
+		'Arimo', 'Noto Sans', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans SC', sans-serif;
 }
 
 /*PROGRESS BAR*/
@@ -105,11 +105,11 @@ body {
 }
 
 @theme {
-	--color-darksky: #0a233f;
+	--color-darksky: var(--color-neutral-800);
 	--color-seashore: #00ab9b;
 	--color-seashoredark: #a5ece5;
-	--color-background: #06121f;
-	--color-hover: #1a334f;
+	--color-background: var(--color-neutral-800);
+	--color-hover: var(--color-neutral-800);
 
 	--animate-fade: fadeOut 1s ease-in-out;
 	--animate-progress: progress 1s infinite linear;
@@ -222,4 +222,32 @@ $icon-padding: 0.4em;
 			color: #fff;
 		}
 	}
+}
+
+
+@theme {
+  /* 1. Override the default 'gray' palette with 'neutral'.
+     In v4, simply mapping the color name updates the namespace. 
+     The '--color-gray-*' variables now point to the neutral values.
+  */
+  --color-gray-50: var(--color-neutral-50);
+  --color-gray-100: var(--color-neutral-100);
+  --color-gray-200: var(--color-neutral-200);
+  --color-gray-300: var(--color-neutral-300);
+  --color-gray-400: var(--color-neutral-400);
+  --color-gray-500: var(--color-neutral-500);
+  --color-gray-600: var(--color-neutral-600);
+  --color-gray-700: var(--color-neutral-700);
+  --color-gray-800: var(--color-neutral-800);
+  --color-gray-900: var(--color-neutral-900);
+  --color-gray-950: var(--color-neutral-950);
+
+  /* 2. Define Font Families.
+     v4 allows direct definition. The default sans/mono stacks 
+     are automatically appended if you don't fully overwrite, 
+     but listing them explicitly ensures order.
+  */
+  --font-sans: "Arimo", "Noto Sans", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  
+  --font-mono: "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace;
 }

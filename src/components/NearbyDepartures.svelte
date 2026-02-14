@@ -672,7 +672,7 @@
 				{#if item.type === 'station'}
 					{@const station = item.data}
 					<div
-						class="px-2 py-2 mb-2 bg-gray-100 dark:bg-gray-800 rounded-lg mx-2 border border-gray-300 dark:border-gray-700 shadow-sm"
+						class="px-2 py-2 mb-2 bg-gray-100 dark:bg-gray-800   rounded-lg mx-2 border border-gray-300 dark:border-gray-700 shadow-sm"
 					>
 						<div
 							class="flex flex-row justify-between items-center mb-2 border-b border-gray-300 dark:border-gray-600 pb-1"
@@ -863,7 +863,7 @@
 												return stack;
 											});
 										}}
-										class="text-sm bg-white dark:bg-darksky inline-block px-1 rounded-sm -translate-y-0.5 ml-1"
+										class="text-sm bg-white dark:bg-gray-900 inline-block px-1 rounded-sm -translate-y-0.5 ml-1"
 									>
 										<span class="material-symbols-outlined !text-sm align-middle select-none"
 											>distance</span
@@ -876,7 +876,7 @@
 							<div class="flex flex-row gap-x-1 overflow-x-auto catenary-scroll">
 								{#each trips as trip}
 									<button
-										class="bg-white dark:bg-darksky
+										class="bg-white dark:bg-gray-900
                                          hover:bg-blue-100 hover:dark:bg-hover
                                          mb-0.5 rounded-sm min-w-16 md:min-w-20 flex justify-center"
 										on:click={() => {
@@ -888,7 +888,7 @@
 															trip.trip_id,
 															route_group.route_id,
 															null,
-															new Date().toISOString().split('T')[0].replace(/-/g, ''),
+															trip.service_date,
 															null,
 															route_group.route_type
 														)

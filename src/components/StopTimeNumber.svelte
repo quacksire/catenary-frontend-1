@@ -90,7 +90,7 @@
 						<p class="text-right">
 							{#if variant !== 'sidebar'}
 								<span
-									class="text-xs align-middle mr-1 inline-block -translate-y-0.5 text-slate-600 dark:text-gray-400"
+									class="text-xs align-middle mr-1 inline-block -translate-y-0.5 text-gray-600 dark:text-gray-400"
 								>
 									{$_('arrival')}</span
 								>
@@ -162,7 +162,7 @@
 						<p class="text-right">
 							{#if variant !== 'sidebar'}
 								<span
-									class="text-xs align-middle mr-1 inline-block -translate-y-0.5 text-slate-600 dark:text-gray-400"
+									class="text-xs align-middle mr-1 inline-block -translate-y-0.5 text-gray-600 dark:text-gray-400"
 								>
 									{$_('departure')}</span
 								>

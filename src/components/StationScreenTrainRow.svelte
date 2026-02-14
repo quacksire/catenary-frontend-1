@@ -73,7 +73,7 @@
 				{#if shared_rt_time}
 					<!-- Vertical Mode: Scheduled -> Delay -> Realtime -->
 					{#if shared_rt_time != shared_scheduled_time}
-						<span class="text-slate-600 dark:text-gray-400 line-through text-xs">
+						<span class="text-gray-600 dark:text-gray-400 line-through text-xs">
 							<Clock {timezone} time_seconds={shared_scheduled_time} {show_seconds} />
 						</span>
 						{#if shared_scheduled_time}
