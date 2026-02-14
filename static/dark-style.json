@@ -2465,13 +2465,15 @@
       "type": "symbol",
       "source": "openmaptiles",
       "source-layer": "poi",
-      "minzoom": 17,
+      "minzoom": 15,
       "filter": [
         "all",
         ["match", ["geometry-type"], ["Point", "MultiPoint"], true, false],
         [">=", ["get", "rank"], 20],
         ["!=", ["get", "class"], "railway"],
-        ["!=", ["get", "class"], "bus"]
+        ["!=", ["get", "class"], "bus"],
+        ["!=", ["get", "class"], "parking"],
+        ["!=", ["get", "class"], "information"]
       ],
       "layout": {
         "text-anchor": "top",
@@ -2481,7 +2483,7 @@
           ["get", "name"],
           ["coalesce", ["get", "name"], ["get", "name_en"]]
         ],
-        "text-font": ["NotoSans-Italic"],
+        "text-font": ["NotoSans"],
         "text-max-width": 9,
         "text-offset": [0, 0.6],
         "text-size": 12,
@@ -2544,13 +2546,15 @@
       "type": "symbol",
       "source": "openmaptiles",
       "source-layer": "poi",
-      "minzoom": 16,
+      "minzoom": 15,
       "filter": [
         "all",
         ["match", ["geometry-type"], ["Point", "MultiPoint"], true, false],
         [">=", ["get", "rank"], 7],
         ["<", ["get", "rank"], 20],
-        ["!=", ["get", "class"], "bus"]
+        ["!=", ["get", "class"], "bus"],
+        ["!=", ["get", "class"], "parking"],
+        ["!=", ["get", "class"], "information"]
       ],
       "layout": {
         "text-anchor": "top",
@@ -2560,7 +2564,7 @@
           ["get", "name"],
           ["coalesce", ["get", "name"], ["get", "name_en"]]
         ],
-        "text-font": ["NotoSans-Italic"],
+        "text-font": ["NotoSans"],
         "text-max-width": 9,
         "text-offset": [0, 0.6],
         "text-size": 12,
@@ -2630,7 +2634,9 @@
         ["==", ["get", "rank"], 1],
         ["!=", ["get", "class"], "bus"],
         ["!=", ["get", "class"], "railway"],
-        ["!=", ["get", "class"], "metro"]
+        ["!=", ["get", "class"], "metro"],
+        ["!=", ["get", "class"], "parking"],
+        ["!=", ["get", "class"], "information"]
       ],
       "layout": {
         "icon-image": [
