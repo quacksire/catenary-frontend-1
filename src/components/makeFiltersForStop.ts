@@ -57,7 +57,11 @@ export const default_interrail_filter = [
 
 export const default_osm_interrail_filter = [
 	'all',
-	['==', ['get', 'railway_tag'], 'station'],
+	[
+		'any',
+		['==', ['get', 'railway_tag'], 'station'],
+		['==', ['get', 'railway_tag'], 'halt'],
+	],
 	['==', ['get', 'station_type'], 'railway'],
 	['==', ['get', 'mode_type'], 'intercity']
 ];
