@@ -355,14 +355,14 @@ export async function makeCircleLayers(map: Map, darkMode: boolean, layerspercat
 			'text-radial-offset': 0.2,
 			'text-font': {
 				stops: [
-					[6, ['NotoSans-Medium']],
-					[11, ['NotoSans-SemiBold']]
+					[6, ['Arimo-Medium']],
+					[11, ['Arimo-SemiBold']]
 				]
 			},
 			'text-size': bus_label_text_size,
-			'text-ignore-placement': ['step', ['zoom'], false, 10.5, true]
+			'text-ignore-placement': ['step', ['zoom'], false, 12.5, true]
 		},
-		minzoom: 10,
+		minzoom: 11,
 		paint: {
 			'text-color': textColorOfMapLabels(darkMode),
 			//'text-color': ['get', 'color'],
@@ -453,9 +453,9 @@ export async function makeCircleLayers(map: Map, darkMode: boolean, layerspercat
 			'text-font': [
 				'step',
 				['zoom'],
-				['literal', ['NotoSans-Regular']],
+				['literal', ['Arimo-Regular']],
 				9,
-				['literal', ['NotoSans-Bold']]
+				['literal', ['Arimo-Bold']]
 			],
 			'text-size': other_label_text_size,
 			'text-ignore-placement': ['step', ['zoom'], false, 9.5, true]
@@ -589,7 +589,7 @@ export async function makeCircleLayers(map: Map, darkMode: boolean, layerspercat
 			],*/
 			'text-variable-anchor': ['top'],
 			'text-radial-offset': 0,
-			'text-font': ['literal', ['NotoSans-Medium']],
+			'text-font': ['literal', ['Arimo-Medium']],
 			'text-size': tram_label_text_size,
 			'text-ignore-placement': ['step', ['zoom'], false, 9.5, true]
 		},
@@ -690,7 +690,7 @@ export async function makeCircleLayers(map: Map, darkMode: boolean, layerspercat
 			],*/
 			'text-variable-anchor': ['top'],
 			'text-radial-offset': 0,
-			'text-font': ['literal', ['NotoSans-Medium']],
+			'text-font': ['literal', ['Arimo-Medium']],
 			'text-size': metro_label_text_size,
 			'text-ignore-placement': ['step', ['zoom'], false, 9.5, true]
 		},
@@ -794,7 +794,7 @@ export async function makeCircleLayers(map: Map, darkMode: boolean, layerspercat
 			],*/
 			'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
 			'text-radial-offset': 0,
-			'text-font': ['literal', ['NotoSans-Medium']],
+			'text-font': ['literal', ['Arimo-Medium']],
 			'text-size': intercityrail_label_text_size,
 			'text-ignore-placement': ['step', ['zoom'], false, 9.5, true]
 		},

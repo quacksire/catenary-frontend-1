@@ -108,7 +108,7 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 				]
 				: ['coalesce', ['get', 'route_label']],
 			//'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
-			'text-font': ['literal', ['NotoSans-Regular']],
+			'text-font': ['literal', ['Arimo-Regular']],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 10, 5, 11, 7, 13, 10],
 			'text-ignore-placement': false,
 			'text-allow-overlap': false,
@@ -183,7 +183,7 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 			'symbol-placement': 'line',
 			'text-field': ['coalesce', ['get', 'route_label']],
 			//'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
-			'text-font': ['NotoSans-Medium'],
+			'text-font': ['Arimo-Medium'],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 3, 7, 9, 9, 13, 11],
 			'text-ignore-placement': false,
 
@@ -322,7 +322,7 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 			'symbol-placement': 'line',
 			'text-field': ['coalesce', ['get', 'route_label']],
 			//'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
-			'text-font': ['NotoSans-Bold'],
+			'text-font': ['Arimo-Bold'],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 3, 7, 9, 9, 13, 11],
 			'text-ignore-placement': false,
 			'symbol-spacing': ['step', ['zoom'], 20, 6, 40, 9, 70, 13, 80, 15, 100],
@@ -430,7 +430,7 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 			'symbol-placement': 'line',
 			'text-field': ['coalesce', ['get', 'route_label']],
 			//'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
-			'text-font': ['NotoSans-Bold'],
+			'text-font': ['Arimo-Bold'],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 3, 7, 9, 9, 13, 11],
 			'text-ignore-placement': false,
 			'symbol-spacing': ['step', ['zoom'], 20, 6, 40, 9, 70, 13, 80, 15, 100],
@@ -488,9 +488,9 @@ export function addShapes(map: maplibregl.Map, darkMode: boolean) {
 			'text-font': [
 				'step',
 				['zoom'],
-				['literal', ['NotoSans-SemiBold']],
+				['literal', ['Arimo-SemiBold']],
 				7,
-				['literal', ['NotoSans-Bold']]
+				['literal', ['Arimo-Bold']]
 			],
 			'text-size': ['interpolate', ['linear'], ['zoom'], 3, 6, 6, 7, 9, 9, 13, 11],
 			'text-ignore-placement': false,
