@@ -4,7 +4,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@100;200;300;400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet');
+@import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap');
 
 @custom-variant dark (&:where(.dark, .dark *));
 input[type='checkbox'] {
@@ -211,8 +211,7 @@ body::-webkit-scrollbar-thumb {
 html,
 body {
 	overscroll-behavior: none;
-	font-family:
-		'Arimo', 'Noto Sans', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans SC', sans-serif;
+	font-family: 'Arimo', 'Noto Sans', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans SC', sans-serif;
 }
 
 /*PROGRESS BAR*/
@@ -371,7 +370,6 @@ $icon-padding: 0.4em;
 		}
 	}
 }
-
 
 @theme {
   /* 1. Override the default 'gray' palette with 'neutral'.
