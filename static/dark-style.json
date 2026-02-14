@@ -28,7 +28,16 @@
     {
       "id": "background",
       "type": "background",
-      "paint": {"background-color": "#272828"}
+      "paint": {
+        "background-color": {
+          "stops": [
+            [6, "#292929"],
+            [7, "#202020"],
+            [14, "#101010"],
+            [20, "#202020"]
+          ]
+        }
+      }
     },
     {
       "id": "landcover-land",
@@ -201,7 +210,7 @@
       "type": "fill",
       "source": "openmaptiles",
       "source-layer": "landcover",
-      "minzoom": 9,
+      "minzoom": 11,
       "filter": [
         "all",
         ["==", ["get", "class"], "grass"],
