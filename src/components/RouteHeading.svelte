@@ -179,7 +179,7 @@
 
 		{#if pin_route_setting_shown}
 			<button
-				class={`shrink-0 rounded-full leading-none text-sm px-1 hover:bg-slate-100 dark:hover:bg-slate-700 border-2 border-gray-500 ${
+				class={`shrink-0 rounded-full leading-none text-sm px-1 hover:bg-gray-100 dark:hover:bg-gray-700 border-2 border-gray-500 ${
 					isPinned ? 'bg-blue-500' : ''
 				}`}
 				aria-pressed={isPinned}
@@ -226,7 +226,7 @@
 			<span
 				style:background-color={color}
 				style:color={text_color}
-				class="text-sm align-middle ml-1 bg-seashore dark:bg-darksky text-white px-1 rounded-md translate-y-0.5 inline-block"
+				class="text-sm align-middle ml-1 bg-seashore dark:bg-gray-900 text-white px-1 rounded-md translate-y-0.5 inline-block"
 			>
 				<span class="material-symbols-outlined !text-sm align-middle -translate-y-[0.03rem]"
 					>{#if route_type == 0}

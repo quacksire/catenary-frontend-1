@@ -99,7 +99,7 @@
 		<div class="flex gap-y-1 py-1 flex-col align-center">
 			{#each block_data.trips as trip, index}
 				<div
-					class={`border-t border-gray-300 dark:border-slate-700 py-1 align-center ${current_time > trip.end_time ? 'text-gray-800 dark:text-gray-300' : ''}`}
+					class={`border-t border-gray-300 dark:border-gray-700 py-1 align-center ${current_time > trip.end_time ? 'text-gray-800 dark:text-gray-300' : ''}`}
 				>
 					{#if block_data.routes[trip.route_id] && !single_route}
 						<p class=" align-center">
@@ -196,7 +196,7 @@
 				</div>
 
 				{#if block_data.trips[index + 1]}
-					<p class="flex flex-row text-gray-800 dark:text-slate-200">
+					<p class="flex flex-row text-gray-800 dark:text-gray-200">
 						<span class="material-symbols-outlined align-center text-xs"> self_improvement </span>
 
 						<TimeDiff

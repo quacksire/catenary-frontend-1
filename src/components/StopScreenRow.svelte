@@ -79,7 +79,7 @@
 				{#if vertical}
 					<!-- Vertical Mode: Scheduled -> Delay -> Realtime -->
 					{#if shared_rt_time != shared_scheduled_time}
-						<span class="text-slate-600 dark:text-gray-400 line-through text-xs">
+						<span class="text-gray-600 dark:text-gray-400 line-through text-xs">
 							<Clock
 								{timezone}
 								time_seconds={shared_scheduled_time}
@@ -118,7 +118,7 @@
 							<BullseyeArrow class_name="w-4 h-4 inline-block align-middle text-[#58A738]" />
 						{/if}
 						{#if shared_rt_time != shared_scheduled_time}
-							<span class="text-slate-600 dark:text-gray-400 line-through mr-1">
+							<span class="text-gray-600 dark:text-gray-400 line-through mr-1">
 								<Clock
 									{timezone}
 									time_seconds={shared_scheduled_time}
