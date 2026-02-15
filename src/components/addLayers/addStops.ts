@@ -559,7 +559,10 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 		filter: [
 			"all",
 			["==", ["get", "local_ref"], null],
-			["==", ["get", "station_type"], "station"],
+			['any',
+				["==", ["get", "station_type"], "station"],
+				["==", ["get", "station_type"], "halt"]
+			],
 			['==', ['get', 'mode_type'], 'rail']
 		],
 		minzoom: 7.5
@@ -598,7 +601,10 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 		filter: [
 			"all",
 			["==", ["get", "local_ref"], null],
-			["==", ["get", "station_type"], "station"],
+			['any',
+				["==", ["get", "station_type"], "station"],
+				["==", ["get", "station_type"], "halt"]
+			],
 			['==', ['get', 'mode_type'], 'rail']
 		],
 		minzoom: 8
