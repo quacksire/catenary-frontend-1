@@ -87,9 +87,9 @@
 	const enabledlayerstyle =
 		'text-black dark:text-white bg-blue-200 dark:bg-gray-700 border border-blue-800 dark:border-blue-200 text-sm md:text-sm';
 
-	let centerinit: LngLatLike = [-117.6969, 33.6969];
+	let centerinit: LngLatLike = [10.46, 51.89];
 
-	let zoominit = 12;
+	let zoominit = 3;
 
 	/*
 	const decode = (textToDecode: string) => {
