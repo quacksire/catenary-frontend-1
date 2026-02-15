@@ -2976,7 +2976,7 @@
         "text-field": [
           "case",
           ["has", "name:nonlatin"],
-          ["concat", ["get", "name:latin"], "\n", ["get", "name:nonlatin"]],
+          ["concat", ["get", "name:nonlatin"]],
           ["coalesce", ["get", "name"], ["get", "name_en"]]
         ],
         "text-font": ["Arimo-Italic"],
@@ -3046,7 +3046,7 @@
         "text-field": [
           "case",
           ["has", "name:nonlatin"],
-          ["concat", ["get", "name:latin"], "\n", ["get", "name:nonlatin"]],
+          ["concat", ["get", "name:nonlatin"]],
           ["coalesce", ["get", "name"], ["get", "name_en"]]
         ],
         "text-font": ["Arimo-Regular"],
@@ -3116,7 +3116,7 @@
         "text-field": [
           "case",
           ["has", "name:nonlatin"],
-          ["concat", ["get", "name:latin"], "\n", ["get", "name:nonlatin"]],
+          ["concat", ["get", "name:nonlatin"]],
           ["coalesce", ["get", "name"], ["get", "name_en"]]
         ],
         "text-font": ["Arimo-Regular"],
