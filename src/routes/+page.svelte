@@ -832,6 +832,9 @@
 		if (urlParams.get('style') == 'nothing') {
 			style = '/nothing-light.json';
 		}
+		if (urlParams.get('style') == 'dark2025') {
+			style = '/dark-style-old-2025.json';
+		}
 	}
 
 	function recompute_map_padding() {
