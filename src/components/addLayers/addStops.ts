@@ -476,7 +476,7 @@ export function addStopsLayers(map: Map, darkMode: boolean) {
 				['==', ['get', 'mode_type'], 'light_rail']
 			]
 		],
-		minzoom: 12
+		minzoom: 13
 	});
 
 	//INTERCITY RAIL
