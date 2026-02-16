@@ -1624,6 +1624,34 @@
 
 					if (map.getLayer('terrainpolygons')) {
 						map.setPaintProperty('terrainpolygons', 'fill-opacity', 1.0);
+
+						if (!darkMode) {
+							map.setPaintProperty('terrainpolygons', 'fill-color', [
+								"match",
+								["get", "class"],
+								["shadow"],
+								[
+									"interpolate",
+									["linear"],
+									["get", "level"],
+									56,
+									"hsla(0, 0%, 0%, 0.05)",
+									75,
+									"hsla(187, 0%, 12%, 0.05)"
+								],
+								["highlight"],
+								[
+									"interpolate",
+									["linear"],
+									["get", "level"],
+									56,
+									"hsla(251, 0%, 84%, 0.4)",
+									94,
+									"hsla(251, 0%, 100%, 0.04)"
+								],
+								"#000000"
+								]);
+						}
 					}
 
 					//if (window.innerWidth >= 768 || window.innerHeight >= 768) {
@@ -1653,6 +1681,32 @@
 							0.26
 						]);
 						} else {
+							map.setPaintProperty('terrainpolygons', 'fill-color', [
+								"match",
+								["get", "class"],
+								["shadow"],
+								[
+									"interpolate",
+									["linear"],
+									["get", "level"],
+									56,
+									"hsla(0, 0%, 0%, 0.005)",
+									75,
+									"hsla(187, 0%, 12%, 0.01)"
+								],
+								["highlight"],
+								[
+									"interpolate",
+									["linear"],
+									["get", "level"],
+									56,
+									"hsla(251, 0%, 84%, 0.1)",
+									94,
+									"hsla(251, 0%, 100%, 0.01)"
+								],
+								"#000000"
+								]);
+
 							map.setPaintProperty('terrainpolygons', 'fill-opacity', [
 							'interpolate',
 							['linear'],
