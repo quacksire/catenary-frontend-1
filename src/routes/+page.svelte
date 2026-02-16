@@ -1618,9 +1618,13 @@
 
 			show_topo_global_store.subscribe((value: boolean) => {
 				if (value === true) {
-					map.setLayoutProperty('hillshade', 'visibility', 'visible');
+					//	map.setLayoutProperty('hillshade', 'visibility', 'visible');
 					map.setLayoutProperty('contour-labels', 'visibility', 'visible');
 					map.setLayoutProperty('contours-layer', 'visibility', 'visible');
+
+					if (map.getLayer('terrainpolygons')) {
+						map.setPaintProperty('terrainpolygons', 'fill-opacity', 1.0);
+					}
 
 					//if (window.innerWidth >= 768 || window.innerHeight >= 768) {
 					map.setTerrain({ source: 'dem', exaggeration: 1 });
@@ -1632,6 +1636,38 @@
 
 					map.setLayoutProperty('contour-labels', 'visibility', 'none');
 					map.setLayoutProperty('contours-layer', 'visibility', 'none');
+
+					if (map.getLayer('terrainpolygons')) {
+						if (darkMode) {
+							map.setPaintProperty('terrainpolygons', 'fill-opacity', [
+							'interpolate',
+							['linear'],
+							['zoom'],
+							2,
+							0,
+							6.16,
+							1,
+							10.76,
+							0.66,
+							22,
+							0.26
+						]);
+						} else {
+							map.setPaintProperty('terrainpolygons', 'fill-opacity', [
+							'interpolate',
+							['linear'],
+							['zoom'],
+							2,
+							0,
+							6.16,
+							0.2,
+							10.76,
+							0.1,
+							22,
+							0.05
+						]);
+						}
+					}
 
 					map.setTerrain(null);
 				}
