@@ -196,6 +196,21 @@
 		refilter();
 	}
 
+	const LS_STATIONS_COLLAPSE_KEY = 'nearby_stations_collapsed_v1';
+
+	// Collapsed on first visit (no LS value yet)
+	let stationsCollapsed: boolean =
+		typeof window !== 'undefined'
+			? (localStorage.getItem(LS_STATIONS_COLLAPSE_KEY) ?? 'true') === 'true'
+			: true;
+
+	function setStationsCollapsed(next: boolean) {
+		stationsCollapsed = next;
+		if (typeof window !== 'undefined') {
+			localStorage.setItem(LS_STATIONS_COLLAPSE_KEY, String(next));
+		}
+	}
+
 	function currentReferenceCoord(): { lat: number; lng: number } | null {
 		const mode = get(nearby_pick_state_store);
 		if (mode === 1) {
@@ -703,82 +718,108 @@
 
 			{#each display_items as item}
 				<!-- STATION CARD (EUROSTYLE DESIGN) -->
-				{#if item.type === 'station'}
-					{@const station = item.data}
-					<div
-						class="px-2 py-2 mb-2 bg-gray-100 dark:bg-gray-800   rounded-lg mx-2 border border-gray-300 dark:border-gray-700 shadow-sm"
-					>
-						<div
-							class="flex flex-row justify-between items-center mb-2 border-b border-gray-300 dark:border-gray-600 pb-1"
+				{#if station_items.length > 0}
+					<div class="mx-2 mb-2 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700 shadow-sm">
+						<button
+							type="button"
+							class="w-full flex items-center justify-between px-2 py-2 text-left"
+							aria-expanded={!stationsCollapsed}
+							aria-controls="nearby-stations-collapsible"
+							on:click={() => setStationsCollapsed(!stationsCollapsed)}
 						>
 							<div class="flex flex-col">
-								<h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">
-									{station.station_name}
-								</h3>
-								<span class="text-xs text-gray-500 dark:text-gray-400"
-									>{(station.distance_m || 0).toFixed(0)}m</span
-								>
+								<!-- Does not say 'nearby' -->
+								<h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Stations</h3>
+								<span class="text-xs text-gray-500 dark:text-gray-400">
+									{station_items.length} {station_items.length === 1 ? 'station' : 'stations'}
+								</span>
 							</div>
+			
+							<span class="material-symbols-outlined text-gray-700 dark:text-gray-300 select-none">
+								{#if stationsCollapsed}
+									expand_more
+								{:else}
+									expand_less
+								{/if}
+							</span>
+						</button>
+			
+						<div id="nearby-stations-collapsible" class={stationsCollapsed ? 'hidden' : ''}>
+							{#each station_items as item}
+								{@const station = item.data}
+								<div
+									class="px-2 py-2 mb-2 bg-gray-100 dark:bg-gray-800 rounded-lg mx-2 border border-gray-300 dark:border-gray-700 shadow-sm"
+								>
+									<div
+										class="flex flex-row justify-between items-center mb-2 border-b border-gray-300 dark:border-gray-600 pb-1"
+									>
+										<div class="flex flex-col">
+											<h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">
+												{station.station_name}
+											</h3>
+											<span class="text-xs text-gray-500 dark:text-gray-400">
+												{(station.distance_m || 0).toFixed(0)}m
+											</span>
+										</div>
+									</div>
+			
+									<table class="w-full text-left border-collapse">
+										<tbody>
+											{#each station.departures.filter((d) => !d.last_stop).slice(0, 10) as departure}
+												<StationScreenTrainRowCompact
+													platform={departure.platform}
+													eurostyle={is_inside_eurostyle}
+													event={{
+														chateau: departure.chateau_id,
+														trip_id: departure.trip_id,
+														route_id: departure.route_id,
+														headsign: departure.headsign,
+														scheduled_departure: departure.scheduled_departure,
+														realtime_departure: getEffectiveStationRealtimeDeparture(departure),
+														service_date: departure.service_date,
+			
+														trip_cancelled: departure.cancelled,
+														trip_deleted: false,
+														stop_cancelled: false,
+														trip_short_name: departure.trip_short_name
+													}}
+													show_timediff={false}
+													show_agency_name={false}
+													data_from_server={{
+														routes: v3_routes,
+														agencies: v3_agencies,
+														stops: v3_stops
+													}}
+													current_time={current_time / 1000}
+													show_seconds={false}
+													timezone={station.timezone}
+												/>
+											{/each}
+										</tbody>
+									</table>
+			
+									{#if station.departures.length > 0}
+										<button
+											class="w-full mt-2 py-1.5 text-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 rounded transition-colors"
+											on:click={() => {
+												data_stack_store.update((stack) => {
+													stack.push(
+														new StackInterface(
+															new StopStack(station.departures[0].chateau_id, station.departures[0].stop_id)
+														)
+													);
+													return stack;
+												});
+											}}
+										>
+											{$_('more_departures')}
+										</button>
+									{/if}
+								</div>
+							{/each}
 						</div>
-
-						<table class="w-full text-left border-collapse">
-							<tbody>
-								{#each station.departures.filter((d) => !d.last_stop).slice(0, 10) as departure}
-									<StationScreenTrainRowCompact
-										platform={departure.platform}
-										eurostyle={is_inside_eurostyle}
-										event={{
-											chateau: departure.chateau_id,
-											trip_id: departure.trip_id,
-											route_id: departure.route_id,
-											headsign: departure.headsign,
-											scheduled_departure: departure.scheduled_departure,
-											realtime_departure: getEffectiveStationRealtimeDeparture(departure),
-											service_date: departure.service_date,
-
-											trip_cancelled: departure.cancelled,
-											trip_deleted: false,
-											stop_cancelled: false,
-											trip_short_name: departure.trip_short_name
-										}}
-										show_timediff={false}
-										show_agency_name={false}
-										data_from_server={{
-											routes: v3_routes,
-											agencies: v3_agencies,
-											stops: v3_stops
-										}}
-										current_time={current_time / 1000}
-										show_seconds={false}
-										timezone={station.timezone}
-									/>
-								{/each}
-							</tbody>
-						</table>
-
-						<!-- More departures now needs CHATEAU and STOP ID. 
-                             Using FIRST departure as guess, or disabling if empty. -->
-						{#if station.departures.length > 0}
-							<button
-								class="w-full mt-2 py-1.5 text-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 rounded transition-colors"
-								on:click={() => {
-									data_stack_store.update((stack) => {
-										stack.push(
-											new StackInterface(
-												new StopStack(
-													station.departures[0].chateau_id,
-													station.departures[0].stop_id
-												)
-											)
-										);
-										return stack;
-									});
-								}}
-							>
-								{$_('more_departures')}
-							</button>
-						{/if}
 					</div>
+				{/if}
 
 					<!-- LOCAL ROUTE CARD (NORMAL DESIGN) -->
 				{:else if item.type === 'route_group'}
