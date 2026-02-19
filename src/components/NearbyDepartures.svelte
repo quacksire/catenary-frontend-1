@@ -187,8 +187,8 @@
 
 	let sortMode: SortMode =
 		typeof window !== 'undefined'
-			? (localStorage.getItem(LS_SORT_KEY) as SortMode) || 'alpha'
-			: 'distance';
+			? (localStorage.getItem(LS_SORT_KEY) as SortMode) || 'distance'
+			: 'alpha';
 
 	function setSortMode(next: SortMode) {
 		sortMode = next;
@@ -605,6 +605,19 @@
 		{/if}
 
 		<div class="ml-auto pr-2 flex items-center gap-2">
+			<!-- Distance should always be first, as that is ALWAYS relevant to the everyday user. -->
+			<button
+					class={`px-2 py-1 text-sm flex items-center gap-1 border-l-2 border-gray-400 dark:border-gray-600
+				${sortMode === 'distance' ? 'bg-blue-300 dark:bg-blue-500 bg-opacity-80' : 'bg-gray-300 dark:bg-gray-800'}
+				text-gray-800 dark:text-gray-200`}
+					aria-pressed={sortMode === 'distance'}
+					on:click={() => setSortMode('distance')}
+					title="Sort by Distance"
+				>
+					<span class="material-symbols-outlined text-base leading-none -translate-y-0.5"
+						>straighten</span
+					>
+			</button>
 			<div class="flex rounded-full overflow-hidden border-2 border-gray-400 dark:border-gray-600">
 				<button
 					class={`px-2 py-1 text-sm flex items-center gap-1
@@ -618,18 +631,7 @@
 						>sort_by_alpha</span
 					>
 				</button>
-				<button
-					class={`px-2 py-1 text-sm flex items-center gap-1 border-l-2 border-gray-400 dark:border-gray-600
-				${sortMode === 'distance' ? 'bg-blue-300 dark:bg-blue-500 bg-opacity-80' : 'bg-gray-300 dark:bg-gray-800'}
-				text-gray-800 dark:text-gray-200`}
-					aria-pressed={sortMode === 'distance'}
-					on:click={() => setSortMode('distance')}
-					title="Sort by Distance"
-				>
-					<span class="material-symbols-outlined text-base leading-none -translate-y-0.5"
-						>straighten</span
-					>
-				</button>
+				
 			</div>
 
 			<button
@@ -700,7 +702,7 @@
 			<TidbitSidebarCard />
 
 			{#each display_items as item}
-				<!-- STATION CARD -->
+				<!-- STATION CARD (EUROSTYLE DESIGN) -->
 				{#if item.type === 'station'}
 					{@const station = item.data}
 					<div
@@ -778,7 +780,7 @@
 						{/if}
 					</div>
 
-					<!-- LOCAL ROUTE CARD (REVERTED DESIGN) -->
+					<!-- LOCAL ROUTE CARD (NORMAL DESIGN) -->
 				{:else if item.type === 'route_group'}
 					{@const route_group = item.data}
 					{@const isSubway =
