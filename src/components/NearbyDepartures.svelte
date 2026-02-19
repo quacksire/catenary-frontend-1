@@ -187,8 +187,8 @@
 
 	let sortMode: SortMode =
 		typeof window !== 'undefined'
-			? (localStorage.getItem(LS_SORT_KEY) as SortMode) || 'alpha'
-			: 'distance';
+			? (localStorage.getItem(LS_SORT_KEY) as SortMode) || 'distance'
+			: 'alpha';
 
 	function setSortMode(next: SortMode) {
 		sortMode = next;
@@ -606,18 +606,7 @@
 
 		<div class="ml-auto pr-2 flex items-center gap-2">
 			<div class="flex rounded-full overflow-hidden border-2 border-gray-400 dark:border-gray-600">
-				<button
-					class={`px-2 py-1 text-sm flex items-center gap-1
-				${sortMode === 'alpha' ? 'bg-blue-300 dark:bg-blue-500 bg-opacity-80' : 'bg-gray-300 dark:bg-gray-800'}
-				text-gray-800 dark:text-gray-200`}
-					aria-pressed={sortMode === 'alpha'}
-					on:click={() => setSortMode('alpha')}
-					title="Sort A–Z"
-				>
-					<span class="material-symbols-outlined text-base leading-none -translate-y-0.5"
-						>sort_by_alpha</span
-					>
-				</button>
+				<!-- Distance will ALWAYS be relevant to the user. We can offer other sort, but relevance first. --> 
 				<button
 					class={`px-2 py-1 text-sm flex items-center gap-1 border-l-2 border-gray-400 dark:border-gray-600
 				${sortMode === 'distance' ? 'bg-blue-300 dark:bg-blue-500 bg-opacity-80' : 'bg-gray-300 dark:bg-gray-800'}
@@ -628,6 +617,18 @@
 				>
 					<span class="material-symbols-outlined text-base leading-none -translate-y-0.5"
 						>straighten</span
+					>
+				</button>
+				<button
+					class={`px-2 py-1 text-sm flex items-center gap-1
+				${sortMode === 'alpha' ? 'bg-blue-300 dark:bg-blue-500 bg-opacity-80' : 'bg-gray-300 dark:bg-gray-800'}
+				text-gray-800 dark:text-gray-200`}
+					aria-pressed={sortMode === 'alpha'}
+					on:click={() => setSortMode('alpha')}
+					title="Sort A–Z"
+				>
+					<span class="material-symbols-outlined text-base leading-none -translate-y-0.5"
+						>sort_by_alpha</span
 					>
 				</button>
 			</div>
@@ -701,6 +702,7 @@
 
 			{#each display_items as item}
 				<!-- STATION CARD -->
+				<!-- TODO: takes up too much screen real estae on mobile. User needs to scroll signficantlyp ast EVERY STATION in order to get to the nearby departures of a stop near them. Consider allowing collapsing --> 
 				{#if item.type === 'station'}
 					{@const station = item.data}
 					<div
