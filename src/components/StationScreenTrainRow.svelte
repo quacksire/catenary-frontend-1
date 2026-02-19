@@ -133,16 +133,12 @@
 			<div
 				class="flex flex-row text-sm text-gray-600 dark:text-gray-400 gap-2 items-center flex-wrap"
 			>
-				{#if show_route_name}
+				{#if show_route_name && routeDef?.short_name}
 					<span
 						class="rounded-xs font-bold px-1 py-0.5 text-sm"
 						style={`background: ${routeDef?.color}; color: ${routeDef?.text_color};`}
 					>
-						{#if routeDef?.short_name}
-							{routeDef?.short_name}
-						{:else}
-							{routeDef?.long_name}
-						{/if}
+						{routeDef?.short_name}
 					</span>
 				{/if}
 
@@ -177,6 +173,15 @@
 					{:else}
 						<span>{agencyName}</span>
 					{/if}
+				{/if}
+				{#if show_route_name && !routeDef?.short_name}
+					<span class="opacity-80">•</span>
+					<span
+						class="font-bold px-1 py-0.5 rounded-xs text-xs"
+						style={`background: ${routeDef?.color}; color: ${routeDef?.text_color};`}
+					>
+						{routeDef?.long_name}
+					</span>
 				{/if}
 			</div>
 		</div>

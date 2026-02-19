@@ -52,6 +52,18 @@
 		});
 	}}
 >
+	<!-- Leftmost: Route Name -->
+	<td class="px-1 py-0.5 w-[40px] align-middle text-center">
+		{#if show_route_name && routeDef?.short_name}
+			<span
+				class="rounded-xs font-bold px-1 py-0.5 text-xs inline-block min-w-[24px]"
+				style={`background: ${routeDef?.color}; color: ${routeDef?.text_color};`}
+			>
+				{routeDef?.short_name.replace(' Line', '')}
+			</span>
+		{/if}
+	</td>
+
 	<!-- Left: Time (Vertical Stack) -->
 	<td class="px-1 py-0.5 w-[70px] align-middle">
 		<div class="flex flex-col items-start justify-center text-xs">
@@ -134,18 +146,6 @@
 			<div
 				class="flex flex-row text-xs text-gray-600 dark:text-gray-400 gap-2 items-center flex-wrap"
 			>
-				{#if show_route_name}
-					<span
-						class="rounded-xs font-bold px-1 py-0.5 text-xs"
-						style={`background: ${routeDef?.color}; color: ${routeDef?.text_color};`}
-					>
-						{#if routeDef?.short_name}
-							{routeDef?.short_name} <!-- .replace(' Line', '') -- we don't remove "Line" for consistency with StationScreenTrainRow -->
-						{:else}
-							{routeDef?.long_name}
-						{/if}
-					</span>
-				{/if}
 				{#if agencyName && show_agency_name}
 					{#if agencyId === 'GWR' || agencyName?.trim().toLowerCase() === 'gwr'}
 						<img
@@ -177,6 +177,15 @@
 					{:else}
 						<span>{agencyName}</span>
 					{/if}
+				{/if}
+				{#if show_route_name && !routeDef?.short_name}
+					<span class="opacity-80">•</span>
+					<span
+						class="font-bold px-1 py-0.5 rounded-xs text-xs"
+						style={`background: ${routeDef?.color}; color: ${routeDef?.text_color};`}
+					>
+						{routeDef?.long_name}
+					</span>
 				{/if}
 			</div>
 		</div>
