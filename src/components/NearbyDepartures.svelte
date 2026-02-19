@@ -211,6 +211,8 @@
 		}
 	}
 
+	$: station_items = display_items.filter((i: any) => i.type === 'station');
+
 	function currentReferenceCoord(): { lat: number; lng: number } | null {
 		const mode = get(nearby_pick_state_store);
 		if (mode === 1) {
@@ -716,9 +718,8 @@
 		<div class="flex flex-col">
 			<TidbitSidebarCard />
 
-			{#each display_items as item}
-				<!-- STATION CARD (EUROSTYLE DESIGN) -->
-				{#if station_items.length > 0}
+			<!-- STATION CARD (EUROSTYLE DESIGN) -->
+			{#if station_items.length > 0}
 					<div class="mx-2 mb-2 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700 shadow-sm">
 						<button
 							type="button"
@@ -819,10 +820,11 @@
 							{/each}
 						</div>
 					</div>
-				{/if}
+			{/if}
 
-					<!-- LOCAL ROUTE CARD (NORMAL DESIGN) -->
-				{:else if item.type === 'route_group'}
+			{#each display_items as item}
+				<!-- LOCAL ROUTE CARD (NORMAL DESIGN) -->
+				{#if item.type === 'route_group'}
 					{@const route_group = item.data}
 					{@const isSubway =
 						route_group.chateau_id === MTA_CHATEAU_ID && isSubwayRouteId(route_group.route_id)}
